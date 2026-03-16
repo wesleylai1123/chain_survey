@@ -1,0 +1,66 @@
+[
+  {
+    "name": "台積電先進製程漲價",
+    "severity": 1.0,
+    "rules": [
+      {
+        "relation": "supplier_of",
+        "source": "台積電",
+        "direction": "負向",
+        "base_score": 0.95,
+        "sensitivity": 1.0,
+        "reason": "先進製程成本上升，IC設計客戶毛利承壓"
+      }
+    ]
+  },
+  {
+    "name": "記憶體報價上漲 15%",
+    "severity": 0.8,
+    "rules": [
+      {
+        "relation": "supplier_of",
+        "target": "聯發科",
+        "direction": "負向",
+        "base_score": 0.7,
+        "sensitivity": 0.9,
+        "reason": "BOM 成本上升，手機平台成本壓力增加"
+      }
+    ]
+  },
+  {
+    "name": "中國手機補貼政策加碼",
+    "severity": 1.1,
+    "rules": [
+      {
+        "relation": "customer_of",
+        "source": "聯發科",
+        "direction": "正向",
+        "base_score": 0.8,
+        "sensitivity": 1.0,
+        "reason": "手機品牌拉貨提升，SoC 平台需求改善"
+      }
+    ]
+  },
+  {
+    "name": "Android 手機需求回溫",
+    "severity": 1.0,
+    "rules": [
+      {
+        "relation": "customer_of",
+        "source": "聯發科",
+        "direction": "正向",
+        "base_score": 0.75,
+        "sensitivity": 1.0,
+        "reason": "品牌客戶拉貨增加，帶動 SoC 與周邊晶片出貨"
+      },
+      {
+        "relation": "supplier_of",
+        "target": "聯發科",
+        "direction": "正向",
+        "base_score": 0.35,
+        "sensitivity": 0.8,
+        "reason": "聯發科需求增加後，封測、載板與部分供應商同步受惠"
+      }
+    ]
+  }
+]

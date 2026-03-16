@@ -1,0 +1,30 @@
+source,source_type,relation,target,target_type,weight
+聯發科,company,produces,Dimensity,product,1.0
+聯發科,company,produces,Wi-Fi/Bluetooth Combo,product,0.7
+聯發科,company,produces,PMIC,product,0.7
+聯發科,company,produces,ASIC,product,0.5
+台積電,company,supplier_of,聯發科,company,0.95
+日月光投控,company,supplier_of,聯發科,company,0.7
+欣興,company,supplier_of,聯發科,company,0.6
+南電,company,supplier_of,聯發科,company,0.55
+景碩,company,supplier_of,聯發科,company,0.45
+三星電子,company,supplier_of,聯發科,company,0.4
+SK hynix,company,supplier_of,聯發科,company,0.45
+美光,company,supplier_of,聯發科,company,0.35
+聯發科,company,customer_of,小米,company,0.8
+聯發科,company,customer_of,OPPO,company,0.7
+聯發科,company,customer_of,vivo,company,0.7
+聯發科,company,customer_of,傳音,company,0.85
+Dimensity,product,exposed_to,中國中高階手機市場,market,0.8
+Dimensity,product,exposed_to,印度智慧手機市場,market,0.7
+Dimensity,product,depends_on,3nm/4nm Wafer,product,0.9
+Dimensity,product,depends_on,ABF Substrate,product,0.8
+Dimensity,product,depends_on,DRAM/NAND,product,0.7
+台積電,company,produces,3nm/4nm Wafer,product,1.0
+日月光投控,company,produces,Advanced Packaging,product,0.9
+欣興,company,produces,ABF Substrate,product,0.9
+南電,company,produces,ABF Substrate,product,0.85
+景碩,company,produces,ABF Substrate,product,0.75
+三星電子,company,produces,DRAM/NAND,product,0.95
+SK hynix,company,produces,DRAM/NAND,product,0.95
+美光,company,produces,DRAM/NAND,product,0.9

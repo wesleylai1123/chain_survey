@@ -1,0 +1,14 @@
+name,ticker,country,sector,industry,description,key_drivers
+聯發科,2454.TW,Taiwan,Semiconductor,IC Design,主要產品包含手機SoC、Connectivity、PMIC與ASIC,Android手機需求|台積電先進製程價格|記憶體價格|中國補貼政策
+台積電,2330.TW,Taiwan,Semiconductor,Foundry,全球領先晶圓代工廠,先進製程稼動率|AI/HPC需求|資本支出|先進封裝供給
+日月光投控,3711.TW,Taiwan,Semiconductor,OSAT,全球主要封測與先進封裝服務供應商,先進封裝需求|手機SoC出貨|AI封裝滲透
+欣興,3037.TW,Taiwan,Electronics,ABF Substrate,ABF載板供應商,ABF稼動率|AI Server與高階手機需求
+南電,8046.TW,Taiwan,Electronics,ABF Substrate,高階ABF載板與BT載板供應商,高階封裝需求|AI Server|手機SoC平台升級
+景碩,3189.TW,Taiwan,Electronics,ABF Substrate,IC載板供應商,ABF價格|手機與網通晶片需求
+三星電子,005930.KS,Korea,Semiconductor,Memory/Device,記憶體與手機品牌大廠,DRAM/NAND價格|智慧手機銷售
+SK hynix,000660.KS,Korea,Semiconductor,Memory,DRAM與HBM重要供應商,記憶體價格|AI與手機記憶體需求
+美光,MU,USA,Semiconductor,Memory,全球記憶體供應商,DRAM/NAND價格循環|庫存去化
+小米,1810.HK,China,Consumer Electronics,Smartphone Brand,中國與海外手機品牌,中國補貼|中高階手機銷售|ASP
+OPPO,PRIVATE,China,Consumer Electronics,Smartphone Brand,中國手機品牌,Android需求|產品組合
+vivo,PRIVATE,China,Consumer Electronics,Smartphone Brand,中國手機品牌,Android需求|中國線下通路
+傳音,688036.SS,China,Consumer Electronics,Smartphone Brand,新興市場手機品牌,印度與非洲需求|中低階SoC需求

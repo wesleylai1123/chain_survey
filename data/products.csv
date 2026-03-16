@@ -1,0 +1,9 @@
+name,category,application,description
+Dimensity,Mobile SoC,Smartphone,聯發科智慧手機SoC平台
+Wi-Fi/Bluetooth Combo,Connectivity,Smartphone/PC/IoT,無線連網晶片
+PMIC,Power IC,Smartphone,電源管理晶片
+ASIC,Custom Chip,Networking/AI,客製化晶片
+3nm/4nm Wafer,Foundry Input,Semiconductor,先進製程晶圓產能
+Advanced Packaging,Packaging,Semiconductor,先進封裝服務
+ABF Substrate,Material,Semiconductor,高階晶片載板
+DRAM/NAND,Memory,Smartphone/Server,記憶體元件
