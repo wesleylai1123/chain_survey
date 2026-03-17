@@ -1,40 +1,69 @@
-# Fundamental Chain Reaction Platform (Streamlit MVP)
+# Fundamental Chain Reaction Platform
 
-這是一個可直接啟動的 Streamlit MVP，用來做：
+A cross-platform desktop GUI for exploring company relationships, event propagation, and basic financial snapshots.
 
-- 公司基本面查詢
-- 上下游供應鏈圖譜
-- 事件衝擊模擬
-- 基本面儀表板
+## Features
 
-## 功能頁面
+- Company explorer with profile, products, upstream/downstream links, and financial trend chart
+- Event simulator with impact scores and affected-company table
+- Relationship graph viewer centered on a selected company
+- Runs as a local desktop app on Windows, macOS, and WSL Ubuntu 24.04 with GUI support
 
-1. 公司總覽
-2. 供應鏈圖譜
-3. 事件模擬器
-4. 基本面儀表板
+## Requirements
 
-## 安裝
+- Python 3.11+ recommended
+- `tkinter` available in the Python runtime
+- On WSL Ubuntu 24.04, GUI support via WSLg or another X server
+
+## Install
+
+```bash
+python -m venv .venv
+```
+
+Activate the environment:
+
+```bash
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+```bash
+# macOS / WSL Ubuntu
+source .venv/bin/activate
+```
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 啟動
+## Run
 
 ```bash
-streamlit run app/main.py
+python app/main.py
 ```
 
-## 資料結構
+## WSL Ubuntu 24.04 Notes
 
-- `data/companies.csv`: 公司基本資料
-- `data/products.csv`: 產品資料
-- `data/edges.csv`: 公司 / 產品 / 市場 / 事件之間的關係
-- `data/events.json`: 事件模板
-- `data/financials.csv`: 基本面指標
+- If you use modern WSL on Windows 11, WSLg usually provides GUI support out of the box.
+- If `tkinter` is missing, install it with:
 
-## 關係類型
+```bash
+sudo apt update
+sudo apt install -y python3-tk
+```
+
+## Data Files
+
+- `data/companies.csv`: company master data
+- `data/products.csv`: product catalog
+- `data/edges.csv`: relationship edges across companies, products, and markets
+- `data/events.json`: event simulation definitions
+- `data/financials.csv`: financial snapshot history
+
+## Relationship Types
 
 - `produces`
 - `supplier_of`
@@ -42,10 +71,3 @@ streamlit run app/main.py
 - `depends_on`
 - `belongs_to`
 - `exposed_to`
-
-## 後續可以擴充
-
-- 串接 FinMind / TWSE / FRED
-- Neo4j 圖資料庫
-- 新聞與法說會摘要
-- 自動建立事件規則
