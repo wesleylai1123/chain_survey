@@ -1,0 +1,13 @@
+source_company,relation,target_company,weight
+台積電,supplier_of,聯發科,0.95
+日月光投控,supplier_of,聯發科,0.70
+欣興,supplier_of,聯發科,0.60
+南電,supplier_of,聯發科,0.55
+景碩,supplier_of,聯發科,0.45
+三星電子,supplier_of,聯發科,0.40
+SK hynix,supplier_of,聯發科,0.45
+美光,supplier_of,聯發科,0.35
+聯發科,customer_of,小米,0.80
+聯發科,customer_of,OPPO,0.70
+聯發科,customer_of,vivo,0.70
+聯發科,customer_of,傳音,0.85

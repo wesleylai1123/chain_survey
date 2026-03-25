@@ -1,0 +1,253 @@
+[
+  {
+    "event_id": "tsmc_advanced_node_price_hike",
+    "name": "台積電先進製程漲價",
+    "description": "晶圓代工先進製程報價上調，先從 IC 設計公司成本端反映，再逐層傳導到終端品牌與周邊供應鏈。",
+    "severity": 1.0,
+    "max_layers": 3,
+    "seed_rules": [
+      {
+        "match": {
+          "relation": "supplier_of",
+          "source": "台積電",
+          "target": "聯發科"
+        },
+        "impact_on": "target",
+        "sentiment": "negative",
+        "base_score": 0.95,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "reason": "先進製程成本上升，IC 設計客戶毛利承壓。"
+      }
+    ],
+    "industry_sensitivity": {
+      "IC Design": 1.2,
+      "Foundry": 0.9,
+      "Smartphone Brand": 0.8,
+      "ABF Substrate": 0.9,
+      "Memory": 0.75,
+      "OSAT": 0.95
+    },
+    "sector_sensitivity": {
+      "Semiconductor": 1.0,
+      "Consumer Electronics": 0.8
+    },
+    "relation_overrides": {
+      "customer_of": {
+        "forward_decay": 0.74,
+        "reverse_decay": 0.82
+      }
+    }
+  },
+  {
+    "event_id": "memory_price_up_15pct",
+    "name": "記憶體報價上漲 15%",
+    "description": "記憶體價格上升先推升平台 BOM 成本，再影響品牌 ASP、毛利和拉貨節奏。",
+    "severity": 0.8,
+    "max_layers": 3,
+    "seed_rules": [
+      {
+        "match": {
+          "relation": "supplier_of",
+          "target": "聯發科"
+        },
+        "impact_on": "target",
+        "sentiment": "negative",
+        "base_score": 0.7,
+        "sensitivity": 0.9,
+        "start_lag": 0,
+        "reason": "BOM 成本上升，手機平台成本壓力增加。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Memory": 1.15,
+      "IC Design": 1.1,
+      "Smartphone Brand": 0.85
+    },
+    "sector_sensitivity": {
+      "Semiconductor": 1.0,
+      "Consumer Electronics": 0.85
+    },
+    "relation_overrides": {}
+  },
+  {
+    "event_id": "china_smartphone_subsidy_boost",
+    "name": "中國手機補貼政策加碼",
+    "description": "中國智慧手機需求受政策刺激回升，先帶動品牌拉貨，再回傳至 SoC、封測、載板與記憶體需求。",
+    "severity": 1.1,
+    "max_layers": 3,
+    "seed_rules": [
+      {
+        "match": {
+          "relation": "customer_of",
+          "source": "聯發科"
+        },
+        "impact_on": "target",
+        "sentiment": "positive",
+        "base_score": 0.8,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "allow_backflow": true,
+        "reason": "手機品牌拉貨提升，品牌與 SoC 平台需求改善。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Smartphone Brand": 1.2,
+      "IC Design": 1.1,
+      "ABF Substrate": 0.95,
+      "OSAT": 0.95,
+      "Memory": 0.9
+    },
+    "sector_sensitivity": {
+      "Consumer Electronics": 1.15,
+      "Semiconductor": 0.95
+    },
+    "relation_overrides": {
+      "supplier_of": {
+        "reverse_decay": 0.8
+      }
+    }
+  },
+  {
+    "event_id": "android_demand_recovery",
+    "name": "Android 手機需求回溫",
+    "description": "Android 終端需求回升，從品牌拉貨改善一路傳導到 SoC、封測、載板與記憶體供應鏈。",
+    "severity": 1.0,
+    "max_layers": 3,
+    "seed_rules": [
+      {
+        "match": {
+          "relation": "customer_of",
+          "source": "聯發科"
+        },
+        "impact_on": "target",
+        "sentiment": "positive",
+        "base_score": 0.75,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "allow_backflow": true,
+        "reason": "品牌客戶拉貨增加，帶動終端出貨與平台需求。"
+      },
+      {
+        "match": {
+          "relation": "supplier_of",
+          "target": "聯發科"
+        },
+        "impact_on": "source",
+        "sentiment": "positive",
+        "base_score": 0.35,
+        "sensitivity": 0.8,
+        "start_lag": 1,
+        "reason": "聯發科需求增加後，封測、載板與部分上游供應商同步受惠。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Smartphone Brand": 1.1,
+      "IC Design": 1.1,
+      "OSAT": 0.95,
+      "ABF Substrate": 0.95,
+      "Memory": 0.9
+    },
+    "sector_sensitivity": {
+      "Consumer Electronics": 1.05,
+      "Semiconductor": 1.0
+    },
+    "relation_overrides": {}
+  },
+  {
+    "event_id": "global_handset_demand_slowdown",
+    "name": "全球智慧手機需求轉弱",
+    "description": "全球智慧手機終端需求下修，先衝擊品牌、手機市場與平台產品，再逐步傳導至 SoC、封測、載板與記憶體供應鏈。",
+    "severity": 1.0,
+    "max_layers": 3,
+    "seed_rules": [],
+    "macro_seed_rules": [
+      {
+        "factor_id": "global_handset_demand",
+        "entity_types": ["company", "product", "market"],
+        "sentiment": "negative",
+        "base_score": 0.85,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "reason": "終端需求轉弱，需求相關暴露先受衝擊，再向上游供應鏈擴散。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Smartphone Brand": 1.2,
+      "IC Design": 1.05,
+      "OSAT": 0.95,
+      "ABF Substrate": 0.9,
+      "Memory": 0.9
+    },
+    "sector_sensitivity": {
+      "Consumer Electronics": 1.15,
+      "Semiconductor": 0.95
+    },
+    "relation_overrides": {}
+  },
+  {
+    "event_id": "ai_infra_capex_acceleration",
+    "name": "AI 基礎建設資本支出加速",
+    "description": "AI 伺服器與加速器相關資本支出上修，先帶動受益曝險的晶圓、封裝、載板與 ASIC，再沿供應鏈擴散。",
+    "severity": 1.0,
+    "max_layers": 3,
+    "seed_rules": [],
+    "macro_seed_rules": [
+      {
+        "factor_id": "ai_infra_capex",
+        "entity_types": ["company", "product"],
+        "sentiment": "positive",
+        "base_score": 0.8,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "reason": "AI 相關需求升溫，直接受惠產品與供應商先反映。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Foundry": 1.1,
+      "OSAT": 1.05,
+      "ABF Substrate": 1.05,
+      "IC Design": 1.0,
+      "Memory": 0.95
+    },
+    "sector_sensitivity": {
+      "Semiconductor": 1.05,
+      "Electronics": 1.0
+    },
+    "relation_overrides": {
+      "supplier_of": {
+        "reverse_decay": 0.8
+      }
+    }
+  },
+  {
+    "event_id": "usd_twd_appreciation_for_exporters",
+    "name": "美元兌新台幣升值",
+    "description": "美元兌新台幣走強提升台灣出口導向公司的換匯與報價順風，先反映在直接曝險公司，再往相關供應鏈擴散。",
+    "severity": 0.7,
+    "max_layers": 3,
+    "seed_rules": [],
+    "macro_seed_rules": [
+      {
+        "factor_id": "usd_twd",
+        "entity_types": ["company"],
+        "sentiment": "positive",
+        "base_score": 0.65,
+        "sensitivity": 1.0,
+        "start_lag": 0,
+        "reason": "出口導向企業受惠美元報價與換匯順風。"
+      }
+    ],
+    "industry_sensitivity": {
+      "Foundry": 1.1,
+      "IC Design": 1.05,
+      "OSAT": 1.0,
+      "ABF Substrate": 1.0
+    },
+    "sector_sensitivity": {
+      "Semiconductor": 1.0,
+      "Electronics": 1.0
+    },
+    "relation_overrides": {}
+  }
+]

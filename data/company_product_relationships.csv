@@ -1,0 +1,13 @@
+company,relation,product,weight
+聯發科,produces,Dimensity,1.00
+聯發科,produces,Wi-Fi/Bluetooth Combo,0.70
+聯發科,produces,PMIC,0.70
+聯發科,produces,ASIC,0.50
+台積電,produces,3nm/4nm Wafer,1.00
+日月光投控,produces,Advanced Packaging,0.90
+欣興,produces,ABF Substrate,0.90
+南電,produces,ABF Substrate,0.85
+景碩,produces,ABF Substrate,0.75
+三星電子,produces,DRAM/NAND,0.95
+SK hynix,produces,DRAM/NAND,0.95
+美光,produces,DRAM/NAND,0.90

@@ -1,0 +1,25 @@
+factor_id,entity_type,entity_name,exposure_direction,weight,rationale
+global_handset_demand,company,小米,positive,1.00,品牌出貨與終端需求高度連動
+global_handset_demand,company,OPPO,positive,0.95,Android 品牌需求波動直接影響拉貨
+global_handset_demand,company,vivo,positive,0.95,Android 品牌需求波動直接影響拉貨
+global_handset_demand,company,傳音,positive,0.90,新興市場智慧手機需求變化會反映在出貨節奏
+global_handset_demand,product,Dimensity,positive,0.95,手機 SoC 平台需求直接連動智慧手機銷量
+global_handset_demand,product,PMIC,positive,0.70,電源管理晶片需求受智慧手機出貨帶動
+global_handset_demand,product,DRAM/NAND,positive,0.60,手機記憶體需求受終端銷量變化影響
+global_handset_demand,market,中國中高階手機市場,positive,1.00,中國中高階市場是核心需求池
+global_handset_demand,market,印度智慧手機市場,positive,0.85,印度市場需求變化會回傳至供應鏈
+ai_infra_capex,company,台積電,positive,0.90,高階 AI 晶片需求提升先進製程需求
+ai_infra_capex,company,日月光投控,positive,0.80,AI 晶片帶動先進封裝需求
+ai_infra_capex,company,欣興,positive,0.78,AI 伺服器與加速器帶動 ABF 載板需求
+ai_infra_capex,company,南電,positive,0.72,AI 相關高階載板需求受惠
+ai_infra_capex,company,景碩,positive,0.60,高階封裝與載板需求擴散受惠
+ai_infra_capex,company,聯發科,positive,0.35,客製化 ASIC 與邊緣 AI 機會增加
+ai_infra_capex,product,ASIC,positive,0.95,AI 客製化晶片需求提升
+ai_infra_capex,product,Advanced Packaging,positive,0.95,先進封裝是 AI 晶片量產瓶頸之一
+ai_infra_capex,product,ABF Substrate,positive,0.85,高階 ABF 載板需求受 AI 伺服器拉動
+usd_twd,company,台積電,positive,0.80,美元報價收入對新台幣財報換算有順風
+usd_twd,company,聯發科,positive,0.65,出口導向營收與美元報價帶來換匯順風
+usd_twd,company,日月光投控,positive,0.60,出口導向封測營收受匯率影響
+usd_twd,company,欣興,positive,0.55,外銷比重使匯率變動影響報價與獲利
+usd_twd,company,南電,positive,0.50,外銷比重使匯率變動影響報價與獲利
+usd_twd,company,景碩,positive,0.45,外銷比重使匯率變動影響報價與獲利

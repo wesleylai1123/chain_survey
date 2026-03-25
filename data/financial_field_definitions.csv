@@ -1,0 +1,6 @@
+field_name,display_name,unit,frequency,description
+revenue,Revenue,TWD bn,quarterly,Quarterly revenue used for top-line trend analysis
+gross_margin,Gross Margin,percent,quarterly,Quarterly gross margin used for profitability trend analysis
+inventory,Inventory,TWD bn,quarterly,Quarterly inventory balance used to detect demand and channel shifts
+capex,Capital Expenditure,TWD bn,quarterly,Quarterly capital expenditure used for capacity and investment cycle analysis
+eps,Earnings Per Share,TWD,quarterly,Quarterly EPS used for earnings power and valuation context

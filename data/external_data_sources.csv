@@ -1,0 +1,9 @@
+source_id,dataset,provider,frequency,format,status,notes
+tw_monthly_revenue,monthly_revenue,TWSE/MOPS,monthly,csv,active,Official listed-company monthly revenue CSV feed
+quarterly_financials,quarterly_financials,TWSE/MOPS,quarterly,csv,active,Official listed-company income statement and balance sheet CSV feeds
+earnings_call_summary,earnings_call_summary,company_ir,event-driven,pdf/text,planned,For transcript summaries and management guidance
+news_events,news_events,public_news_api,near-real-time,json,planned,For event detection and narrative tracking
+product_mix,product_mix,company_ir,quarterly,pdf/table,planned,For product revenue mix and platform contribution
+regional_mix,regional_mix,company_ir,quarterly,pdf/table,planned,For revenue by geography and end market
+macro_factors,macro_factors,internal_research,ad-hoc,csv,active,Curated macro factor reference table for scenario seeding
+macro_exposures,macro_exposures,internal_research,ad-hoc,csv,active,Curated exposure mappings from macro factors to companies products and markets

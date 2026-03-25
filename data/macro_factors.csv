@@ -1,0 +1,4 @@
+factor_id,display_name,category,unit,description
+global_handset_demand,全球智慧手機需求,End Demand,index,反映全球智慧手機終端需求強弱的總經需求因子
+ai_infra_capex,AI 基礎建設資本支出,Capex,index,反映 AI 伺服器與加速器相關資本支出景氣循環
+usd_twd,美元兌新台幣,FX,fx-rate,反映台灣出口導向公司主要匯率順風或逆風

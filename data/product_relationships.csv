@@ -1,0 +1,4 @@
+source_product,relation,target_product,weight
+Dimensity,depends_on,3nm/4nm Wafer,0.90
+Dimensity,depends_on,ABF Substrate,0.80
+Dimensity,depends_on,DRAM/NAND,0.70
