@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 from core.data_loader import load_companies, load_edges, load_products
+from core.product_supply_chain_service import load_merged_company_relationships
 
 
 def get_company_profile(company_name: str) -> dict:
@@ -33,7 +34,7 @@ def get_related_companies(company_name: str, relation: str | None = None) -> pd.
 
 
 def get_upstream_downstream(company_name: str) -> tuple[pd.DataFrame, pd.DataFrame]:
-    edges = load_edges()
-    upstream = edges[(edges["target"] == company_name) & (edges["relation"].isin(["supplier_of", "depends_on"]))].copy()
-    downstream = edges[(edges["source"] == company_name) & (edges["relation"].isin(["supplier_of", "customer_of", "exposed_to"]))].copy()
+    relationships = load_merged_company_relationships()
+    upstream = relationships[(relationships["target_company"] == company_name) & (relationships["relation"] == "supplier_of")].copy()
+    downstream = relationships[(relationships["source_company"] == company_name) & (relationships["relation"] == "customer_of")].copy()
     return upstream, downstream

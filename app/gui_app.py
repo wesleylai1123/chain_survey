@@ -21,12 +21,20 @@ from core.company_service import (
     get_company_products,
     get_company_profile,
     get_related_companies,
-    get_upstream_downstream,
+)
+from core.company_insights import (
+    get_company_event_summary,
+    get_company_product_dependency_view,
+    get_downstream_partners,
+    get_product_supply_chain_context,
+    get_supply_chain_impact_view,
+    get_upstream_partners,
 )
 from core.dashboard_service import get_company_financials, latest_snapshot
-from core.data_loader import load_companies, load_edges, load_events, load_financials, load_products
+from core.data_loader import clear_data_caches, load_companies, load_edges, load_events, load_financials, load_products
 from core.graph_builder import NODE_TYPE_COLOR, build_subgraph
 from core.impact_engine import simulate_event
+from core.product_supply_chain_service import delete_managed_mapping, get_managed_mappings_for_product, upsert_managed_mapping
 
 
 def format_value(value: object) -> str:
@@ -63,6 +71,7 @@ class FundamentalChainApp(tk.Tk):
         self.company_names = sorted(self.companies["name"].tolist())
         self.event_names = [event["name"] for event in self.events]
         self.company_tickers = dict(zip(self.companies["name"], self.companies["ticker"]))
+        self.editing_mapping_key: tuple[str, str, str, str] | None = None
 
         self._configure_style()
         self._build_layout()
@@ -72,8 +81,11 @@ class FundamentalChainApp(tk.Tk):
             default_company = self.company_names[0]
             self.company_var.set(default_company)
             self.graph_company_var.set(default_company)
+            self.manage_company_var.set(default_company)
+            self._on_manage_company_change()
             self.refresh_company_view()
             self.refresh_graph_view()
+            self.refresh_management_view()
 
         if self.event_names:
             self.event_var.set(self.event_names[0])
@@ -106,16 +118,19 @@ class FundamentalChainApp(tk.Tk):
 
         self.overview_tab = ttk.Frame(notebook, padding=14)
         self.company_tab = ttk.Frame(notebook, padding=14)
+        self.manage_tab = ttk.Frame(notebook, padding=14)
         self.event_tab = ttk.Frame(notebook, padding=14)
         self.graph_tab = ttk.Frame(notebook, padding=14)
 
         notebook.add(self.overview_tab, text="Overview")
         notebook.add(self.company_tab, text="Company Explorer")
+        notebook.add(self.manage_tab, text="Supply Chain Editor")
         notebook.add(self.event_tab, text="Event Simulator")
         notebook.add(self.graph_tab, text="Network Graph")
 
         self._build_overview_tab()
         self._build_company_tab()
+        self._build_management_tab()
         self._build_event_tab()
         self._build_graph_tab()
 
@@ -202,7 +217,7 @@ class FundamentalChainApp(tk.Tk):
 
         product_box = ttk.LabelFrame(main, text="Products", padding=12)
         product_box.grid(row=1, column=0, sticky="nsew", padx=(0, 12))
-        self.products_tree = self._create_tree(product_box, ("name", "category", "segment", "description"))
+        self.products_tree = self._create_tree(product_box, ("name", "category", "application", "description"))
 
         financial_box = ttk.LabelFrame(main, text="Financial Trend", padding=12)
         financial_box.grid(row=0, column=1, sticky="nsew", pady=(0, 12))
@@ -213,18 +228,133 @@ class FundamentalChainApp(tk.Tk):
         relation_box = ttk.LabelFrame(main, text="Upstream / Downstream Links", padding=12)
         relation_box.grid(row=1, column=1, sticky="nsew")
 
-        relation_split = ttk.Panedwindow(relation_box, orient="horizontal")
-        relation_split.pack(fill="both", expand=True)
+        relation_notebook = ttk.Notebook(relation_box)
+        relation_notebook.pack(fill="both", expand=True)
 
-        upstream_frame = ttk.Frame(relation_split)
-        downstream_frame = ttk.Frame(relation_split)
-        relation_split.add(upstream_frame, weight=1)
-        relation_split.add(downstream_frame, weight=1)
+        upstream_frame = ttk.Frame(relation_notebook, padding=8)
+        downstream_frame = ttk.Frame(relation_notebook, padding=8)
+        product_view_frame = ttk.Frame(relation_notebook, padding=8)
+        company_event_frame = ttk.Frame(relation_notebook, padding=8)
+        chain_event_frame = ttk.Frame(relation_notebook, padding=8)
 
-        ttk.Label(upstream_frame, text="Upstream", style="Subhead.TLabel").pack(anchor="w", pady=(0, 6))
-        self.upstream_tree = self._create_tree(upstream_frame, ("source", "relation", "target", "weight"))
-        ttk.Label(downstream_frame, text="Downstream", style="Subhead.TLabel").pack(anchor="w", pady=(0, 6))
-        self.downstream_tree = self._create_tree(downstream_frame, ("source", "relation", "target", "weight"))
+        relation_notebook.add(upstream_frame, text="Upstream")
+        relation_notebook.add(downstream_frame, text="Downstream")
+        relation_notebook.add(product_view_frame, text="Products & Markets")
+        relation_notebook.add(company_event_frame, text="Company Impact")
+        relation_notebook.add(chain_event_frame, text="Chain Impact")
+
+        self.upstream_tree = self._create_tree(
+            upstream_frame,
+            ("company", "ticker", "sector", "industry", "products", "relation", "weight", "source_dataset", "mapped_products"),
+        )
+        self.downstream_tree = self._create_tree(
+            downstream_frame,
+            ("company", "ticker", "sector", "industry", "products", "relation", "weight", "source_dataset", "mapped_products"),
+        )
+        self.product_dependency_tree = self._create_tree(
+            product_view_frame,
+            ("product", "relation", "target_type", "target", "related_companies", "weight", "source_dataset"),
+        )
+        self.company_event_tree = self._create_tree(
+            company_event_frame,
+            ("event", "seed_source", "macro_factor", "direction", "impact_score", "signed_score", "max_layer", "fundamental_multiplier", "reason"),
+        )
+        self.chain_event_tree = self._create_tree(
+            chain_event_frame,
+            ("event", "role", "company", "seed_source", "macro_factor", "direction", "layer", "impact_score", "sector", "industry", "reason"),
+        )
+
+    def _build_management_tab(self) -> None:
+        controls = ttk.Frame(self.manage_tab)
+        controls.pack(fill="x", pady=(0, 12))
+        controls.columnconfigure(1, weight=1)
+        controls.columnconfigure(3, weight=1)
+
+        self.manage_company_var = tk.StringVar()
+        self.manage_product_var = tk.StringVar()
+        self.manage_direction_var = tk.StringVar(value="upstream")
+        self.manage_related_company_var = tk.StringVar()
+        self.manage_weight_var = tk.StringVar(value="0.8")
+        self.manage_relation_var = tk.StringVar(value="supplier_of")
+
+        ttk.Label(controls, text="Company", style="Subhead.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        manage_company_combo = ttk.Combobox(
+            controls,
+            textvariable=self.manage_company_var,
+            values=self.company_names,
+            state="readonly",
+        )
+        manage_company_combo.grid(row=0, column=1, sticky="ew")
+        manage_company_combo.bind("<<ComboboxSelected>>", lambda _event: self._on_manage_company_change())
+
+        ttk.Label(controls, text="Product", style="Subhead.TLabel").grid(row=0, column=2, sticky="w", padx=(16, 8))
+        self.manage_product_combo = ttk.Combobox(controls, textvariable=self.manage_product_var, state="readonly")
+        self.manage_product_combo.grid(row=0, column=3, sticky="ew")
+        self.manage_product_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_management_view())
+
+        ttk.Button(controls, text="Refresh", command=self.refresh_management_view).grid(row=0, column=4, padx=(12, 0))
+
+        form_box = ttk.LabelFrame(self.manage_tab, text="Manage Product Link", padding=12)
+        form_box.pack(fill="x", pady=(0, 12))
+        for idx in range(4):
+            form_box.columnconfigure(idx, weight=1)
+
+        ttk.Label(form_box, text="Direction").grid(row=0, column=0, sticky="w")
+        direction_combo = ttk.Combobox(
+            form_box,
+            textvariable=self.manage_direction_var,
+            values=("upstream", "downstream"),
+            state="readonly",
+        )
+        direction_combo.grid(row=1, column=0, sticky="ew", padx=(0, 10))
+        direction_combo.bind("<<ComboboxSelected>>", lambda _event: self._sync_relation_label())
+
+        ttk.Label(form_box, text="Relation").grid(row=0, column=1, sticky="w")
+        ttk.Entry(form_box, textvariable=self.manage_relation_var, state="readonly").grid(row=1, column=1, sticky="ew", padx=(0, 10))
+
+        ttk.Label(form_box, text="Related Company").grid(row=0, column=2, sticky="w")
+        related_companies = [name for name in self.company_names]
+        self.manage_related_company_combo = ttk.Combobox(
+            form_box,
+            textvariable=self.manage_related_company_var,
+            values=related_companies,
+            state="readonly",
+        )
+        self.manage_related_company_combo.grid(row=1, column=2, sticky="ew", padx=(0, 10))
+
+        ttk.Label(form_box, text="Weight").grid(row=0, column=3, sticky="w")
+        ttk.Entry(form_box, textvariable=self.manage_weight_var).grid(row=1, column=3, sticky="ew")
+
+        ttk.Label(form_box, text="Rationale").grid(row=2, column=0, sticky="w", pady=(12, 0))
+        self.manage_rationale_text = tk.Text(form_box, height=3, wrap="word")
+        self.manage_rationale_text.grid(row=3, column=0, columnspan=4, sticky="ew", pady=(4, 0))
+
+        button_row = ttk.Frame(form_box)
+        button_row.grid(row=4, column=0, columnspan=4, sticky="w", pady=(12, 0))
+        ttk.Button(button_row, text="Save Mapping", command=self._save_mapping).pack(side="left")
+        ttk.Button(button_row, text="Clear Form", command=self._clear_management_form).pack(side="left", padx=(8, 0))
+        ttk.Button(button_row, text="Delete Selected", command=self._delete_selected_mapping).pack(side="left", padx=(8, 0))
+
+        body = ttk.Frame(self.manage_tab)
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=3)
+        body.columnconfigure(1, weight=2)
+        body.rowconfigure(0, weight=1)
+
+        mapping_box = ttk.LabelFrame(body, text="Saved Product Mappings", padding=12)
+        mapping_box.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        self.mapping_tree = self._create_tree(
+            mapping_box,
+            ("source_product", "direction", "relation", "related_company", "weight", "source_dataset", "rationale", "updated_at"),
+        )
+        self.mapping_tree.bind("<<TreeviewSelect>>", self._on_mapping_selected)
+
+        context_box = ttk.LabelFrame(body, text="Chain Context", padding=12)
+        context_box.grid(row=0, column=1, sticky="nsew")
+        self.chain_context_tree = self._create_tree(
+            context_box,
+            ("context_role", "counterparty_company", "counterparty_product", "direction", "relation", "weight", "rationale", "updated_at"),
+        )
 
     def _build_event_tab(self) -> None:
         controls = ttk.Frame(self.event_tab)
@@ -248,7 +378,21 @@ class FundamentalChainApp(tk.Tk):
         result_box.pack(fill="both", expand=True)
         self.event_tree = self._create_tree(
             result_box,
-            ("company", "direction", "impact_score", "sector", "industry", "reason", "path"),
+            (
+                "company",
+                "direction",
+                "layer",
+                "cumulative_lag",
+                "impact_score",
+                "signed_score",
+                "fundamental_signal",
+                "fundamental_multiplier",
+                "seed_source",
+                "macro_factor",
+                "sector",
+                "industry",
+                "reason",
+            ),
         )
 
     def _build_graph_tab(self) -> None:
@@ -320,7 +464,11 @@ class FundamentalChainApp(tk.Tk):
         try:
             profile = get_company_profile(company_name)
             products = get_company_products(company_name)
-            upstream, downstream = get_upstream_downstream(company_name)
+            upstream = get_upstream_partners(company_name)
+            downstream = get_downstream_partners(company_name)
+            product_dependencies = get_company_product_dependency_view(company_name)
+            company_event_summary = get_company_event_summary(company_name)
+            chain_impact = get_supply_chain_impact_view(company_name)
             financials = get_company_financials(company_name)
             snapshot = latest_snapshot(company_name)
         except Exception as exc:
@@ -348,26 +496,187 @@ class FundamentalChainApp(tk.Tk):
         self.profile_text.configure(state="disabled")
 
         product_rows = [
-            tuple(format_value(row.get(col)) for col in ["name", "category", "segment", "description"])
+            tuple(format_value(row.get(col)) for col in ["name", "category", "application", "description"])
             for _, row in products.iterrows()
         ]
         fill_tree(self.products_tree, product_rows)
 
         upstream_rows = [
-            tuple(format_value(row.get(col)) for col in ["source", "relation", "target", "weight"])
+            tuple(format_value(row.get(col)) for col in ["company", "ticker", "sector", "industry", "products", "relation", "weight", "source_dataset", "mapped_products"])
             for _, row in upstream.iterrows()
         ]
         downstream_rows = [
-            tuple(format_value(row.get(col)) for col in ["source", "relation", "target", "weight"])
+            tuple(format_value(row.get(col)) for col in ["company", "ticker", "sector", "industry", "products", "relation", "weight", "source_dataset", "mapped_products"])
             for _, row in downstream.iterrows()
+        ]
+        product_dependency_rows = [
+            tuple(format_value(row.get(col)) for col in ["product", "relation", "target_type", "target", "related_companies", "weight", "source_dataset"])
+            for _, row in product_dependencies.iterrows()
+        ]
+        company_event_rows = [
+            tuple(format_value(row.get(col)) for col in ["event", "seed_source", "macro_factor", "direction", "impact_score", "signed_score", "max_layer", "fundamental_multiplier", "reason"])
+            for _, row in company_event_summary.iterrows()
+        ]
+        chain_event_rows = [
+            tuple(format_value(row.get(col)) for col in ["event", "role", "company", "seed_source", "macro_factor", "direction", "layer", "impact_score", "sector", "industry", "reason"])
+            for _, row in chain_impact.iterrows()
         ]
         fill_tree(self.upstream_tree, upstream_rows)
         fill_tree(self.downstream_tree, downstream_rows)
+        fill_tree(self.product_dependency_tree, product_dependency_rows)
+        fill_tree(self.company_event_tree, company_event_rows)
+        fill_tree(self.chain_event_tree, chain_event_rows)
 
         for key, label in self.snapshot_labels.items():
             label.configure(text=format_value(snapshot.get(key)))
 
         self._draw_financial_chart(financials, company_name)
+
+    def _on_manage_company_change(self) -> None:
+        company_name = self.manage_company_var.get()
+        if not company_name:
+            self.manage_product_combo.configure(values=[])
+            self.manage_product_var.set("")
+            self.refresh_management_view()
+            return
+
+        products = get_company_products(company_name)
+        product_names = products["name"].tolist()
+        self.manage_product_combo.configure(values=product_names)
+        if product_names and self.manage_product_var.get() not in product_names:
+            self.manage_product_var.set(product_names[0])
+        if not product_names:
+            self.manage_product_var.set("")
+        self._clear_management_form(reset_product=False)
+        self.refresh_management_view()
+
+    def _sync_relation_label(self) -> None:
+        direction = self.manage_direction_var.get()
+        self.manage_relation_var.set("supplier_of" if direction == "upstream" else "customer_of")
+
+    def _clear_management_form(self, reset_product: bool = False) -> None:
+        self.editing_mapping_key = None
+        self.manage_direction_var.set("upstream")
+        self._sync_relation_label()
+        self.manage_related_company_var.set("")
+        self.manage_weight_var.set("0.8")
+        self.manage_rationale_text.delete("1.0", "end")
+        if reset_product:
+            self.manage_product_var.set("")
+        if self.mapping_tree.selection():
+            self.mapping_tree.selection_remove(self.mapping_tree.selection())
+
+    def _reload_runtime_state(self) -> None:
+        clear_data_caches()
+        self.companies = load_companies()
+        self.products = load_products()
+        self.edges = load_edges()
+        self.events = load_events()
+        self.financials = load_financials()
+        self._populate_overview()
+
+    def refresh_management_view(self) -> None:
+        company_name = self.manage_company_var.get()
+        product_name = self.manage_product_var.get()
+
+        mappings = get_managed_mappings_for_product(company_name, product_name if product_name else None) if company_name else None
+        context = get_product_supply_chain_context(company_name) if company_name else None
+
+        mapping_rows = [] if mappings is None else [
+            tuple(format_value(row.get(col)) for col in ["source_product", "direction", "relation", "related_company", "weight", "source_dataset", "rationale", "updated_at"])
+            for _, row in mappings.iterrows()
+        ]
+        context_rows = [] if context is None else [
+            tuple(format_value(row.get(col)) for col in ["context_role", "counterparty_company", "counterparty_product", "direction", "relation", "weight", "rationale", "updated_at"])
+            for _, row in context.iterrows()
+        ]
+
+        fill_tree(self.mapping_tree, mapping_rows)
+        fill_tree(self.chain_context_tree, context_rows)
+
+    def _on_mapping_selected(self, _event: object) -> None:
+        selection = self.mapping_tree.selection()
+        if not selection:
+            return
+        values = self.mapping_tree.item(selection[0], "values")
+        if not values:
+            return
+
+        source_product, direction, relation, related_company, weight, _source_dataset, rationale, _updated_at = values
+        self.manage_product_var.set(source_product)
+        self.manage_direction_var.set(direction)
+        self.manage_relation_var.set(relation)
+        self.manage_related_company_var.set(related_company)
+        self.manage_weight_var.set(weight)
+        self.manage_rationale_text.delete("1.0", "end")
+        self.manage_rationale_text.insert("1.0", rationale)
+        self.editing_mapping_key = (
+            self.manage_company_var.get(),
+            source_product,
+            direction,
+            related_company,
+        )
+
+    def _save_mapping(self) -> None:
+        company_name = self.manage_company_var.get()
+        product_name = self.manage_product_var.get()
+        direction = self.manage_direction_var.get()
+        related_company = self.manage_related_company_var.get()
+        rationale = self.manage_rationale_text.get("1.0", "end").strip()
+
+        if not company_name or not product_name:
+            messagebox.showerror("Validation Error", "Please select a company and product.")
+            return
+
+        try:
+            weight = float(self.manage_weight_var.get())
+        except ValueError:
+            messagebox.showerror("Validation Error", "Weight must be numeric.")
+            return
+
+        try:
+            upsert_managed_mapping(
+                source_company=company_name,
+                source_product=product_name,
+                direction=direction,
+                related_company=related_company,
+                weight=weight,
+                rationale=rationale,
+                original_key=self.editing_mapping_key,
+            )
+        except Exception as exc:
+            messagebox.showerror("Save Error", str(exc))
+            return
+
+        self._reload_runtime_state()
+        self._clear_management_form()
+        self.refresh_management_view()
+        self.refresh_company_view()
+        self.refresh_graph_view()
+        messagebox.showinfo("Saved", "Managed mapping saved.")
+
+    def _delete_selected_mapping(self) -> None:
+        if self.editing_mapping_key is None:
+            messagebox.showerror("Delete Error", "Select a saved mapping first.")
+            return
+
+        try:
+            delete_managed_mapping(
+                source_company=self.editing_mapping_key[0],
+                source_product=self.editing_mapping_key[1],
+                direction=self.editing_mapping_key[2],
+                related_company=self.editing_mapping_key[3],
+            )
+        except Exception as exc:
+            messagebox.showerror("Delete Error", str(exc))
+            return
+
+        self._reload_runtime_state()
+        self._clear_management_form()
+        self.refresh_management_view()
+        self.refresh_company_view()
+        self.refresh_graph_view()
+        messagebox.showinfo("Deleted", "Managed mapping deleted.")
 
     def _draw_financial_chart(self, financials, company_name: str) -> None:
         self.financial_figure.clear()
@@ -406,17 +715,28 @@ class FundamentalChainApp(tk.Tk):
             return
 
         details = [
+            f"ID: {event.get('event_id', '-')}",
             f"Name: {event['name']}",
+            f"Description: {event.get('description', '-')}",
             f"Severity: {event.get('severity', 1.0)}",
+            f"Max Layers: {event.get('max_layers', 3)}",
             "",
-            "Rules:",
+            "Seed Rules:",
         ]
-        for rule in event.get("rules", []):
+        for rule in event.get("seed_rules", []):
             details.append(
-                f"- relation={rule.get('relation', '*')}, target_type={rule.get('target_type', '*')}, "
-                f"direction={rule.get('direction', '-')}, base_score={rule.get('base_score', '-')}, "
-                f"reason={rule.get('reason', '-')}"
+                f"- match={rule.get('match', {})}, impact_on={rule.get('impact_on', '-')}, "
+                f"sentiment={rule.get('sentiment', '-')}, base_score={rule.get('base_score', '-')}, "
+                f"sensitivity={rule.get('sensitivity', '-')}, reason={rule.get('reason', '-')}"
             )
+        if event.get("macro_seed_rules"):
+            details.extend(["", "Macro Seed Rules:"])
+            for rule in event.get("macro_seed_rules", []):
+                details.append(
+                    f"- factor_id={rule.get('factor_id', '-')}, entity_types={rule.get('entity_types', '-')}, "
+                    f"sentiment={rule.get('sentiment', '-')}, base_score={rule.get('base_score', '-')}, "
+                    f"sensitivity={rule.get('sensitivity', '-')}, reason={rule.get('reason', '-')}"
+                )
 
         self.event_text.configure(state="normal")
         self.event_text.delete("1.0", "end")
@@ -425,7 +745,24 @@ class FundamentalChainApp(tk.Tk):
 
         result = simulate_event(event_name)
         rows = [
-            tuple(format_value(row.get(col)) for col in ["company", "direction", "impact_score", "sector", "industry", "reason", "path"])
+            tuple(
+                format_value(row.get(col))
+                for col in [
+                    "company",
+                    "direction",
+                    "layer",
+                    "cumulative_lag",
+                    "impact_score",
+                    "signed_score",
+                    "fundamental_signal",
+                    "fundamental_multiplier",
+                    "seed_source",
+                    "macro_factor",
+                    "sector",
+                    "industry",
+                    "reason",
+                ]
+            )
             for _, row in result.iterrows()
         ]
         fill_tree(self.event_tree, rows)

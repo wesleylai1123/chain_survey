@@ -1,0 +1,79 @@
+{
+  "datasets": [
+    {
+      "dataset_id": "company_master",
+      "file": "data/company_master.csv",
+      "description": "公司主檔"
+    },
+    {
+      "dataset_id": "product_master",
+      "file": "data/product_master.csv",
+      "description": "產品主檔"
+    },
+    {
+      "dataset_id": "company_relationships",
+      "file": "data/company_relationships.csv",
+      "description": "公司與公司關係"
+    },
+    {
+      "dataset_id": "company_product_relationships",
+      "file": "data/company_product_relationships.csv",
+      "description": "公司與產品關係"
+    },
+    {
+      "dataset_id": "product_relationships",
+      "file": "data/product_relationships.csv",
+      "description": "產品與產品依賴關係"
+    },
+    {
+      "dataset_id": "product_supply_chain_mappings",
+      "file": "data/product_supply_chain_mappings.csv",
+      "description": "分析師維護的產品上下游公司對應表"
+    },
+    {
+      "dataset_id": "product_market_relationships",
+      "file": "data/product_market_relationships.csv",
+      "description": "產品與市場暴露關係"
+    },
+    {
+      "dataset_id": "event_templates",
+      "file": "data/event_templates.json",
+      "description": "事件模板"
+    },
+    {
+      "dataset_id": "macro_factors",
+      "file": "data/macro_factors.csv",
+      "description": "總經因子主檔"
+    },
+    {
+      "dataset_id": "macro_exposures",
+      "file": "data/macro_exposures.csv",
+      "description": "總經因子暴露對應表"
+    },
+    {
+      "dataset_id": "financial_field_definitions",
+      "file": "data/financial_field_definitions.csv",
+      "description": "財務欄位定義"
+    },
+    {
+      "dataset_id": "financial_snapshots",
+      "file": "data/financials.csv",
+      "description": "財務快照資料"
+    },
+    {
+      "dataset_id": "external_data_sources",
+      "file": "data/external_data_sources.csv",
+      "description": "真實基本面資料來源註冊表"
+    },
+    {
+      "dataset_id": "monthly_revenue",
+      "file": "data/monthly_revenue.csv",
+      "description": "官方月營收 canonical table"
+    },
+    {
+      "dataset_id": "quarterly_financials",
+      "file": "data/quarterly_financials.csv",
+      "description": "官方季報 canonical table"
+    }
+  ]
+}
