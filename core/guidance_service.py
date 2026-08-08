@@ -200,6 +200,11 @@ def update_claim(claim_id: str, **fields: object) -> dict[str, object]:
     )
 
     claims = data_loader.load_guidance_claims()
+    # Ensure object dtype for string columns to avoid pandas FutureWarning when
+    # assigning string values to columns inferred as float64 (empty strings as NaN)
+    for col in updated.keys():
+        if col in ("reviewed_by", "reviewed_at", "raw_text", "product_or_segment"):
+            claims[col] = claims[col].astype(object)
     claims.loc[claims["claim_id"] == claim_id, list(updated.keys())] = list(updated.values())
     _write_all_claims(claims)
     return updated
@@ -222,7 +227,8 @@ def _set_review_status(claim_id: str, *, status: str, reviewed_by: str) -> dict[
 
     claims = data_loader.load_guidance_claims()
     mask = claims["claim_id"] == claim_id
-    # Ensure string columns have object dtype to avoid FutureWarning
+    # Ensure object dtype for string columns to avoid pandas FutureWarning when
+    # assigning string values to columns inferred as float64 (empty strings as NaN)
     claims["reviewed_by"] = claims["reviewed_by"].astype(object)
     claims["reviewed_at"] = claims["reviewed_at"].astype(object)
     claims.loc[mask, "status"] = status
