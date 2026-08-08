@@ -73,6 +73,9 @@ sudo apt install -y python3-tk
 - `data/monthly_revenue.csv`: official monthly revenue canonical table
 - `data/quarterly_financials.csv`: official quarterly financial canonical table
 - `data/data_model_manifest.json`: manifest of the formalized datasets
+- `data/source_documents.csv`: registered earnings-call transcripts/documents used as guidance-claim sources
+- `data/guidance_claims.csv`: extracted forward-looking guidance claims and their review status
+- `data/claim_outcomes.csv`: verification outcomes matching guidance claims against actual reported results
 
 Legacy demo files remain in `data/companies.csv`, `data/products.csv`, `data/edges.csv`, and `data/events.json`, but the application now prefers the canonical files above.
 

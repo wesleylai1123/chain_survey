@@ -32,11 +32,13 @@ from core.company_insights import (
     get_upstream_partners,
 )
 from core.dashboard_service import get_company_financials, latest_snapshot
+from core import data_loader
 from core.data_loader import clear_data_caches, load_companies, load_edges, load_events, load_financials, load_products
 from core.graph_builder import NODE_TYPE_COLOR, build_subgraph
 from core.impact_engine import simulate_event
 from core.product_supply_chain_service import delete_managed_mapping, get_managed_mappings_for_product, upsert_managed_mapping
 from core.guidance_service import confirm_claim, load_guidance_claims, reject_claim, update_claim
+from core.guidance_verification import compute_credibility_score
 
 
 def format_value(value: object) -> str:
@@ -244,12 +246,14 @@ class FundamentalChainApp(tk.Tk):
         product_view_frame = ttk.Frame(relation_notebook, padding=8)
         company_event_frame = ttk.Frame(relation_notebook, padding=8)
         chain_event_frame = ttk.Frame(relation_notebook, padding=8)
+        guidance_tracker_frame = ttk.Frame(relation_notebook, padding=8)
 
         relation_notebook.add(upstream_frame, text="Upstream")
         relation_notebook.add(downstream_frame, text="Downstream")
         relation_notebook.add(product_view_frame, text="Products & Markets")
         relation_notebook.add(company_event_frame, text="Company Impact")
         relation_notebook.add(chain_event_frame, text="Chain Impact")
+        relation_notebook.add(guidance_tracker_frame, text="Guidance Tracker")
 
         self.upstream_tree = self._create_tree(
             upstream_frame,
@@ -271,6 +275,21 @@ class FundamentalChainApp(tk.Tk):
             chain_event_frame,
             ("event", "role", "company", "seed_source", "macro_factor", "direction", "layer", "impact_score", "sector", "industry", "reason"),
         )
+
+        score_row = ttk.Frame(guidance_tracker_frame)
+        score_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(score_row, text="Guidance Credibility Score (trailing 8 quarters):", style="Subhead.TLabel").pack(side="left")
+        self.guidance_score_label = ttk.Label(score_row, text="-")
+        self.guidance_score_label.pack(side="left", padx=(8, 0))
+
+        self.guidance_tracker_tree = self._create_tree(
+            guidance_tracker_frame,
+            ("source_quarter", "target_period", "category", "product_or_segment", "direction", "match_result", "note"),
+        )
+        self.guidance_tracker_tree.tag_configure("match_row", background="#d1fae5")
+        self.guidance_tracker_tree.tag_configure("partial_row", background="#fef3c7")
+        self.guidance_tracker_tree.tag_configure("miss_row", background="#fecaca")
+        self.guidance_tracker_tree.tag_configure("pending_row", background="#e5e7eb")
 
     def _build_management_tab(self) -> None:
         controls = ttk.Frame(self.manage_tab)
@@ -609,6 +628,39 @@ class FundamentalChainApp(tk.Tk):
             label.configure(text=format_value(snapshot.get(key)))
 
         self._draw_financial_chart(financials, company_name)
+        self.refresh_guidance_tracker(company_name)
+
+    def refresh_guidance_tracker(self, company_name: str) -> None:
+        ticker = self.company_tickers.get(company_name)
+        if not ticker:
+            self.guidance_score_label.configure(text="-")
+            fill_tree(self.guidance_tracker_tree, [])
+            return
+
+        score = compute_credibility_score(ticker)
+        self.guidance_score_label.configure(text="-" if score is None else f"{score:.2f}")
+
+        claims = load_guidance_claims()
+        claims = claims[(claims["ticker"] == ticker) & (claims["status"] == "confirmed")] if not claims.empty else claims
+        outcomes = data_loader.load_claim_outcomes()
+        merged = claims.merge(outcomes, on="claim_id", how="left") if not claims.empty else claims
+
+        row_tag_by_result = {
+            "match": "match_row",
+            "partial": "partial_row",
+            "miss": "miss_row",
+            "unverifiable": "pending_row",
+        }
+
+        clear_tree(self.guidance_tracker_tree)
+        for _, row in merged.iterrows():
+            match_result = row.get("match_result")
+            tag = row_tag_by_result.get(match_result, "pending_row")
+            values = tuple(
+                format_value(row.get(col))
+                for col in ("source_quarter", "target_period", "category", "product_or_segment", "direction", "match_result", "note")
+            )
+            self.guidance_tracker_tree.insert("", "end", values=values, tags=(tag,))
 
     def _on_manage_company_change(self) -> None:
         company_name = self.manage_company_var.get()
