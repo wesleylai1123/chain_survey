@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import sys
 import tkinter as tk
 from pathlib import Path
@@ -42,6 +43,8 @@ def format_value(value: object) -> str:
     if value is None:
         return "-"
     if isinstance(value, float):
+        if math.isnan(value):
+            return "-"
         return f"{value:.3f}".rstrip("0").rstrip(".")
     return str(value)
 
@@ -801,7 +804,9 @@ class FundamentalChainApp(tk.Tk):
 
         def _optional_float(text: str) -> float | None:
             text = text.strip()
-            return float(text) if text else None
+            if not text or text.lower() == "nan":
+                return None
+            return float(text)
 
         try:
             update_claim(
