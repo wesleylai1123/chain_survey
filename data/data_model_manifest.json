@@ -74,6 +74,21 @@
       "dataset_id": "quarterly_financials",
       "file": "data/quarterly_financials.csv",
       "description": "官方季報 canonical table"
+    },
+    {
+      "dataset_id": "source_documents",
+      "file": "data/source_documents.csv",
+      "description": "法說會來源文件登記表"
+    },
+    {
+      "dataset_id": "guidance_claims",
+      "file": "data/guidance_claims.csv",
+      "description": "從法說會抽取的管理層前瞻聲明"
+    },
+    {
+      "dataset_id": "claim_outcomes",
+      "file": "data/claim_outcomes.csv",
+      "description": "聲明與實際財報的對帳結果"
     }
   ]
 }
