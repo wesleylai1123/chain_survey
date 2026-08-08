@@ -161,7 +161,13 @@ def add_claim(
 
 def _append_claim_row(row: dict[str, object]) -> None:
     current = data_loader.load_guidance_claims()
-    combined = pd.concat([current, pd.DataFrame([row])], ignore_index=True) if not current.empty else pd.DataFrame([row])
+    new_row = pd.DataFrame([row])
+    # quant_low/quant_high may be None for a given claim; without an explicit float64
+    # cast the single-row frame infers dtype=object, and concatenating that all-NA
+    # object column with current's float64 column raises a pandas FutureWarning.
+    for col in ("quant_low", "quant_high"):
+        new_row[col] = new_row[col].astype("float64")
+    combined = pd.concat([current, new_row], ignore_index=True) if not current.empty else new_row
     validate_dataframe("guidance_claims", combined)
     combined.to_csv(data_loader.DATA_DIR / "guidance_claims.csv", index=False)
     data_loader.clear_data_caches()
