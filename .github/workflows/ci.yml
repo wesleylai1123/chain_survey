@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, "feature/**"]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -37,10 +37,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "## CI test summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Python test summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Branch/ref: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Ref: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Test output" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
@@ -54,3 +54,62 @@ jobs:
           name: test-results
           path: test-results.txt
           if-no-files-found: ignore
+
+  ui-smoke:
+    name: Render UI preview
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+
+      - name: Render dashboard and capture screenshot
+        id: ui
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/ui_smoke.py 2>&1 | tee ui-smoke-results.txt
+
+      - name: Write UI summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## UI smoke summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if grep -q "UI_SMOKE_OK" ui-smoke-results.txt 2>/dev/null; then
+            echo "✅ Dashboard rendered and calculated a scenario successfully." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Dashboard smoke check failed. See the log below." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Screenshot artifact: \`ui-preview\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 60 ui-smoke-results.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload UI screenshot and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-preview
+          path: |
+            artifacts/product-eps-dashboard.png
+            ui-smoke-results.txt
+          if-no-files-found: warn
