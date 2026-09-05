@@ -55,6 +55,85 @@ def _infer_diluted_shares(snapshot: Mapping[str, object]) -> float:
     return shares
 
 
+def _resolve_bridge_inputs(snapshot: Mapping[str, object], assumptions: CompanyBridgeAssumptions) -> tuple[float, float]:
+    tax_rate_pct = (
+        assumptions.effective_tax_rate_pct
+        if assumptions.effective_tax_rate_pct is not None
+        else _infer_effective_tax_rate_pct(snapshot)
+    )
+    if not 0.0 <= tax_rate_pct <= 100.0:
+        raise ValueError("effective_tax_rate_pct must be between 0 and 100")
+
+    diluted_shares = assumptions.diluted_shares or _infer_diluted_shares(snapshot)
+    if diluted_shares <= 0:
+        raise ValueError("diluted_shares must be positive")
+    return tax_rate_pct, diluted_shares
+
+
+def attribute_product_contributions(
+    company: str,
+    period: str,
+    product_impacts: Iterable[Mapping[str, object]],
+    assumptions: CompanyBridgeAssumptions | None = None,
+) -> list[dict]:
+    """Calculate each product's standalone contribution to company earnings.
+
+    Variable OPEX is allocated to each product using that product's revenue
+    delta. Company-level non-operating changes are intentionally excluded from
+    product attribution and are surfaced separately by the aggregate bridge.
+    """
+
+    assumptions = assumptions or CompanyBridgeAssumptions()
+    snapshot = get_company_financial_snapshot(company, period)
+    impacts = list(product_impacts)
+    if not impacts:
+        raise ValueError("At least one product impact is required")
+
+    tax_rate_pct, diluted_shares = _resolve_bridge_inputs(snapshot, assumptions)
+    base_eps = float(snapshot["eps"])
+
+    rows: list[dict] = []
+    for index, impact in enumerate(impacts):
+        if impact.get("company") != company or impact.get("period") != period:
+            raise ValueError("All product impacts must match the requested company and period")
+
+        product = str(impact.get("product") or f"product_{index + 1}")
+        revenue_change = float(impact["revenue_change"])
+        gross_profit_change = float(impact["gross_profit_change"])
+        variable_opex_change = revenue_change * assumptions.variable_opex_pct_of_revenue_change / 100.0
+        operating_income_change = gross_profit_change - variable_opex_change
+        net_income_change = operating_income_change * (1.0 - tax_rate_pct / 100.0)
+        eps_change = net_income_change / diluted_shares
+
+        rows.append(
+            {
+                "company": company,
+                "period": period,
+                "product": product,
+                "revenue_change": revenue_change,
+                "gross_profit_change": gross_profit_change,
+                "variable_opex_change": variable_opex_change,
+                "operating_income_change": operating_income_change,
+                "net_income_change": net_income_change,
+                "eps_change": eps_change,
+                "eps_change_pct_vs_base": (eps_change / base_eps * 100.0) if base_eps != 0 else None,
+            }
+        )
+
+    total_eps_change = sum(row["eps_change"] for row in rows)
+    total_abs_eps_change = sum(abs(row["eps_change"]) for row in rows)
+    for row in rows:
+        row["eps_contribution_pct"] = (
+            row["eps_change"] / total_eps_change * 100.0 if total_eps_change != 0 else None
+        )
+        row["absolute_eps_contribution_pct"] = (
+            abs(row["eps_change"]) / total_abs_eps_change * 100.0 if total_abs_eps_change != 0 else None
+        )
+
+    rows.sort(key=lambda row: abs(row["eps_change"]), reverse=True)
+    return rows
+
+
 def bridge_product_impacts_to_company(
     company: str,
     period: str,
@@ -84,18 +163,7 @@ def bridge_product_impacts_to_company(
     operating_income_change = gross_profit_change - variable_opex_change
     pre_tax_income_change = operating_income_change + assumptions.non_operating_income_change
 
-    tax_rate_pct = (
-        assumptions.effective_tax_rate_pct
-        if assumptions.effective_tax_rate_pct is not None
-        else _infer_effective_tax_rate_pct(snapshot)
-    )
-    if not 0.0 <= tax_rate_pct <= 100.0:
-        raise ValueError("effective_tax_rate_pct must be between 0 and 100")
-
-    diluted_shares = assumptions.diluted_shares or _infer_diluted_shares(snapshot)
-    if diluted_shares <= 0:
-        raise ValueError("diluted_shares must be positive")
-
+    tax_rate_pct, diluted_shares = _resolve_bridge_inputs(snapshot, assumptions)
     net_income_change = pre_tax_income_change * (1.0 - tax_rate_pct / 100.0)
 
     base_revenue = float(snapshot["revenue"])
@@ -111,6 +179,10 @@ def bridge_product_impacts_to_company(
     scenario_pre_tax_income = base_pre_tax_income + pre_tax_income_change
     scenario_net_income = base_net_income + net_income_change
     scenario_eps = scenario_net_income / diluted_shares
+    product_contributions = attribute_product_contributions(company, period, impacts, assumptions)
+    product_net_income_change = sum(row["net_income_change"] for row in product_contributions)
+    non_operating_net_income_change = net_income_change - product_net_income_change
+    non_operating_eps_change = non_operating_net_income_change / diluted_shares
 
     return {
         "company": company,
@@ -139,4 +211,7 @@ def bridge_product_impacts_to_company(
         "scenario_eps": scenario_eps,
         "eps_change": scenario_eps - base_eps,
         "eps_change_pct": ((scenario_eps / base_eps) - 1.0) * 100.0 if base_eps != 0 else None,
+        "product_eps_change": sum(row["eps_change"] for row in product_contributions),
+        "non_operating_eps_change": non_operating_eps_change,
+        "product_contributions": product_contributions,
     }
