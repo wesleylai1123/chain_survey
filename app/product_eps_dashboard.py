@@ -6,18 +6,83 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-import matplotlib
-
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
 from core.company_earnings_bridge import CompanyBridgeAssumptions, bridge_product_impacts_to_company
 from core.data_loader import load_company_product_relationships, load_quarterly_financials
+from core.product_earnings_engine import ProductScenario, simulate_product_scenario
+
+
+def _first_numeric(row, columns: tuple[str, ...], default: float | None = None) -> float | None:
+    for column in columns:
+        if column in row and row[column] == row[column]:
+            return float(row[column])
+    return default
+
+
+def _estimate_product_scenario(company: str, product: str, period: str, scenario: ProductScenario) -> dict:
+    financials = load_quarterly_financials()
+    company_rows = financials[(financials["company"] == company) & (financials["period"].astype(str) == period)]
+    if company_rows.empty:
+        raise ValueError(f"No quarterly financial snapshot for {company} / {period}")
+
+    relationships = load_company_product_relationships()
+    relationship_rows = relationships[(relationships["company"] == company) & (relationships["product"] == product)]
+    if relationship_rows.empty:
+        raise ValueError(f"No product relationship for {company} / {product}")
+
+    company_snapshot = company_rows.iloc[0]
+    relationship = relationship_rows.iloc[0]
+    company_revenue = float(company_snapshot["revenue"])
+    company_gross_margin_pct = float(company_snapshot["gross_profit"]) / company_revenue * 100.0 if company_revenue else 0.0
+    revenue_mix_pct = _first_numeric(relationship, ("revenue_mix_pct",), None)
+    if revenue_mix_pct is None:
+        revenue_mix_pct = min(max(float(relationship.get("weight", 1.0)) * 100.0, 0.0), 100.0)
+    base_margin = _first_numeric(relationship, ("gross_margin_pct", "gross_margin"), company_gross_margin_pct)
+    base_revenue = company_revenue * revenue_mix_pct / 100.0
+    base_gross_profit = base_revenue * float(base_margin) / 100.0
+
+    revenue_multiplier = (1 + scenario.volume_change_pct / 100.0) * (1 + scenario.asp_change_pct / 100.0)
+    new_revenue = base_revenue * revenue_multiplier
+    new_margin = float(base_margin) + scenario.gross_margin_change_ppt
+    new_gross_profit = new_revenue * new_margin / 100.0
+
+    return {
+        "company": company,
+        "product": product,
+        "period": period,
+        "base_revenue": base_revenue,
+        "scenario_revenue": new_revenue,
+        "revenue_change": new_revenue - base_revenue,
+        "base_gross_margin_pct": float(base_margin),
+        "scenario_gross_margin_pct": new_margin,
+        "base_gross_profit": base_gross_profit,
+        "scenario_gross_profit": new_gross_profit,
+        "gross_profit_change": new_gross_profit - base_gross_profit,
+    }
+
+
+def build_product_assumption_impact(
+    company: str,
+    period: str,
+    product: str,
+    volume_change_pct: str,
+    asp_change_pct: str,
+    gross_margin_change_ppt: str,
+) -> dict:
+    scenario = ProductScenario(
+        volume_change_pct=float(volume_change_pct or 0),
+        asp_change_pct=float(asp_change_pct or 0),
+        gross_margin_change_ppt=float(gross_margin_change_ppt or 0),
+    )
+    try:
+        return simulate_product_scenario(company, product, period, scenario)
+    except ValueError as exc:
+        if "No product financial snapshot" not in str(exc):
+            raise
+        return _estimate_product_scenario(company, product, period, scenario)
 
 
 class ProductEpsDashboard(tk.Tk):
@@ -29,7 +94,7 @@ class ProductEpsDashboard(tk.Tk):
 
         self.financials = load_quarterly_financials()
         self.company_products = load_company_product_relationships()
-        self.scenario_rows: dict[str, tuple[tk.StringVar, tk.StringVar]] = {}
+        self.scenario_rows: dict[str, tuple[tk.StringVar, tk.StringVar, tk.StringVar]] = {}
 
         self._configure_style()
         self._build_layout()
@@ -48,13 +113,19 @@ class ProductEpsDashboard(tk.Tk):
         style.configure("Hint.TLabel", foreground="#555555")
 
     def _build_layout(self) -> None:
+        import matplotlib
+
+        matplotlib.use("TkAgg")
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.figure import Figure
+
         root = ttk.Frame(self, padding=18)
         root.pack(fill="both", expand=True)
 
         ttk.Label(root, text="Product → Company EPS Contribution", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             root,
-            text="Turn product-level revenue / gross-profit changes into company EPS and attribution. Scenario inputs are analyst assumptions, not forecasts.",
+            text="Turn product-level volume, ASP, and gross-margin assumptions into company EPS and attribution. Scenario inputs are analyst assumptions, not forecasts.",
             style="Hint.TLabel",
         ).pack(anchor="w", pady=(4, 14))
 
@@ -113,8 +184,9 @@ class ProductEpsDashboard(tk.Tk):
         header = ttk.Frame(input_panel)
         header.pack(fill="x", pady=(0, 8))
         ttk.Label(header, text="Product", style="Subhead.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(header, text="Revenue Δ", style="Subhead.TLabel").grid(row=0, column=1, sticky="w", padx=(14, 0))
-        ttk.Label(header, text="Gross Profit Δ", style="Subhead.TLabel").grid(row=0, column=2, sticky="w", padx=(14, 0))
+        ttk.Label(header, text="Volume Δ %", style="Subhead.TLabel").grid(row=0, column=1, sticky="w", padx=(14, 0))
+        ttk.Label(header, text="ASP Δ %", style="Subhead.TLabel").grid(row=0, column=2, sticky="w", padx=(14, 0))
+        ttk.Label(header, text="Gross Margin Δ ppt", style="Subhead.TLabel").grid(row=0, column=3, sticky="w", padx=(14, 0))
 
         self.input_canvas = tk.Canvas(input_panel, highlightthickness=0, height=370)
         input_scroll = ttk.Scrollbar(input_panel, orient="vertical", command=self.input_canvas.yview)
@@ -185,12 +257,14 @@ class ProductEpsDashboard(tk.Tk):
             products = ["Unallocated product"]
 
         for row_index, product in enumerate(products):
-            revenue_var = tk.StringVar(value="0")
-            gp_var = tk.StringVar(value="0")
+            volume_var = tk.StringVar(value="0")
+            asp_var = tk.StringVar(value="0")
+            margin_var = tk.StringVar(value="0")
             ttk.Label(self.input_rows_frame, text=product, width=28).grid(row=row_index, column=0, sticky="w", pady=4)
-            ttk.Entry(self.input_rows_frame, textvariable=revenue_var, width=16).grid(row=row_index, column=1, padx=(14, 0), pady=4)
-            ttk.Entry(self.input_rows_frame, textvariable=gp_var, width=16).grid(row=row_index, column=2, padx=(14, 0), pady=4)
-            self.scenario_rows[product] = (revenue_var, gp_var)
+            ttk.Entry(self.input_rows_frame, textvariable=volume_var, width=16).grid(row=row_index, column=1, padx=(14, 0), pady=4)
+            ttk.Entry(self.input_rows_frame, textvariable=asp_var, width=16).grid(row=row_index, column=2, padx=(14, 0), pady=4)
+            ttk.Entry(self.input_rows_frame, textvariable=margin_var, width=18).grid(row=row_index, column=3, padx=(14, 0), pady=4)
+            self.scenario_rows[product] = (volume_var, asp_var, margin_var)
 
     def _refresh_baseline(self) -> None:
         rows = self._baseline_rows()
@@ -209,9 +283,10 @@ class ProductEpsDashboard(tk.Tk):
         ]
 
     def _reset_scenario(self) -> None:
-        for revenue_var, gp_var in self.scenario_rows.values():
-            revenue_var.set("0")
-            gp_var.set("0")
+        for volume_var, asp_var, margin_var in self.scenario_rows.values():
+            volume_var.set("0")
+            asp_var.set("0")
+            margin_var.set("0")
         self.calculate(quiet=True)
 
     def _load_demo_scenario(self) -> None:
@@ -219,22 +294,23 @@ class ProductEpsDashboard(tk.Tk):
         if rows.empty or not self.scenario_rows:
             return
         baseline = rows.iloc[0]
-        base_revenue = float(baseline["revenue"])
-        base_gp = float(baseline["gross_profit"])
         products = list(self.scenario_rows)
 
-        for revenue_var, gp_var in self.scenario_rows.values():
-            revenue_var.set("0")
-            gp_var.set("0")
+        for volume_var, asp_var, margin_var in self.scenario_rows.values():
+            volume_var.set("0")
+            asp_var.set("0")
+            margin_var.set("0")
 
         first = products[0]
-        self.scenario_rows[first][0].set(f"{base_revenue * 0.010:.2f}")
-        self.scenario_rows[first][1].set(f"{base_gp * 0.012:.2f}")
+        self.scenario_rows[first][0].set("10")
+        self.scenario_rows[first][1].set("5")
+        self.scenario_rows[first][2].set("2")
         if len(products) > 1:
             second = products[1]
-            self.scenario_rows[second][0].set(f"{-base_revenue * 0.003:.2f}")
-            self.scenario_rows[second][1].set(f"{-base_gp * 0.002:.2f}")
-        self.status_var.set("Demo scenario loaded — values are illustrative only")
+            self.scenario_rows[second][0].set("-3")
+            self.scenario_rows[second][1].set("0")
+            self.scenario_rows[second][2].set("-1")
+        self.status_var.set("Demo assumption scenario loaded — values are illustrative only")
         self.calculate(quiet=True)
 
     def calculate(self, quiet: bool = False) -> None:
@@ -242,19 +318,21 @@ class ProductEpsDashboard(tk.Tk):
             company = self.company_var.get()
             period = self.period_var.get()
             impacts = []
-            for product, (revenue_var, gp_var) in self.scenario_rows.items():
-                revenue_change = float(revenue_var.get() or 0)
-                gross_profit_change = float(gp_var.get() or 0)
-                if revenue_change == 0 and gross_profit_change == 0:
+            for product, (volume_var, asp_var, margin_var) in self.scenario_rows.items():
+                volume_change = float(volume_var.get() or 0)
+                asp_change = float(asp_var.get() or 0)
+                margin_change = float(margin_var.get() or 0)
+                if volume_change == 0 and asp_change == 0 and margin_change == 0:
                     continue
                 impacts.append(
-                    {
-                        "company": company,
-                        "period": period,
-                        "product": product,
-                        "revenue_change": revenue_change,
-                        "gross_profit_change": gross_profit_change,
-                    }
+                    build_product_assumption_impact(
+                        company=company,
+                        period=period,
+                        product=product,
+                        volume_change_pct=volume_var.get(),
+                        asp_change_pct=asp_var.get(),
+                        gross_margin_change_ppt=margin_var.get(),
+                    )
                 )
 
             if not impacts:
