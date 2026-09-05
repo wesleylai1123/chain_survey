@@ -134,17 +134,21 @@ class ProductEarningsEngineTests(unittest.TestCase):
         result = bridge_product_impacts_to_company("TestCo", "2026Q2", [hbm, asic], assumptions)
         contributions = result["product_contributions"]
 
+        # HBM: revenue +10, GP +4; after variable OPEX +1 => operating income +3.
+        # ASIC: revenue +10, GP +11; after variable OPEX +1 => operating income +10.
+        # Total operating income +13; after 20% tax => net income +10.4; / 10 shares => EPS +1.04.
         self.assertEqual(result["product_count"], 2)
         self.assertAlmostEqual(result["revenue_change"], 20.0)
-        self.assertAlmostEqual(result["gross_profit_change"], 11.0)
-        self.assertAlmostEqual(result["operating_income_change"], 9.0)
-        self.assertAlmostEqual(result["eps_change"], 0.72)
+        self.assertAlmostEqual(result["gross_profit_change"], 15.0)
+        self.assertAlmostEqual(result["operating_income_change"], 13.0)
+        self.assertAlmostEqual(result["eps_change"], 1.04)
         self.assertEqual([row["product"] for row in contributions], ["ASIC", "HBM"])
         self.assertAlmostEqual(sum(row["eps_change"] for row in contributions), result["product_eps_change"])
         self.assertAlmostEqual(result["non_operating_eps_change"], 0.0)
-        self.assertAlmostEqual(contributions[0]["eps_change"], 0.56)
-        self.assertAlmostEqual(contributions[1]["eps_change"], 0.16)
+        self.assertAlmostEqual(contributions[0]["eps_change"], 0.8)
+        self.assertAlmostEqual(contributions[1]["eps_change"], 0.24)
         self.assertAlmostEqual(sum(row["eps_contribution_pct"] for row in contributions), 100.0)
+        self.assertAlmostEqual(result["product_eps_change"], result["eps_change"])
 
     def test_attribution_keeps_non_operating_change_separate(self) -> None:
         impacts = [
