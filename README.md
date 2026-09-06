@@ -19,6 +19,22 @@ A cross-platform desktop GUI for exploring company relationships, event propagat
 - `tkinter` available in the Python runtime
 - On WSL Ubuntu 24.04, GUI support via WSLg or another X server
 
+## Local Quick Start
+
+macOS, Linux, and WSL:
+
+```bash
+./run.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\run.ps1
+```
+
+The launcher creates `.venv`, installs `requirements.txt`, and starts the desktop GUI.
+
 ## Install
 
 ```bash

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from PIL import ImageGrab
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -13,6 +16,20 @@ from app.product_eps_dashboard import ProductEpsDashboard
 
 OUTPUT_DIR = ROOT / "artifacts"
 OUTPUT_PATH = OUTPUT_DIR / "product-eps-dashboard.png"
+
+
+def capture_dashboard_screenshot(output_path: Path, app: ProductEpsDashboard | None = None) -> None:
+    if shutil.which("scrot"):
+        subprocess.run(["scrot", str(output_path)], check=True)
+        return
+
+    try:
+        screenshot = ImageGrab.grab()
+        screenshot.save(output_path)
+    except Exception:
+        if app is None:
+            raise
+        app.figure.savefig(output_path)
 
 
 def main() -> None:
@@ -35,7 +52,7 @@ def main() -> None:
     if not rows:
         raise RuntimeError("UI smoke test did not produce contribution rows")
 
-    subprocess.run(["scrot", str(OUTPUT_PATH)], check=True)
+    capture_dashboard_screenshot(OUTPUT_PATH, app)
     if not OUTPUT_PATH.exists() or OUTPUT_PATH.stat().st_size == 0:
         raise RuntimeError("UI screenshot was not created")
 
