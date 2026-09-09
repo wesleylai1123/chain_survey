@@ -86,6 +86,13 @@ jobs:
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/ui_smoke.py 2>&1 | tee ui-smoke-results.txt
 
+      - name: Render correlation lab and capture screenshot
+        id: correlation-ui
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/correlation_ui_smoke.py 2>&1 | tee correlation-ui-smoke-results.txt
+
       - name: Write UI summary
         if: always()
         shell: bash
@@ -93,23 +100,31 @@ jobs:
           echo "## UI smoke summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if grep -q "UI_SMOKE_OK" ui-smoke-results.txt 2>/dev/null; then
-            echo "✅ Dashboard rendered and calculated a scenario successfully." >> "$GITHUB_STEP_SUMMARY"
+            echo "✅ Product EPS Dashboard rendered successfully." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "❌ Dashboard smoke check failed. See the log below." >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Product EPS Dashboard smoke check failed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt 2>/dev/null; then
+            echo "✅ Correlation Lab rendered and calculated successfully." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Correlation Lab smoke check failed." >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Screenshot artifact: \`ui-preview\`" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 60 ui-smoke-results.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          tail -n 40 ui-smoke-results.txt 2>/dev/null || true
+          tail -n 40 correlation-ui-smoke-results.txt 2>/dev/null || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload UI screenshot and log
+      - name: Upload UI screenshots and logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-preview
           path: |
             artifacts/product-eps-dashboard.png
+            artifacts/correlation-lab.png
             ui-smoke-results.txt
+            correlation-ui-smoke-results.txt
           if-no-files-found: warn
