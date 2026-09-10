@@ -111,11 +111,7 @@ jobs:
           set -o pipefail
           TOKEN_ARGS=()
           if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
-          python scripts/refresh_factor_validation.py \
-            --start 2020-01-01 \
-            --stocks "" \
-            --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
-            "${TOKEN_ARGS[@]}" 2>&1 | tee factor-dataset-results.txt
+          python scripts/refresh_factor_validation.py --start 2020-01-01 --stocks "" --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv "${TOKEN_ARGS[@]}" 2>&1 | tee factor-dataset-results.txt
       - name: Verify cache-hit second pass
         shell: bash
         env:
@@ -124,13 +120,21 @@ jobs:
           set -o pipefail
           TOKEN_ARGS=()
           if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
-          python scripts/refresh_factor_validation.py \
-            --start 2020-01-01 \
-            --stocks "" \
-            --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
-            --sleep-seconds 0 \
-            "${TOKEN_ARGS[@]}" 2>&1 | tee cache-hit-results.txt
+          python scripts/refresh_factor_validation.py --start 2020-01-01 --stocks "" --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv --sleep-seconds 0 "${TOKEN_ARGS[@]}" 2>&1 | tee cache-hit-results.txt
           grep -q "CACHE_HIT" cache-hit-results.txt
+      - name: Smoke resumable full-universe batch runner
+        shell: bash
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          set -o pipefail
+          TOKEN_ARGS=()
+          if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
+          python scripts/run_full_universe_batches.py \
+            --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
+            --start 2020-01-01 --batch-size 4 --max-batches 1 --sleep-seconds 0 \
+            "${TOKEN_ARGS[@]}" 2>&1 | tee full-universe-runner-results.txt
+          grep -q "FULL_UNIVERSE_RUN_OK" full-universe-runner-results.txt
       - name: Validate dataset and cache manifest
         run: |
           python - <<'PY'
@@ -144,17 +148,21 @@ jobs:
           entries=list(m['entries'].values())
           assert len(entries) >= 48
           assert all(e['status']=='success' for e in entries), [e for e in entries if e['status']!='success']
-          print('FACTOR_CACHE_VALID', len(entries), 'DATASET', len(df), df['ticker'].nunique())
+          full=pd.read_csv('artifacts/factor_validation_full.csv')
+          assert full['stock_id'].nunique() >= 4
+          print('FACTOR_CACHE_VALID', len(entries), 'DATASET', len(df), df['ticker'].nunique(), 'BATCH_ROWS', len(full))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: factor-validation-dataset
           path: |
             artifacts/factor_validation_dataset.csv
+            artifacts/factor_validation_full.csv
             artifacts/factor_validation_raw/*.csv
             artifacts/factor_cache_manifest.json
             factor-dataset-results.txt
             cache-hit-results.txt
+            full-universe-runner-results.txt
           if-no-files-found: error
 
   ui-smoke:
