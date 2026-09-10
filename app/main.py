@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--factor-robustness" in sys.argv:
+        from app.factor_robustness_lab import launch_factor_robustness_lab
+
+        launch_factor_robustness_lab()
+        return
+
     if "--factor-validation" in sys.argv:
         from app.factor_validation_lab import launch_factor_validation_lab
 
