@@ -15,10 +15,14 @@ def normalize_taiwan_stock_info(
     markets: Iterable[str] = DEFAULT_MARKETS,
     exclude_industries: Iterable[str] = ("ETF", "ETN"),
 ) -> pd.DataFrame:
-    """Normalize FinMind TaiwanStockInfo into the factor-research universe schema.
+    """Normalize FinMind TaiwanStockInfo into the active factor-research universe.
 
-    Common stocks are kept conservatively as four-digit numeric IDs starting with
-    1-9. This excludes ETF-style 00xx identifiers and most non-common securities.
+    FinMind defines ``date`` as the stock-info update date. When multiple snapshots
+    are returned, only the latest global snapshot is retained so delisted/stale rows
+    do not leak into the current research universe.
+
+    Common stocks are then kept conservatively as four-digit numeric IDs starting
+    with 1-9. This excludes ETF-style 00xx identifiers and most non-common securities.
     """
     required = {"stock_id", "stock_name", "industry_category", "type"}
     missing = required - set(frame.columns)
@@ -26,6 +30,12 @@ def normalize_taiwan_stock_info(
         raise KeyError(f"TaiwanStockInfo missing columns: {sorted(missing)}")
 
     work = frame.copy()
+    if "date" in work.columns:
+        parsed_dates = pd.to_datetime(work["date"], errors="coerce")
+        if parsed_dates.notna().any():
+            latest_date = parsed_dates.max()
+            work = work.loc[parsed_dates == latest_date].copy()
+
     work["stock_id"] = work["stock_id"].astype(str).str.strip()
     work["type"] = work["type"].astype(str).str.lower().str.strip()
     work["industry_category"] = work["industry_category"].fillna("Unknown").astype(str).str.strip()
