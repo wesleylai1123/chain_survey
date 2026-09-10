@@ -11,39 +11,20 @@ jobs:
   test:
     name: Python tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
       - name: Run unit tests
         shell: bash
         run: |
           set -o pipefail
           python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
-
-      - name: Write test summary
-        if: always()
-        shell: bash
-        run: |
-          echo "## Python test summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Ref: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 80 test-results.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-
       - name: Upload test log
         if: always()
         uses: actions/upload-artifact@v4
@@ -56,21 +37,15 @@ jobs:
     name: Build Taiwan stock universe
     runs-on: ubuntu-latest
     needs: test
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
       - name: Build live Taiwan universe and research sample
         shell: bash
         env:
@@ -80,23 +55,19 @@ jobs:
           TOKEN_ARGS=()
           if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
           python scripts/build_taiwan_universe.py --sample-industries 5 --sample-per-industry 2 "${TOKEN_ARGS[@]}" 2>&1 | tee universe-results.txt
-
       - name: Validate universe
-        shell: bash
         run: |
           python - <<'PY'
           import pandas as pd
           u=pd.read_csv('artifacts/taiwan_stock_universe.csv')
           s=pd.read_csv('artifacts/taiwan_research_sample.csv')
-          assert len(u) >= 500, f'universe unexpectedly small: {len(u)}'
-          assert u['market'].nunique() >= 2, 'expected TWSE and TPEx coverage'
-          assert s['industry'].nunique() >= 4, f'sample lacks industry breadth: {s["industry"].nunique()}'
-          assert len(s) >= 8, f'sample too small: {len(s)}'
+          assert len(u) >= 500
+          assert u['market'].nunique() >= 2
+          assert s['industry'].nunique() >= 4
+          assert len(s) >= 8
           print('TAIWAN_UNIVERSE_VALID', len(u), u['industry'].nunique(), len(s), s['industry'].nunique())
           PY
-
-      - name: Upload universe artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: taiwan-stock-universe
           path: |
@@ -106,30 +77,32 @@ jobs:
           if-no-files-found: error
 
   factor-data:
-    name: Build real factor dataset
+    name: Build cached real factor dataset
     runs-on: ubuntu-latest
     needs: [test, universe-data]
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download live universe sample
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: taiwan-stock-universe
           path: downloaded-universe
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
+      - name: Restore persistent factor cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            artifacts/factor_cache
+            artifacts/factor_cache_manifest.json
+          key: factor-cache-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            factor-cache-${{ github.ref_name }}-
+            factor-cache-main-
       - name: Build historical multi-industry factor validation dataset
         shell: bash
         env:
@@ -143,112 +116,98 @@ jobs:
             --stocks "" \
             --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
             "${TOKEN_ARGS[@]}" 2>&1 | tee factor-dataset-results.txt
-
-      - name: Validate dataset artifact
+      - name: Verify cache-hit second pass
         shell: bash
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          set -o pipefail
+          TOKEN_ARGS=()
+          if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
+          python scripts/refresh_factor_validation.py \
+            --start 2020-01-01 \
+            --stocks "" \
+            --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
+            --sleep-seconds 0 \
+            "${TOKEN_ARGS[@]}" 2>&1 | tee cache-hit-results.txt
+          grep -q "CACHE_HIT" cache-hit-results.txt
+      - name: Validate dataset and cache manifest
         run: |
           python - <<'PY'
-          import pandas as pd
-          p='artifacts/factor_validation_dataset.csv'
-          df=pd.read_csv(p)
-          assert len(df) >= 80, f'too few rows: {len(df)}'
-          assert df['ticker'].nunique() >= 8, f'too few companies: {df["ticker"].nunique()}'
-          assert df['industry'].nunique() >= 4, f'too few industries: {df["industry"].nunique()}'
-          assert df['future_3m_return'].notna().sum() >= 40, 'insufficient future-return targets'
-          print('FACTOR_DATASET_VALID', len(df), df['ticker'].nunique(), df['industry'].nunique(), df['future_3m_return'].notna().sum())
+          import json, pandas as pd
+          df=pd.read_csv('artifacts/factor_validation_dataset.csv')
+          assert len(df) >= 80
+          assert df['ticker'].nunique() >= 8
+          assert df['industry'].nunique() >= 4
+          assert df['future_3m_return'].notna().sum() >= 40
+          m=json.load(open('artifacts/factor_cache_manifest.json', encoding='utf-8'))
+          entries=list(m['entries'].values())
+          assert len(entries) >= 48
+          assert all(e['status']=='success' for e in entries), [e for e in entries if e['status']!='success']
+          print('FACTOR_CACHE_VALID', len(entries), 'DATASET', len(df), df['ticker'].nunique())
           PY
-
-      - name: Upload factor dataset
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: factor-validation-dataset
           path: |
             artifacts/factor_validation_dataset.csv
             artifacts/factor_validation_raw/*.csv
+            artifacts/factor_cache_manifest.json
             factor-dataset-results.txt
+            cache-hit-results.txt
           if-no-files-found: error
 
   ui-smoke:
     name: Render UI preview
     runs-on: ubuntu-latest
-    needs: [test, factor-data]
-
+    needs: [test, factor-data, universe-data]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download factor dataset
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: factor-validation-dataset
           path: downloaded-factor-data
-
-      - name: Prepare dataset path
-        shell: bash
+      - uses: actions/download-artifact@v4
+        with:
+          name: taiwan-stock-universe
+          path: downloaded-universe
+      - name: Prepare artifacts
         run: |
           mkdir -p artifacts
           cp downloaded-factor-data/artifacts/factor_validation_dataset.csv artifacts/factor_validation_dataset.csv
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          cp downloaded-factor-data/artifacts/factor_cache_manifest.json artifacts/factor_cache_manifest.json
+          cp downloaded-universe/artifacts/taiwan_stock_universe.csv artifacts/taiwan_stock_universe.csv
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
       - name: Install virtual display tools
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb scrot tk
-
-      - name: Render dashboard and capture screenshot
+      - name: Render all UIs
         shell: bash
         run: |
           set -o pipefail
-          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/ui_smoke.py 2>&1 | tee ui-smoke-results.txt
-
-      - name: Render correlation lab and capture screenshot
-        shell: bash
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/ui_smoke.py | tee ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/correlation_ui_smoke.py | tee correlation-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/panel_correlation_ui_smoke.py | tee panel-correlation-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_validation_ui_smoke.py | tee factor-validation-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_robustness_ui_smoke.py | tee factor-robustness-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/full_universe_ui_smoke.py | tee full-universe-ui-smoke-results.txt
+      - name: Validate UI smoke markers
         run: |
-          set -o pipefail
-          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/correlation_ui_smoke.py 2>&1 | tee correlation-ui-smoke-results.txt
-
-      - name: Render panel correlation lab and capture screenshot
-        shell: bash
-        run: |
-          set -o pipefail
-          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/panel_correlation_ui_smoke.py 2>&1 | tee panel-correlation-ui-smoke-results.txt
-
-      - name: Render factor validation lab and capture screenshot
-        shell: bash
-        run: |
-          set -o pipefail
-          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_validation_ui_smoke.py 2>&1 | tee factor-validation-ui-smoke-results.txt
-
-      - name: Render factor robustness lab and capture screenshot
-        shell: bash
-        run: |
-          set -o pipefail
-          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_robustness_ui_smoke.py 2>&1 | tee factor-robustness-ui-smoke-results.txt
-
-      - name: Write UI summary
+          grep -q "UI_SMOKE_OK" ui-smoke-results.txt
+          grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt
+          grep -q "PANEL_CORRELATION_UI_SMOKE_OK" panel-correlation-ui-smoke-results.txt
+          grep -q "FACTOR_VALIDATION_UI_SMOKE_OK" factor-validation-ui-smoke-results.txt
+          grep -q "FACTOR_ROBUSTNESS_UI_SMOKE_OK" factor-robustness-ui-smoke-results.txt
+          grep -q "FULL_UNIVERSE_UI_SMOKE_OK" full-universe-ui-smoke-results.txt
+      - uses: actions/upload-artifact@v4
         if: always()
-        shell: bash
-        run: |
-          echo "## UI smoke summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          grep -q "UI_SMOKE_OK" ui-smoke-results.txt 2>/dev/null && echo "✅ Product EPS Dashboard rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Product EPS Dashboard smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Correlation Lab rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Correlation Lab smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          grep -q "PANEL_CORRELATION_UI_SMOKE_OK" panel-correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Cross-company / cycle validation rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Panel correlation smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          grep -q "FACTOR_VALIDATION_UI_SMOKE_OK" factor-validation-ui-smoke-results.txt 2>/dev/null && echo "✅ Real Factor Validation Dataset UI rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Factor Validation Dataset UI smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          grep -q "FACTOR_ROBUSTNESS_UI_SMOKE_OK" factor-robustness-ui-smoke-results.txt 2>/dev/null && echo "✅ Industry-neutral / OOS Robustness UI rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Factor Robustness UI smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload UI screenshots and logs
-        if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: ui-preview
           path: |
@@ -257,9 +216,6 @@ jobs:
             artifacts/panel-correlation-lab.png
             artifacts/factor-validation-lab.png
             artifacts/factor-robustness-lab.png
-            ui-smoke-results.txt
-            correlation-ui-smoke-results.txt
-            panel-correlation-ui-smoke-results.txt
-            factor-validation-ui-smoke-results.txt
-            factor-robustness-ui-smoke-results.txt
+            artifacts/full-universe-runner.png
+            *ui-smoke-results.txt
           if-no-files-found: warn
