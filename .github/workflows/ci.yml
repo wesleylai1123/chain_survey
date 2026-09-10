@@ -52,8 +52,8 @@ jobs:
           path: test-results.txt
           if-no-files-found: ignore
 
-  factor-data:
-    name: Build real factor dataset
+  universe-data:
+    name: Build Taiwan stock universe
     runs-on: ubuntu-latest
     needs: test
 
@@ -71,7 +71,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Build historical factor validation dataset
+      - name: Build live Taiwan universe and research sample
         shell: bash
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
@@ -79,7 +79,70 @@ jobs:
           set -o pipefail
           TOKEN_ARGS=()
           if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
-          python scripts/refresh_factor_validation.py --start 2020-01-01 "${TOKEN_ARGS[@]}" 2>&1 | tee factor-dataset-results.txt
+          python scripts/build_taiwan_universe.py --sample-industries 5 --sample-per-industry 2 "${TOKEN_ARGS[@]}" 2>&1 | tee universe-results.txt
+
+      - name: Validate universe
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          u=pd.read_csv('artifacts/taiwan_stock_universe.csv')
+          s=pd.read_csv('artifacts/taiwan_research_sample.csv')
+          assert len(u) >= 500, f'universe unexpectedly small: {len(u)}'
+          assert u['market'].nunique() >= 2, 'expected TWSE and TPEx coverage'
+          assert s['industry'].nunique() >= 4, f'sample lacks industry breadth: {s["industry"].nunique()}'
+          assert len(s) >= 8, f'sample too small: {len(s)}'
+          print('TAIWAN_UNIVERSE_VALID', len(u), u['industry'].nunique(), len(s), s['industry'].nunique())
+          PY
+
+      - name: Upload universe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: taiwan-stock-universe
+          path: |
+            artifacts/taiwan_stock_universe.csv
+            artifacts/taiwan_research_sample.csv
+            universe-results.txt
+          if-no-files-found: error
+
+  factor-data:
+    name: Build real factor dataset
+    runs-on: ubuntu-latest
+    needs: [test, universe-data]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download live universe sample
+        uses: actions/download-artifact@v4
+        with:
+          name: taiwan-stock-universe
+          path: downloaded-universe
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Build historical multi-industry factor validation dataset
+        shell: bash
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          set -o pipefail
+          TOKEN_ARGS=()
+          if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
+          python scripts/refresh_factor_validation.py \
+            --start 2020-01-01 \
+            --stocks "" \
+            --universe-file downloaded-universe/artifacts/taiwan_research_sample.csv \
+            "${TOKEN_ARGS[@]}" 2>&1 | tee factor-dataset-results.txt
 
       - name: Validate dataset artifact
         shell: bash
@@ -88,10 +151,11 @@ jobs:
           import pandas as pd
           p='artifacts/factor_validation_dataset.csv'
           df=pd.read_csv(p)
-          assert len(df) >= 50, f'too few rows: {len(df)}'
-          assert df['ticker'].nunique() >= 4, f'too few companies: {df["ticker"].nunique()}'
-          assert df['future_3m_return'].notna().sum() >= 20, 'insufficient future-return targets'
-          print('FACTOR_DATASET_VALID', len(df), df['ticker'].nunique(), df['future_3m_return'].notna().sum())
+          assert len(df) >= 80, f'too few rows: {len(df)}'
+          assert df['ticker'].nunique() >= 8, f'too few companies: {df["ticker"].nunique()}'
+          assert df['industry'].nunique() >= 4, f'too few industries: {df["industry"].nunique()}'
+          assert df['future_3m_return'].notna().sum() >= 40, 'insufficient future-return targets'
+          print('FACTOR_DATASET_VALID', len(df), df['ticker'].nunique(), df['industry'].nunique(), df['future_3m_return'].notna().sum())
           PY
 
       - name: Upload factor dataset
