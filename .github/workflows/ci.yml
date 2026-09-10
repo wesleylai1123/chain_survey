@@ -164,6 +164,12 @@ jobs:
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_validation_ui_smoke.py 2>&1 | tee factor-validation-ui-smoke-results.txt
 
+      - name: Render factor robustness lab and capture screenshot
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1500x1000x24" python scripts/factor_robustness_ui_smoke.py 2>&1 | tee factor-robustness-ui-smoke-results.txt
+
       - name: Write UI summary
         if: always()
         shell: bash
@@ -174,6 +180,7 @@ jobs:
           grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Correlation Lab rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Correlation Lab smoke check failed." >> "$GITHUB_STEP_SUMMARY"
           grep -q "PANEL_CORRELATION_UI_SMOKE_OK" panel-correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Cross-company / cycle validation rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Panel correlation smoke check failed." >> "$GITHUB_STEP_SUMMARY"
           grep -q "FACTOR_VALIDATION_UI_SMOKE_OK" factor-validation-ui-smoke-results.txt 2>/dev/null && echo "✅ Real Factor Validation Dataset UI rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Factor Validation Dataset UI smoke check failed." >> "$GITHUB_STEP_SUMMARY"
+          grep -q "FACTOR_ROBUSTNESS_UI_SMOKE_OK" factor-robustness-ui-smoke-results.txt 2>/dev/null && echo "✅ Industry-neutral / OOS Robustness UI rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Factor Robustness UI smoke check failed." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload UI screenshots and logs
         if: always()
@@ -185,8 +192,10 @@ jobs:
             artifacts/correlation-lab.png
             artifacts/panel-correlation-lab.png
             artifacts/factor-validation-lab.png
+            artifacts/factor-robustness-lab.png
             ui-smoke-results.txt
             correlation-ui-smoke-results.txt
             panel-correlation-ui-smoke-results.txt
             factor-validation-ui-smoke-results.txt
+            factor-robustness-ui-smoke-results.txt
           if-no-files-found: warn
