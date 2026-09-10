@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--factor-validation" in sys.argv:
+        from app.factor_validation_lab import launch_factor_validation_lab
+
+        launch_factor_validation_lab()
+        return
+
     if "--panel-correlation" in sys.argv:
         from app.panel_correlation_lab import launch_panel_correlation_lab
 
