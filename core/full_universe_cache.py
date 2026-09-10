@@ -94,9 +94,22 @@ def cache_csv_path(cache_dir: str | Path, stock_id: str, dataset_key: str) -> Pa
     return Path(cache_dir) / str(stock_id) / f"{dataset_key}.csv"
 
 
+def _normalize_keys(frame: pd.DataFrame) -> pd.DataFrame:
+    result = frame.copy()
+    if "stock_id" in result.columns:
+        result["stock_id"] = result["stock_id"].astype(str).str.replace(r"\.0$", "", regex=True)
+    if "date" in result.columns:
+        result["date"] = result["date"].astype(str)
+    if "type" in result.columns:
+        result["type"] = result["type"].astype(str)
+    return result
+
+
 def merge_cached_frame(path: str | Path, new_frame: pd.DataFrame) -> pd.DataFrame:
     target = Path(path)
     old = pd.read_csv(target) if target.exists() and target.stat().st_size else pd.DataFrame()
+    old = _normalize_keys(old) if not old.empty else old
+    new_frame = _normalize_keys(new_frame) if not new_frame.empty else new_frame
     if old.empty:
         merged = new_frame.copy()
     elif new_frame.empty:
@@ -118,5 +131,5 @@ def load_cached_universe(cache_dir: str | Path, stocks: Iterable[str], dataset_k
         for key in dataset_keys:
             path = cache_csv_path(cache_dir, stock_id, key)
             if path.exists() and path.stat().st_size:
-                collected[key].append(pd.read_csv(path))
+                collected[key].append(_normalize_keys(pd.read_csv(path)))
     return {key: pd.concat(parts, ignore_index=True, sort=False) if parts else pd.DataFrame() for key, parts in collected.items()}
