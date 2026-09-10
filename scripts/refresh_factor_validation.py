@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -23,7 +24,7 @@ DATASETS = {
     "balance_sheets": "TaiwanStockBalanceSheet",
     "cashflows": "TaiwanStockCashFlowsStatement",
     "monthly_revenue": "TaiwanStockMonthRevenue",
-    "prices": "TaiwanStockPriceAdj",
+    "prices": "TaiwanStockPrice",
     "valuation": "TaiwanStockPER",
 }
 
@@ -39,8 +40,12 @@ def fetch_finmind(dataset: str, stock_id: str, start_date: str, end_date: str, t
         params["token"] = token
     url = f"{API_URL}?{urllib.parse.urlencode(params)}"
     request = urllib.request.Request(url, headers={"User-Agent": "chain-survey-factor-validation/1.0"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"FinMind HTTP {exc.code} dataset={dataset} stock={stock_id}: {detail[:500]}") from exc
     if payload.get("status") not in (200, None):
         raise RuntimeError(f"FinMind {dataset} {stock_id}: {payload.get('msg') or payload}")
     return pd.DataFrame(payload.get("data", []))
@@ -50,12 +55,13 @@ def normalize_price(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
     result = frame.copy()
-    close_candidates = ["close", "close_price", "Trading_Volume", "max", "min"]
-    if "close" not in result.columns:
-        for candidate in close_candidates:
-            if candidate in result.columns and candidate not in {"Trading_Volume", "max", "min"}:
+    for candidate in ("close", "close_price"):
+        if candidate in result.columns:
+            if candidate != "close":
                 result = result.rename(columns={candidate: "close"})
-                break
+            break
+    if "close" not in result.columns:
+        raise ValueError(f"Price dataset missing close column; columns={list(result.columns)}")
     return result
 
 
@@ -90,7 +96,7 @@ def fetch_universe(stocks: tuple[str, ...], start_date: str, end_date: str, toke
             elif key == "valuation":
                 frame = normalize_valuation(frame)
             collected[key].append(frame)
-            print(f"FETCH_OK dataset={dataset} stock={stock_id} rows={len(frame)}")
+            print(f"FETCH_OK dataset={dataset} stock={stock_id} rows={len(frame)} columns={','.join(frame.columns)}")
             time.sleep(sleep_seconds)
     return {key: pd.concat(parts, ignore_index=True) if parts else pd.DataFrame() for key, parts in collected.items()}
 
