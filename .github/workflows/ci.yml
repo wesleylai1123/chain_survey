@@ -80,18 +80,22 @@ jobs:
           sudo apt-get install -y xvfb scrot tk
 
       - name: Render dashboard and capture screenshot
-        id: ui
         shell: bash
         run: |
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/ui_smoke.py 2>&1 | tee ui-smoke-results.txt
 
       - name: Render correlation lab and capture screenshot
-        id: correlation-ui
         shell: bash
         run: |
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/correlation_ui_smoke.py 2>&1 | tee correlation-ui-smoke-results.txt
+
+      - name: Render panel correlation lab and capture screenshot
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1440x1000x24" python scripts/panel_correlation_ui_smoke.py 2>&1 | tee panel-correlation-ui-smoke-results.txt
 
       - name: Write UI summary
         if: always()
@@ -99,22 +103,15 @@ jobs:
         run: |
           echo "## UI smoke summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          if grep -q "UI_SMOKE_OK" ui-smoke-results.txt 2>/dev/null; then
-            echo "✅ Product EPS Dashboard rendered successfully." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "❌ Product EPS Dashboard smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          fi
-          if grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt 2>/dev/null; then
-            echo "✅ Correlation Lab rendered and calculated successfully." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "❌ Correlation Lab smoke check failed." >> "$GITHUB_STEP_SUMMARY"
-          fi
+          grep -q "UI_SMOKE_OK" ui-smoke-results.txt 2>/dev/null && echo "✅ Product EPS Dashboard rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Product EPS Dashboard smoke check failed." >> "$GITHUB_STEP_SUMMARY"
+          grep -q "CORRELATION_UI_SMOKE_OK" correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Correlation Lab rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Correlation Lab smoke check failed." >> "$GITHUB_STEP_SUMMARY"
+          grep -q "PANEL_CORRELATION_UI_SMOKE_OK" panel-correlation-ui-smoke-results.txt 2>/dev/null && echo "✅ Cross-company / cycle validation rendered successfully." >> "$GITHUB_STEP_SUMMARY" || echo "❌ Panel correlation smoke check failed." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Screenshot artifact: \`ui-preview\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 40 ui-smoke-results.txt 2>/dev/null || true
-          tail -n 40 correlation-ui-smoke-results.txt 2>/dev/null || true
+          tail -n 20 ui-smoke-results.txt 2>/dev/null || true
+          tail -n 20 correlation-ui-smoke-results.txt 2>/dev/null || true
+          tail -n 20 panel-correlation-ui-smoke-results.txt 2>/dev/null || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload UI screenshots and logs
@@ -125,6 +122,8 @@ jobs:
           path: |
             artifacts/product-eps-dashboard.png
             artifacts/correlation-lab.png
+            artifacts/panel-correlation-lab.png
             ui-smoke-results.txt
             correlation-ui-smoke-results.txt
+            panel-correlation-ui-smoke-results.txt
           if-no-files-found: warn
