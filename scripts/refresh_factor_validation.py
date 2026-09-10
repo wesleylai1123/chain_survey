@@ -84,6 +84,37 @@ def normalize_valuation(frame: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
+def load_universe(stocks_arg: str, universe_file: str | None, batch_size: int | None, batch_index: int) -> tuple[tuple[str, ...], pd.DataFrame]:
+    if universe_file:
+        companies = pd.read_csv(universe_file)
+    else:
+        companies = pd.read_csv(ROOT / "data" / "company_master.csv")
+
+    ticker_col = "ticker" if "ticker" in companies.columns else None
+    stock_col = "stock_id" if "stock_id" in companies.columns else None
+    if stock_col:
+        companies["stock_id"] = companies[stock_col].astype(str).str.extract(r"(\d{4})", expand=False)
+    elif ticker_col:
+        companies["stock_id"] = companies[ticker_col].astype(str).str.extract(r"(\d{4})", expand=False)
+    else:
+        raise ValueError("Universe file requires ticker or stock_id column")
+
+    companies = companies.dropna(subset=["stock_id"]).drop_duplicates("stock_id")
+    if stocks_arg:
+        requested = {value.strip() for value in stocks_arg.split(",") if value.strip()}
+        companies = companies[companies["stock_id"].isin(requested)]
+
+    companies = companies.sort_values("stock_id").reset_index(drop=True)
+    if batch_size and batch_size > 0:
+        start = batch_index * batch_size
+        end = start + batch_size
+        companies = companies.iloc[start:end].copy()
+    stocks = tuple(companies["stock_id"].astype(str).tolist())
+    if not stocks:
+        raise ValueError("Universe selection produced no stocks")
+    return stocks, companies
+
+
 def fetch_universe(stocks: tuple[str, ...], start_date: str, end_date: str, token: str | None = None, sleep_seconds: float = 0.2) -> dict[str, pd.DataFrame]:
     collected: dict[str, list[pd.DataFrame]] = {key: [] for key in DATASETS}
     for stock_id in stocks:
@@ -102,23 +133,37 @@ def fetch_universe(stocks: tuple[str, ...], start_date: str, end_date: str, toke
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build the real quarterly Factor Validation Dataset from FinMind historical data.")
+    parser = argparse.ArgumentParser(description="Build the quarterly Factor Validation Dataset from FinMind historical data.")
     parser.add_argument("--start", default="2020-01-01")
     parser.add_argument("--end", default=pd.Timestamp.today().strftime("%Y-%m-%d"))
-    parser.add_argument("--stocks", default=",".join(DEFAULT_STOCKS))
-    parser.add_argument("--token", default=None, help="Optional FinMind token; public endpoints work without one subject to rate limits.")
+    parser.add_argument("--stocks", default=",".join(DEFAULT_STOCKS), help="Comma-separated stock IDs. Pass empty string with --universe-file to use the whole file.")
+    parser.add_argument("--universe-file", default=None, help="CSV with ticker/stock_id plus optional name/sector/industry. Enables scalable full-universe batches.")
+    parser.add_argument("--batch-size", type=int, default=None, help="Optional number of companies to fetch in this run.")
+    parser.add_argument("--batch-index", type=int, default=0, help="Zero-based batch index used with --batch-size.")
+    parser.add_argument("--sleep-seconds", type=float, default=0.2)
+    parser.add_argument("--token", default=None, help="Optional FinMind token.")
     parser.add_argument("--output", default=str(ROOT / "artifacts" / "factor_validation_dataset.csv"))
     parser.add_argument("--raw-dir", default=str(ROOT / "artifacts" / "factor_validation_raw"))
     args = parser.parse_args()
 
-    stocks = tuple(value.strip() for value in args.stocks.split(",") if value.strip())
-    raw = fetch_universe(stocks, args.start, args.end, args.token)
+    stocks, companies = load_universe(args.stocks, args.universe_file, args.batch_size, args.batch_index)
+    print(f"UNIVERSE_OK companies={len(stocks)} batch_index={args.batch_index} batch_size={args.batch_size or 'all'}")
+    raw = fetch_universe(stocks, args.start, args.end, args.token, args.sleep_seconds)
     raw_dir = Path(args.raw_dir)
     raw_dir.mkdir(parents=True, exist_ok=True)
     for key, frame in raw.items():
         frame.to_csv(raw_dir / f"{key}.csv", index=False)
 
-    companies = pd.read_csv(ROOT / "data" / "company_master.csv")
+    # Normalize external universe schema to what the dataset builder expects.
+    if "name" not in companies.columns:
+        companies["name"] = companies.get("ticker", companies["stock_id"])
+    if "ticker" not in companies.columns:
+        companies["ticker"] = companies["stock_id"].astype(str) + ".TW"
+    if "sector" not in companies.columns:
+        companies["sector"] = "Unknown"
+    if "industry" not in companies.columns:
+        companies["industry"] = companies["sector"]
+
     dataset = build_factor_validation_dataset(
         companies,
         raw["financial_statements"],
