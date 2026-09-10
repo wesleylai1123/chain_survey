@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--panel-correlation" in sys.argv:
+        from app.panel_correlation_lab import launch_panel_correlation_lab
+
+        launch_panel_correlation_lab()
+        return
+
     if "--correlation" in sys.argv:
         from app.correlation_lab import launch_correlation_lab
 
