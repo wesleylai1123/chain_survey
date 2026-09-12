@@ -15,14 +15,36 @@ DEFAULT_ROOT = Path(
         ROOT / "artifacts" / "persistent" / "factor_validation",
     )
 )
+CANONICAL_DATASETS = (
+    "financial_statements",
+    "balance_sheets",
+    "cashflows",
+    "monthly_revenue",
+    "prices",
+    "valuation",
+)
 DATASET_LABELS = {
-    "TaiwanStockFinancialStatements": "Financial Statements",
-    "TaiwanStockBalanceSheet": "Balance Sheet",
-    "TaiwanStockCashFlowsStatement": "Cash Flow",
-    "TaiwanStockMonthRevenue": "Monthly Revenue",
-    "TaiwanStockPrice": "Price",
-    "TaiwanStockPER": "Valuation",
+    "financial_statements": "Financial Statements",
+    "balance_sheets": "Balance Sheet",
+    "cashflows": "Cash Flow",
+    "monthly_revenue": "Monthly Revenue",
+    "prices": "Price",
+    "valuation": "Valuation",
 }
+DATASET_ALIASES = {
+    "TaiwanStockFinancialStatements": "financial_statements",
+    "TaiwanStockBalanceSheet": "balance_sheets",
+    "TaiwanStockCashFlowsStatement": "cashflows",
+    "TaiwanStockMonthRevenue": "monthly_revenue",
+    "TaiwanStockPrice": "prices",
+    "TaiwanStockPER": "valuation",
+    **{key: key for key in CANONICAL_DATASETS},
+}
+
+
+def canonical_dataset(value: object) -> str:
+    key = str(value or "Unknown")
+    return DATASET_ALIASES.get(key, key)
 
 
 class CollectionProgressDashboard(tk.Tk):
@@ -176,11 +198,9 @@ class CollectionProgressDashboard(tk.Tk):
         self.coverage_tree.delete(*self.coverage_tree.get_children())
         by_dataset: dict[str, list[dict]] = {}
         for entry in entries:
-            by_dataset.setdefault(str(entry.get("dataset_key", "Unknown")), []).append(entry)
-        keys = list(DATASET_LABELS)
-        for key in by_dataset:
-            if key not in keys:
-                keys.append(key)
+            by_dataset.setdefault(canonical_dataset(entry.get("dataset_key")), []).append(entry)
+        keys = list(CANONICAL_DATASETS)
+        keys.extend(key for key in by_dataset if key not in keys)
         for key in keys:
             group = by_dataset.get(key, [])
             success = sum(item.get("status") == "success" for item in group)
@@ -192,9 +212,10 @@ class CollectionProgressDashboard(tk.Tk):
     def _load_failures(self, failed_entries: list[dict]) -> None:
         self.failed_tree.delete(*self.failed_tree.get_children())
         for entry in failed_entries[:100]:
+            key = canonical_dataset(entry.get("dataset_key"))
             self.failed_tree.insert(
                 "", "end",
-                values=(entry.get("stock_id", ""), DATASET_LABELS.get(entry.get("dataset_key", ""), entry.get("dataset_key", "")), entry.get("error", "") or ""),
+                values=(entry.get("stock_id", ""), DATASET_LABELS.get(key, key), entry.get("error", "") or ""),
             )
         if not failed_entries:
             self.failed_tree.insert("", "end", values=("-", "No failures", "All persisted dataset states are healthy"))
