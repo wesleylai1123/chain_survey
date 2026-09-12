@@ -1,0 +1,188 @@
+name: Persistent Full-Universe Collection
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: Companies per batch
+        required: false
+        default: "25"
+      max_batches:
+        description: Number of batches to collect in this run
+        required: false
+        default: "1"
+      start_batch:
+        description: Optional batch override; blank resumes next pending batch
+        required: false
+        default: ""
+  schedule:
+    - cron: "30 17 * * *"
+  push:
+    branches: [feature/correlation-lab]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: persistent-full-universe-collection
+  cancel-in-progress: false
+
+env:
+  DATA_BRANCH: factor-data
+  PUBLISH_ROOT: persistent/factor_validation
+
+jobs:
+  collect:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[collect]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout research code
+        uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Checkout persistent data branch
+        uses: actions/checkout@v4
+        with:
+          ref: factor-data
+          path: factor-data
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: code
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore raw API cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            code/artifacts/factor_cache
+            code/artifacts/factor_cache_manifest.json
+          key: full-factor-cache-${{ github.run_id }}
+          restore-keys: |
+            full-factor-cache-
+            factor-cache-main-
+
+      - name: Build current Taiwan universe
+        working-directory: code
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        shell: bash
+        run: |
+          set -o pipefail
+          TOKEN_ARGS=()
+          if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
+          python scripts/build_taiwan_universe.py --sample-industries 5 --sample-per-industry 2 "${TOKEN_ARGS[@]}" | tee persistent-universe-results.txt
+
+      - name: Restore durable completed factor batches
+        shell: bash
+        run: |
+          mkdir -p code/artifacts/factor_batches
+          if [ -d "factor-data/${PUBLISH_ROOT}/batches" ]; then
+            cp factor-data/${PUBLISH_ROOT}/batches/factor_batch_*.csv code/artifacts/factor_batches/ 2>/dev/null || true
+          fi
+
+      - name: Resolve next batch
+        id: resume
+        shell: bash
+        env:
+          INPUT_BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+          INPUT_MAX_BATCHES: ${{ github.event.inputs.max_batches }}
+          INPUT_START_BATCH: ${{ github.event.inputs.start_batch }}
+        run: |
+          BATCH_SIZE="${INPUT_BATCH_SIZE:-25}"
+          MAX_BATCHES="${INPUT_MAX_BATCHES:-1}"
+          if [ -n "${INPUT_START_BATCH}" ]; then
+            START_BATCH="${INPUT_START_BATCH}"
+          elif [ -f "factor-data/${PUBLISH_ROOT}/collection_status.json" ]; then
+            START_BATCH=$(python - <<'PY'
+          import json, os
+          p=os.path.join('factor-data', os.environ['PUBLISH_ROOT'], 'collection_status.json')
+          value=json.load(open(p, encoding='utf-8')).get('next_batch')
+          print(0 if value is None else int(value))
+          PY
+          )
+          else
+            START_BATCH=0
+          fi
+          echo "batch_size=${BATCH_SIZE}" >> "$GITHUB_OUTPUT"
+          echo "max_batches=${MAX_BATCHES}" >> "$GITHUB_OUTPUT"
+          echo "start_batch=${START_BATCH}" >> "$GITHUB_OUTPUT"
+          echo "RESUME batch=${START_BATCH} size=${BATCH_SIZE} count=${MAX_BATCHES}"
+
+      - name: Collect next persistent batches
+        working-directory: code
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        shell: bash
+        run: |
+          set -o pipefail
+          TOKEN_ARGS=()
+          if [ -n "${FINMIND_TOKEN}" ]; then TOKEN_ARGS=(--token "${FINMIND_TOKEN}"); fi
+          python scripts/run_full_universe_batches.py \
+            --universe-file artifacts/taiwan_stock_universe.csv \
+            --start 2020-01-01 \
+            --batch-size "${{ steps.resume.outputs.batch_size }}" \
+            --start-batch "${{ steps.resume.outputs.start_batch }}" \
+            --max-batches "${{ steps.resume.outputs.max_batches }}" \
+            "${TOKEN_ARGS[@]}" 2>&1 | tee persistent-collection-results.txt
+
+      - name: Materialize persistent snapshot
+        working-directory: code
+        shell: bash
+        run: |
+          rm -rf ../factor-data/${PUBLISH_ROOT}
+          python scripts/publish_full_universe_snapshot.py \
+            --batch-dir artifacts/factor_batches \
+            --universe-file artifacts/taiwan_stock_universe.csv \
+            --batch-size "${{ steps.resume.outputs.batch_size }}" \
+            --manifest artifacts/factor_cache_manifest.json \
+            --merged-dataset artifacts/factor_validation_full.csv \
+            --publish-dir ../factor-data/${PUBLISH_ROOT}
+
+      - name: Validate persistent snapshot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('factor-data/persistent/factor_validation')
+          status=json.load(open(root/'collection_status.json', encoding='utf-8'))
+          assert status['completed_batch_count'] >= 1
+          assert status['companies_materialized'] >= 1
+          assert status['factor_rows'] >= 1
+          assert (root/'factor_validation_full.csv').exists()
+          print('PERSISTENT_COLLECTION_VALID', status)
+          PY
+
+      - name: Commit durable collection progress
+        working-directory: factor-data
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persistent/factor_validation
+          if git diff --cached --quiet; then
+            echo "No persistent data changes"
+          else
+            git commit -m "data: advance full-universe factor collection"
+            git push origin factor-data
+          fi
+
+      - name: Upload collection diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: persistent-full-universe-collection
+          path: |
+            code/persistent-universe-results.txt
+            code/persistent-collection-results.txt
+            factor-data/persistent/factor_validation/collection_status.json
+          if-no-files-found: warn

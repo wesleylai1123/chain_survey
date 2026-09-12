@@ -1,6 +1,6 @@
 # Fundamental Chain Reaction Platform
 
-A cross-platform desktop GUI for exploring company relationships, event propagation, and basic financial snapshots.
+A cross-platform desktop GUI for exploring company relationships, event propagation, financial snapshots, and signal correlations.
 
 ## Features
 
@@ -9,6 +9,8 @@ A cross-platform desktop GUI for exploring company relationships, event propagat
 - Propagation controls for decay, polarity, lag, and industry/sector sensitivity
 - Real-fundamental overlays from official monthly revenue and quarterly statements that modulate event scores
 - Relationship graph viewer centered on a selected company
+- Correlation Lab for arbitrary X/Y analysis before promoting signals into investment rules
+- Correlation scanner with Pearson/Spearman, transforms, lags, split-sample stability, and future-return targets
 - Formalized data model for companies, products, relationships, event templates, and financial field definitions
 - Registry for future real-world data connectors such as monthly revenue, quarterly filings, IR summaries, and news events
 - Runs as a local desktop app on Windows, macOS, and WSL Ubuntu 24.04 with GUI support
@@ -61,9 +63,28 @@ pip install -r requirements.txt
 
 ## Run
 
+Main desktop app:
+
 ```bash
 python app/main.py
 ```
+
+Correlation Lab:
+
+```bash
+python app/main.py --correlation
+```
+
+The Correlation Lab supports:
+
+- arbitrary numeric X and Y columns from demo data or a loaded CSV
+- Pearson and Spearman correlation
+- raw level, difference, percent change, and forward-return transforms
+- positive/negative lag alignment; positive lag means X leads Y
+- first-half versus second-half correlation stability checks
+- an all-column scanner that ranks feature/lag combinations against a chosen target
+
+For stock research, prefer testing changes in a candidate signal against future returns or future fundamental changes instead of correlating two trending raw level series.
 
 ## WSL Ubuntu 24.04 Notes
 
