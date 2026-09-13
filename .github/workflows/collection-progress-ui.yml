@@ -1,0 +1,81 @@
+name: Collection Progress UI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout application code
+        uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Checkout persistent factor data
+        uses: actions/checkout@v4
+        with:
+          ref: factor-data
+          path: factor-data
+          fetch-depth: 1
+
+      - name: Prepare persistent snapshot
+        shell: bash
+        run: |
+          mkdir -p code/artifacts/persistent/factor_validation
+          cp -R factor-data/persistent/factor_validation/. code/artifacts/persistent/factor_validation/
+          test -f code/artifacts/persistent/factor_validation/collection_status.json
+          test -f code/artifacts/persistent/factor_validation/cache_manifest_latest.json
+          test -f code/artifacts/persistent/factor_validation/taiwan_stock_universe.csv
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        working-directory: code
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+
+      - name: Render Collection Progress Dashboard
+        working-directory: code
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/collection_progress_ui_smoke.py | tee collection-progress-ui-smoke-results.txt
+          grep -q "COLLECTION_PROGRESS_UI_SMOKE_OK" collection-progress-ui-smoke-results.txt
+
+      - name: Validate real persistent progress loaded
+        working-directory: code
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('artifacts/persistent/factor_validation')
+          status=json.load(open(root/'collection_status.json', encoding='utf-8'))
+          assert status['completed_batch_count'] >= 1
+          assert status['companies_materialized'] >= 25
+          assert status['factor_rows'] >= 650
+          print('COLLECTION_PROGRESS_REAL_DATA_OK', status)
+          PY
+
+      - name: Upload dashboard preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-progress-dashboard
+          path: |
+            code/artifacts/collection-progress-dashboard.png
+            code/collection-progress-ui-smoke-results.txt
+            code/artifacts/persistent/factor_validation/collection_status.json
+          if-no-files-found: error

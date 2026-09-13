@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--collection-progress" in sys.argv:
+        from app.collection_progress_dashboard import launch_collection_progress_dashboard
+
+        launch_collection_progress_dashboard()
+        return
+
     if "--factor-robustness" in sys.argv:
         from app.factor_robustness_lab import launch_factor_robustness_lab
 
