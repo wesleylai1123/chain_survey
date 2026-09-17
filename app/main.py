@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--turnaround" in sys.argv:
+        from app.turnaround_radar import launch_turnaround_radar
+
+        launch_turnaround_radar()
+        return
+
     if "--collection-progress" in sys.argv:
         from app.collection_progress_dashboard import launch_collection_progress_dashboard
 
