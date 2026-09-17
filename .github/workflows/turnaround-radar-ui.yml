@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python -m unittest tests.test_turnaround_engine -v 2>&1 | tee turnaround-test-results.txt
+          python -m unittest discover -s tests -p 'test_turnaround_engine.py' -v 2>&1 | tee turnaround-test-results.txt
 
       - name: Validate persistent radar output
         working-directory: code
