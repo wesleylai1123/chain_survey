@@ -30,6 +30,7 @@ jobs:
       - name: Validate inference output
         shell: bash
         run: |
+          mkdir -p artifacts
           python - <<'PY'
           import pandas as pd
           from core.evidence_demand_engine import infer_demand_state
