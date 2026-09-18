@@ -1,0 +1,21 @@
+{
+  "contract": "ResearchSignalV1",
+  "schema_version": "1.0.0",
+  "entity_id": "TWSE:3037",
+  "market": "TW",
+  "signal_id": "turnaround.composite",
+  "signal_value": 0.78,
+  "rank": 12,
+  "observation_period": {"start": "2026-04-01", "end": "2026-06-30"},
+  "available_at": "2026-08-14T10:00:00+08:00",
+  "source": "chain_survey.turnaround_engine",
+  "source_version": "taiwan-quarterly-v1",
+  "model_version": "turnaround-v1.2.0",
+  "confidence": 0.84,
+  "is_estimate": false,
+  "lineage": {
+    "input_snapshot_id": "tw-fundamentals-2026q2-20260814",
+    "commit_sha": "203398c0494dc9f77346068020214292ec1f6921",
+    "inputs": ["quarterly_financials", "monthly_revenue"]
+  }
+}

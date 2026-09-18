@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/wesleylai1123/chain_survey/blob/main/contracts/research-signal/v1/schema.json",
+  "title": "ResearchSignalV1",
+  "description": "Point-in-time research signal produced by chain_survey.",
+  "x-contract-owner": "wesleylai1123/chain_survey",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "schema_version", "entity_id", "market", "signal_id",
+    "signal_value", "observation_period", "available_at", "source",
+    "source_version", "model_version", "confidence", "is_estimate", "lineage"
+  ],
+  "properties": {
+    "contract": {"const": "ResearchSignalV1"},
+    "schema_version": {"const": "1.0.0"},
+    "entity_id": {"type": "string", "minLength": 1},
+    "market": {"type": "string", "minLength": 1},
+    "signal_id": {"type": "string", "minLength": 1},
+    "signal_value": {"type": "number"},
+    "rank": {"type": "integer", "minimum": 1},
+    "observation_period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {"type": "string", "format": "date"},
+        "end": {"type": "string", "format": "date"}
+      }
+    },
+    "available_at": {"type": "string", "format": "date-time"},
+    "source": {"type": "string", "minLength": 1},
+    "source_version": {"type": "string", "minLength": 1},
+    "model_version": {"type": "string", "minLength": 1},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "is_estimate": {"type": "boolean"},
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_snapshot_id", "commit_sha"],
+      "properties": {
+        "input_snapshot_id": {"type": "string", "minLength": 1},
+        "commit_sha": {"type": "string", "pattern": "^[0-9a-f]{7,40}$"},
+        "inputs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    }
+  }
+}
