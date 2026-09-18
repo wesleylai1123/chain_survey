@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import exp, log
 from typing import Mapping
 
@@ -44,7 +44,7 @@ REQUIRED_COLUMNS = {
 
 @dataclass(frozen=True)
 class DemandInferenceConfig:
-    dimension_weights: Mapping[str, float] = DIMENSION_WEIGHTS
+    dimension_weights: Mapping[str, float] = field(default_factory=lambda: dict(DIMENSION_WEIGHTS))
     default_half_life_days: float = 90.0
     max_evidence_age_days: int = 730
 
