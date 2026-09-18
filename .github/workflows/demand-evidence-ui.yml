@@ -1,0 +1,70 @@
+name: Demand Evidence UI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run evidence engine tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_evidence_demand_engine.py' -v 2>&1 | tee demand-evidence-test-results.txt
+
+      - name: Validate inference output
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from core.evidence_demand_engine import infer_demand_state
+          df = pd.read_csv('data/evidence_observations.csv')
+          result = infer_demand_state(df, theme='AI Infrastructure')
+          assert 0 <= result['score'] <= 100
+          assert result['raw_observations'] > result['deduplicated_groups']
+          assert result['independent_chains'] >= 5
+          assert len(result['conflicting_evidence']) >= 1
+          result['evidence_groups'].to_csv('artifacts/demand_evidence_groups.csv', index=False)
+          result['dimensions'].to_csv('artifacts/demand_dimension_scores.csv', index=False)
+          print('DEMAND_EVIDENCE_DATA_OK', result['score'], result['state'], result['confidence'])
+          PY
+
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+
+      - name: Render Demand Evidence Lab
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/demand_evidence_ui_smoke.py | tee demand-evidence-ui-smoke-results.txt
+          grep -q "DEMAND_EVIDENCE_UI_SMOKE_OK" demand-evidence-ui-smoke-results.txt
+
+      - name: Upload evidence preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demand-evidence-preview
+          path: |
+            artifacts/demand-evidence-lab.png
+            artifacts/demand_evidence_groups.csv
+            artifacts/demand_dimension_scores.csv
+            demand-evidence-ui-smoke-results.txt
+            demand-evidence-test-results.txt
+          if-no-files-found: error
