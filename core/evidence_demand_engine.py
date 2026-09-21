@@ -67,7 +67,7 @@ def _validate(frame: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("signal must be numeric")
     if ((work["signal"] < -1.0) | (work["signal"] > 1.0)).any():
         raise ValueError("signal must be within [-1, 1]")
-    work["as_of_date"] = pd.to_datetime(work["as_of_date"], errors="coerce")
+    work["as_of_date"] = pd.to_datetime(work["as_of_date"], errors="coerce", utc=True, format="mixed")
     if work["as_of_date"].isna().any():
         raise ValueError("as_of_date contains invalid dates")
     return work
