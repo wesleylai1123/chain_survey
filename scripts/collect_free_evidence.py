@@ -37,14 +37,13 @@ PRODUCT_CHAIN = {
 
 def parse_month_period(value: Any) -> pd.Timestamp | None:
     text = str(value).strip()
-    m = re.search(r"(?P<y>\d{3,4})\D*(?P<m>\d{1,2})(?:月)?$", text)
-    if not m:
-        digits = re.sub(r"\D", "", text)
-        if len(digits) in {5, 6}:
-            y, mo = int(digits[:-2]), int(digits[-2:])
-        else:
-            return None
+    digits = re.sub(r"\D", "", text)
+    if text.isdigit() and len(digits) in {5, 6}:
+        y, mo = int(digits[:-2]), int(digits[-2:])
     else:
+        m = re.search(r"(?P<y>\d{3,4})\D+(?P<m>\d{1,2})(?:月)?$", text)
+        if not m:
+            return None
         y, mo = int(m.group("y")), int(m.group("m"))
     if y < 1911:
         y += 1911
