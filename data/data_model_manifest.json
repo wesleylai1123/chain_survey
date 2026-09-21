@@ -99,6 +99,16 @@
       "dataset_id": "evidence_observations_real",
       "file": "data/evidence_observations_real.csv",
       "description": "由真實 point-in-time evidence 建立的可重現證據表"
+    },
+    {
+      "dataset_id": "free_evidence_sources",
+      "file": "data/free_evidence_sources.json",
+      "description": "免費官方/產業資料來源 connector 設定"
+    },
+    {
+      "dataset_id": "free_evidence_snapshots",
+      "file": "persistent/free_evidence",
+      "description": "前向累積的免費 point-in-time raw snapshots 與 manifest"
     }
   ]
 }
