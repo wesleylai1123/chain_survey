@@ -134,3 +134,14 @@ The script writes:
 - `depends_on`
 - `belongs_to`
 - `exposed_to`
+
+
+## Evidence-based demand inference
+
+Use the evidence lab to inspect how source reliability, freshness, causal deduplication, and independent supply-chain confirmations combine into a demand state:
+
+```bash
+python app/main.py --demand-evidence
+```
+
+The bundled `data/evidence_observations.csv` is illustrative demo data, not a market forecast. Replace it with sourced observations carrying dates, source types, reliability, half-life, causal evidence groups, and normalized directional signals.
