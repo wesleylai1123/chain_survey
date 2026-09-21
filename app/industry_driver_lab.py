@@ -16,9 +16,9 @@ from core.industry_driver_engine import (
     evaluate_industry_model,
     map_models_to_companies,
 )
-from scripts.build_real_point_in_time_evidence import DEFAULT_RAW, build_real_evidence
+from scripts.build_canonical_industry_evidence import build_canonical_evidence
 
-EVIDENCE_PATH = DEFAULT_RAW
+EVIDENCE_PATH = ROOT / "data" / "evidence_observations_canonical.csv"
 REL_PATH = ROOT / "data" / "company_product_relationships.csv"
 
 
@@ -28,7 +28,7 @@ class IndustryDriverLab(tk.Tk):
         self.title("Industry Driver Model Lab — Real Point-in-Time Evidence")
         self.geometry("1580x980")
         self.minsize(1280, 780)
-        self.evidence = build_real_evidence(pd.read_csv(EVIDENCE_PATH))
+        self.evidence = build_canonical_evidence()
         self.relations = pd.read_csv(REL_PATH)
         self.models = evaluate_all_industry_models(self.evidence)
         self.selected_model = tk.StringVar(value=str(self.models.iloc[0]["model_id"]))
@@ -97,7 +97,7 @@ class IndustryDriverLab(tk.Tk):
                 pd.Timestamp(erow["published_at"]).strftime("%Y-%m-%d"),
                 erow["chain"],
                 erow["indicator"],
-                f"{float(erow['yoy_pct']):+.1f}%",
+                f"{float(erow['change_pct']):+.1f}%",
                 erow["source_type"],
             ))
 
@@ -145,7 +145,7 @@ class IndustryDriverLab(tk.Tk):
         self.status_var.set(
             f"{result['model_name']}: {result['state']} | score {result['score']:.1f} | "
             f"confidence {result['confidence']:.0f}% | evidence coverage {result['coverage']:.0f}% | "
-            f"REAL point-in-time observations {len(self.evidence)}"
+            f"Canonical point-in-time observations {len(self.evidence)}"
         )
 
 
