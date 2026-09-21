@@ -19,24 +19,32 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run industry driver tests
+      - name: Run industry driver and point-in-time evidence tests
         run: |
+          set -o pipefail
           python -m unittest discover -s tests -p 'test_industry_driver_engine.py' -v | tee industry-driver-test-results.txt
-      - name: Export model outputs
+          python -m unittest discover -s tests -p 'test_real_point_in_time_evidence.py' -v | tee real-evidence-test-results.txt
+      - name: Build real point-in-time evidence
+        run: |
+          python scripts/build_real_point_in_time_evidence.py
+          test -s data/evidence_observations_real.csv
+      - name: Export model outputs from real evidence
         run: |
           mkdir -p artifacts
           python - <<'PY'
           import pandas as pd
           from core.industry_driver_engine import evaluate_all_industry_models, map_models_to_companies
-          evidence=pd.read_csv('data/evidence_observations.csv')
+          evidence=pd.read_csv('data/evidence_observations_real.csv')
           rel=pd.read_csv('data/company_product_relationships.csv')
           models=evaluate_all_industry_models(evidence)
           companies=map_models_to_companies(models,rel)
           assert len(models)==4
           assert models['score'].between(0,100).all()
+          assert set(evidence['provenance']) == {'REAL_POINT_IN_TIME'}
           models.to_csv('artifacts/industry_driver_scores.csv',index=False)
           companies.to_csv('artifacts/industry_company_exposure.csv',index=False)
-          print('INDUSTRY_DRIVER_DATA_OK',len(models),len(companies))
+          evidence.to_csv('artifacts/real_point_in_time_evidence.csv',index=False)
+          print('INDUSTRY_DRIVER_REAL_DATA_OK',len(models),len(companies),len(evidence))
           PY
       - name: Install virtual display tools
         run: |
@@ -54,6 +62,8 @@ jobs:
             artifacts/industry-driver-lab.png
             artifacts/industry_driver_scores.csv
             artifacts/industry_company_exposure.csv
+            artifacts/real_point_in_time_evidence.csv
             industry-driver-test-results.txt
+            real-evidence-test-results.txt
             industry-driver-ui-smoke-results.txt
           if-no-files-found: error

@@ -89,6 +89,16 @@
       "dataset_id": "industry_driver_models",
       "file": "data/industry_driver_models.json",
       "description": "產業驅動公式、證據映射與產品經濟橋接模型"
+    },
+    {
+      "dataset_id": "point_in_time_evidence_raw",
+      "file": "data/point_in_time_evidence_raw.csv",
+      "description": "真實官方/公司證據原始值，含 period_date、published_at、來源與轉換前數值"
+    },
+    {
+      "dataset_id": "evidence_observations_real",
+      "file": "data/evidence_observations_real.csv",
+      "description": "由真實 point-in-time evidence 建立的可重現證據表"
     }
   ]
 }

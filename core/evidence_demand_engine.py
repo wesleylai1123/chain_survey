@@ -67,7 +67,7 @@ def _validate(frame: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("signal must be numeric")
     if ((work["signal"] < -1.0) | (work["signal"] > 1.0)).any():
         raise ValueError("signal must be within [-1, 1]")
-    work["as_of_date"] = pd.to_datetime(work["as_of_date"], errors="coerce")
+    work["as_of_date"] = pd.to_datetime(work["as_of_date"], errors="coerce", utc=True, format="mixed")
     if work["as_of_date"].isna().any():
         raise ValueError("as_of_date contains invalid dates")
     return work
@@ -86,8 +86,17 @@ def score_evidence(
     freshness decays exponentially by each row's half life.
     """
     work = _validate(evidence)
-    anchor = pd.Timestamp(as_of_date) if as_of_date is not None else work["as_of_date"].max()
-    work["age_days"] = (anchor - work["as_of_date"]).dt.days.clip(lower=0)
+    if as_of_date is not None:
+        anchor = pd.Timestamp(as_of_date)
+        anchor = anchor.tz_localize("UTC") if anchor.tzinfo is None else anchor.tz_convert("UTC")
+    else:
+        anchor = work["as_of_date"].max()
+
+    # Strict point-in-time guard: evidence is not usable before publication.
+    work = work[work["as_of_date"] <= anchor].copy()
+    if work.empty:
+        return work
+    work["age_days"] = (anchor - work["as_of_date"]).dt.days
     work = work[work["age_days"] <= config.max_evidence_age_days].copy()
 
     defaults = work["source_type"].map(SOURCE_RELIABILITY).fillna(0.40)

@@ -16,18 +16,19 @@ from core.industry_driver_engine import (
     evaluate_industry_model,
     map_models_to_companies,
 )
+from scripts.build_real_point_in_time_evidence import DEFAULT_RAW, build_real_evidence
 
-EVIDENCE_PATH = ROOT / "data" / "evidence_observations.csv"
+EVIDENCE_PATH = DEFAULT_RAW
 REL_PATH = ROOT / "data" / "company_product_relationships.csv"
 
 
 class IndustryDriverLab(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("Industry Driver Model Lab")
-        self.geometry("1540x950")
-        self.minsize(1240, 760)
-        self.evidence = pd.read_csv(EVIDENCE_PATH)
+        self.title("Industry Driver Model Lab — Real Point-in-Time Evidence")
+        self.geometry("1580x980")
+        self.minsize(1280, 780)
+        self.evidence = build_real_evidence(pd.read_csv(EVIDENCE_PATH))
         self.relations = pd.read_csv(REL_PATH)
         self.models = evaluate_all_industry_models(self.evidence)
         self.selected_model = tk.StringVar(value=str(self.models.iloc[0]["model_id"]))
@@ -38,14 +39,14 @@ class IndustryDriverLab(tk.Tk):
     def _build_ui(self) -> None:
         root = ttk.Frame(self, padding=14)
         root.pack(fill="both", expand=True)
-        ttk.Label(root, text="Industry Driver Model v1", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(root, text="Industry Driver Model v1 — REAL Point-in-Time", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
             root,
             text=(
-                "Config-driven semiconductor models convert evidence into industry drivers and product economics. "
-                "The bundled evidence is illustrative only; formulas and mappings are the research structure being validated."
+                "Official/company observations only. Each evidence row keeps its reporting period, actual publication "
+                "timestamp, raw value, source URL and transform. Scores never use an observation before published_at."
             ),
-            wraplength=1450,
+            wraplength=1500,
         ).pack(anchor="w", pady=(4, 10))
 
         top = ttk.Panedwindow(root, orient="horizontal")
@@ -57,7 +58,7 @@ class IndustryDriverLab(tk.Tk):
         top.add(right, weight=2)
 
         cols = ("model","score","state","confidence","coverage","volume","asp","margin")
-        self.model_tree = ttk.Treeview(left, columns=cols, show="headings", height=18)
+        self.model_tree = ttk.Treeview(left, columns=cols, show="headings", height=16)
         labels = {
             "model":"Industry model","score":"Score","state":"State","confidence":"Confidence",
             "coverage":"Coverage","volume":"Volume","asp":"ASP","margin":"Margin"
@@ -84,13 +85,29 @@ class IndustryDriverLab(tk.Tk):
             self.driver_tree.column(c,width=w,anchor="w" if c=="driver" else "center")
         self.driver_tree.pack(fill="both",expand=True)
 
+        ttk.Label(right, text="Real evidence provenance", font=("Segoe UI", 12, "bold")).pack(anchor="w")
+        ecols=("published","chain","indicator","yoy","source_type")
+        self.evidence_tree=ttk.Treeview(right,columns=ecols,show="headings",height=7)
+        for col,w in [("published",110),("chain",90),("indicator",240),("yoy",80),("source_type",150)]:
+            self.evidence_tree.heading(col,text=col.replace("_"," ").title())
+            self.evidence_tree.column(col,width=w,anchor="w" if col in {"indicator","source_type"} else "center")
+        self.evidence_tree.pack(fill="x",pady=(4,10))
+        for _,erow in self.evidence.sort_values("published_at",ascending=False).iterrows():
+            self.evidence_tree.insert("","end",values=(
+                pd.Timestamp(erow["published_at"]).strftime("%Y-%m-%d"),
+                erow["chain"],
+                erow["indicator"],
+                f"{float(erow['yoy_pct']):+.1f}%",
+                erow["source_type"],
+            ))
+
         ttk.Label(right, text="Equations", font=("Segoe UI", 12, "bold")).pack(anchor="w")
-        self.equation_text=tk.Text(right,height=12,wrap="word")
+        self.equation_text=tk.Text(right,height=10,wrap="word")
         self.equation_text.pack(fill="x",pady=(4,10))
 
         ttk.Label(right, text="Company exposure", font=("Segoe UI", 12, "bold")).pack(anchor="w")
         ccols=("company","product","score","exposure","adjusted","state")
-        self.company_tree=ttk.Treeview(right,columns=ccols,show="headings",height=15)
+        self.company_tree=ttk.Treeview(right,columns=ccols,show="headings",height=10)
         for c,w in [("company",110),("product",130),("score",70),("exposure",80),("adjusted",90),("state",120)]:
             self.company_tree.heading(c,text=c.replace("_"," ").title())
             self.company_tree.column(c,width=w,anchor="center")
@@ -127,7 +144,8 @@ class IndustryDriverLab(tk.Tk):
             ))
         self.status_var.set(
             f"{result['model_name']}: {result['state']} | score {result['score']:.1f} | "
-            f"confidence {result['confidence']:.0f}% | evidence coverage {result['coverage']:.0f}%"
+            f"confidence {result['confidence']:.0f}% | evidence coverage {result['coverage']:.0f}% | "
+            f"REAL point-in-time observations {len(self.evidence)}"
         )
 
 
