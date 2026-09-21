@@ -25,7 +25,7 @@ from core.free_evidence_connectors import (
 from scripts.build_real_point_in_time_evidence import normalize_yoy_to_signal
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RELATIONS = ROOT / "data" / "company_product_relationships.csv"
+DEFAULT_RELATIONS = ROOT / "data" / "company_product_relationships.csv"\nDEFAULT_COMPANIES = ROOT / "data" / "company_master.csv"
 DEFAULT_PERSISTENT = ROOT / "persistent" / "free_evidence"
 DEFAULT_ARTIFACTS = ROOT / "artifacts"
 
@@ -251,7 +251,7 @@ def collect_all(
     artifacts_dir: Path = DEFAULT_ARTIFACTS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     cfg = load_source_config(config_path or (ROOT / "data" / "free_evidence_sources.json"))
-    relationships = pd.read_csv(DEFAULT_RELATIONS)
+    relationships = pd.read_csv(DEFAULT_RELATIONS)\n    companies = pd.read_csv(DEFAULT_COMPANIES)
     evidence_frames: list[pd.DataFrame] = []
     status: list[dict[str, Any]] = []
 
