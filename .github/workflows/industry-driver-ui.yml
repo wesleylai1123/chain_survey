@@ -1,0 +1,59 @@
+name: Industry Driver Model UI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run industry driver tests
+        run: |
+          python -m unittest discover -s tests -p 'test_industry_driver_engine.py' -v | tee industry-driver-test-results.txt
+      - name: Export model outputs
+        run: |
+          mkdir -p artifacts
+          python - <<'PY'
+          import pandas as pd
+          from core.industry_driver_engine import evaluate_all_industry_models, map_models_to_companies
+          evidence=pd.read_csv('data/evidence_observations.csv')
+          rel=pd.read_csv('data/company_product_relationships.csv')
+          models=evaluate_all_industry_models(evidence)
+          companies=map_models_to_companies(models,rel)
+          assert len(models)==4
+          assert models['score'].between(0,100).all()
+          models.to_csv('artifacts/industry_driver_scores.csv',index=False)
+          companies.to_csv('artifacts/industry_company_exposure.csv',index=False)
+          print('INDUSTRY_DRIVER_DATA_OK',len(models),len(companies))
+          PY
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+      - name: Render UI
+        run: |
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/industry_driver_ui_smoke.py | tee industry-driver-ui-smoke-results.txt
+          grep -q "INDUSTRY_DRIVER_UI_SMOKE_OK" industry-driver-ui-smoke-results.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: industry-driver-preview
+          path: |
+            artifacts/industry-driver-lab.png
+            artifacts/industry_driver_scores.csv
+            artifacts/industry_company_exposure.csv
+            industry-driver-test-results.txt
+            industry-driver-ui-smoke-results.txt
+          if-no-files-found: error
