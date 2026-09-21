@@ -7,3 +7,4 @@ ASIC,Custom Chip,Networking/AI,客製化晶片
 Advanced Packaging,Packaging,Semiconductor,先進封裝服務
 ABF Substrate,Material,Semiconductor,高階晶片載板
 DRAM/NAND,Memory,Smartphone/Server,記憶體元件
+BT Substrate,Material,Semiconductor,高密度封裝載板\nHBM,Memory,AI/Server,高頻寬記憶體\nCCL,Material,PCB/Server,銅箔基板材料\nHigh-speed PCB,PCB,AI Server/Networking,高速高層數印刷電路板\n
