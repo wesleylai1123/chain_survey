@@ -99,6 +99,21 @@
       "dataset_id": "evidence_observations_real",
       "file": "data/evidence_observations_real.csv",
       "description": "由真實 point-in-time evidence 建立的可重現證據表"
+    },
+    {
+      "dataset_id": "free_industry_evidence_snapshot",
+      "file": "data/free_industry_evidence_snapshot.csv",
+      "description": "TPCA 與 TrendForce 公開免費產業證據快照"
+    },
+    {
+      "dataset_id": "evidence_observations_free",
+      "file": "data/evidence_observations_free.csv",
+      "description": "由 MOPS、TPCA、TrendForce 公開資料建立的免費 point-in-time evidence"
+    },
+    {
+      "dataset_id": "evidence_observations_canonical",
+      "file": "data/evidence_observations_canonical.csv",
+      "description": "官方與免費產業證據合併後的 canonical point-in-time evidence"
     }
   ]
 }
