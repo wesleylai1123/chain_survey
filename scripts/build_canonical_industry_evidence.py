@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 
 from scripts.build_real_point_in_time_evidence import DEFAULT_RAW, build_real_evidence
 from scripts.build_free_industry_evidence import build_free_evidence
 
-ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "data" / "evidence_observations_canonical.csv"
 
 
