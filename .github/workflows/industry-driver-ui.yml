@@ -15,45 +15,66 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run industry driver and point-in-time evidence tests
+
+      - name: Run industry and evidence tests
+        shell: bash
         run: |
           set -o pipefail
           python -m unittest discover -s tests -p 'test_industry_driver_engine.py' -v | tee industry-driver-test-results.txt
           python -m unittest discover -s tests -p 'test_real_point_in_time_evidence.py' -v | tee real-evidence-test-results.txt
-      - name: Build real point-in-time evidence
+          python -m unittest discover -s tests -p 'test_free_industry_evidence.py' -v | tee free-evidence-test-results.txt
+          python -m unittest discover -s tests -p 'test_canonical_industry_evidence.py' -v | tee canonical-evidence-test-results.txt
+          python -m unittest discover -s tests -p 'test_evidence_point_in_time_guard.py' -v | tee point-in-time-guard-results.txt
+
+      - name: Build canonical point-in-time evidence
         run: |
           python scripts/build_real_point_in_time_evidence.py
+          python scripts/build_free_industry_evidence.py
+          python scripts/build_canonical_industry_evidence.py
           test -s data/evidence_observations_real.csv
-      - name: Export model outputs from real evidence
+          test -s data/evidence_observations_free.csv
+          test -s data/evidence_observations_canonical.csv
+
+      - name: Export model outputs from canonical evidence
         run: |
           mkdir -p artifacts
           python - <<'PY'
           import pandas as pd
           from core.industry_driver_engine import evaluate_all_industry_models, map_models_to_companies
-          evidence=pd.read_csv('data/evidence_observations_real.csv')
+
+          evidence=pd.read_csv('data/evidence_observations_canonical.csv')
           rel=pd.read_csv('data/company_product_relationships.csv')
           models=evaluate_all_industry_models(evidence)
           companies=map_models_to_companies(models,rel)
+
           assert len(models)==4
           assert models['score'].between(0,100).all()
-          assert set(evidence['provenance']) == {'REAL_POINT_IN_TIME'}
+          assert {'REAL_POINT_IN_TIME','REAL_POINT_IN_TIME_FREE'} <= set(evidence['provenance'])
+          assert {'ABF','Memory','CCL'} <= set(evidence['chain'])
+
           models.to_csv('artifacts/industry_driver_scores.csv',index=False)
           companies.to_csv('artifacts/industry_company_exposure.csv',index=False)
-          evidence.to_csv('artifacts/real_point_in_time_evidence.csv',index=False)
-          print('INDUSTRY_DRIVER_REAL_DATA_OK',len(models),len(companies),len(evidence))
+          evidence.to_csv('artifacts/canonical_point_in_time_evidence.csv',index=False)
+          print('INDUSTRY_DRIVER_CANONICAL_DATA_OK',len(models),len(companies),len(evidence))
           PY
+
       - name: Install virtual display tools
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb scrot tk
+
       - name: Render UI
+        shell: bash
         run: |
+          set -o pipefail
           xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/industry_driver_ui_smoke.py | tee industry-driver-ui-smoke-results.txt
           grep -q "INDUSTRY_DRIVER_UI_SMOKE_OK" industry-driver-ui-smoke-results.txt
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -62,8 +83,11 @@ jobs:
             artifacts/industry-driver-lab.png
             artifacts/industry_driver_scores.csv
             artifacts/industry_company_exposure.csv
-            artifacts/real_point_in_time_evidence.csv
+            artifacts/canonical_point_in_time_evidence.csv
             industry-driver-test-results.txt
             real-evidence-test-results.txt
+            free-evidence-test-results.txt
+            canonical-evidence-test-results.txt
+            point-in-time-guard-results.txt
             industry-driver-ui-smoke-results.txt
           if-no-files-found: error
