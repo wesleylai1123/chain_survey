@@ -5,6 +5,7 @@ import io
 import json
 import re
 import urllib.request
+import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from html import unescape
@@ -47,8 +48,9 @@ def utc_now() -> pd.Timestamp:
 
 
 def fetch_bytes(url: str, timeout: int = 30) -> FetchResult:
+    safe_url = urllib.parse.quote(url, safe=":/?&=%#")
     req = urllib.request.Request(
-        url,
+        safe_url,
         headers={"User-Agent": "chain-survey/1.0 (+public-research; point-in-time evidence)"},
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
