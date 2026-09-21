@@ -44,6 +44,13 @@ class FreeEvidenceConnectorTests(unittest.TestCase):
         metadata = {"distribution":[{"resourceDownloadUrl":"https://example.gov/data.csv"}]}
         self.assertEqual(extract_data_gov_resource_url(metadata), "https://example.gov/data.csv")
 
+    def test_unicode_resource_url_encoding(self) -> None:
+        import urllib.parse
+        url = "https://example.gov/外銷訂單.csv"
+        safe = urllib.parse.quote(url, safe=":/?&=%#")
+        self.assertNotIn("外銷訂單", safe)
+        self.assertIn("%E5%A4%96", safe)
+
     def test_moea_csv_parser(self) -> None:
         csv_text = "統計項目,資料期,統計值,計量單位\n資訊通信產品,115年7月,33269,百萬美元\n"
         frame = parse_moea_export_orders_csv(
