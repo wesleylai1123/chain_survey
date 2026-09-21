@@ -1,0 +1,65 @@
+{
+  "models": [
+    {
+      "model_id": "ic_substrate_abf_bt",
+      "name": "IC Substrate — ABF / BT",
+      "products": ["ABF Substrate", "BT Substrate"],
+      "demand_equation": "Substrate demand = chip shipment × substrate area per chip × layer/complexity factor",
+      "revenue_equation": "Revenue = shipment volume × ASP",
+      "margin_equation": "Gross margin = f(ASP, utilization, product mix, yield, material cost)",
+      "drivers": [
+        {"driver_id":"end_demand","name":"Compute / networking end demand","weight":0.30,"chains":["Cloud","Compute","Networking"],"dimensions":["buyer_commitment","orders_backlog","physical_throughput"],"polarity":1},
+        {"driver_id":"substrate_tightness","name":"Substrate capacity tightness","weight":0.30,"chains":["ABF"],"dimensions":["market_tightness","orders_backlog"],"polarity":1},
+        {"driver_id":"physical_throughput","name":"Physical semiconductor throughput","weight":0.25,"chains":["Compute","Foundry","Networking"],"dimensions":["physical_throughput","financial_confirmation"],"polarity":1},
+        {"driver_id":"cost_risk","name":"Cost / supply pressure","weight":0.15,"chains":["ABF","Foundry"],"dimensions":["market_tightness"],"polarity":-1}
+      ],
+      "financial_bridge": {"volume_driver":"end_demand","asp_driver":"substrate_tightness","margin_drivers":["substrate_tightness","physical_throughput","cost_risk"]}
+    },
+    {
+      "model_id": "memory_dram_hbm_nand",
+      "name": "Memory — DRAM / HBM / NAND",
+      "products": ["DRAM/NAND", "HBM"],
+      "demand_equation": "Bit demand = device shipment × memory content per device",
+      "supply_equation": "Bit supply = wafer capacity × yield × bits per wafer",
+      "revenue_equation": "Revenue = bit shipment × ASP per bit",
+      "margin_equation": "Gross profit = bit shipment × (ASP per bit - cost per bit)",
+      "drivers": [
+        {"driver_id":"bit_demand","name":"Server / AI bit demand","weight":0.35,"chains":["Cloud","Compute","HBM"],"dimensions":["buyer_commitment","orders_backlog","physical_throughput"],"polarity":1},
+        {"driver_id":"pricing","name":"Memory pricing / tightness","weight":0.30,"chains":["HBM","Memory"],"dimensions":["market_tightness"],"polarity":1},
+        {"driver_id":"supply_growth","name":"Supply growth","weight":0.20,"chains":["HBM","Foundry","Memory"],"dimensions":["physical_throughput","market_tightness"],"polarity":-1},
+        {"driver_id":"financial_confirmation","name":"Shipment / revenue confirmation","weight":0.15,"chains":["HBM","Compute","Foundry"],"dimensions":["financial_confirmation"],"polarity":1}
+      ],
+      "financial_bridge": {"volume_driver":"bit_demand","asp_driver":"pricing","margin_drivers":["pricing","supply_growth"]}
+    },
+    {
+      "model_id": "foundry_advanced_node",
+      "name": "Foundry — Advanced Node",
+      "products": ["3nm/4nm Wafer"],
+      "demand_equation": "Wafer demand = chip units × die size / dies per wafer × process-node mix",
+      "revenue_equation": "Revenue = wafer shipment × wafer ASP",
+      "margin_equation": "Gross margin = f(utilization, node mix, wafer ASP, depreciation, yield)",
+      "drivers": [
+        {"driver_id":"wafer_demand","name":"Advanced-node wafer demand","weight":0.35,"chains":["Cloud","Compute","Foundry"],"dimensions":["buyer_commitment","orders_backlog","physical_throughput"],"polarity":1},
+        {"driver_id":"utilization","name":"Capacity utilization / tightness","weight":0.30,"chains":["Foundry"],"dimensions":["market_tightness","physical_throughput"],"polarity":1},
+        {"driver_id":"mix","name":"Advanced-node mix","weight":0.20,"chains":["Compute","Foundry"],"dimensions":["physical_throughput","financial_confirmation"],"polarity":1},
+        {"driver_id":"confirmation","name":"Revenue confirmation","weight":0.15,"chains":["Foundry"],"dimensions":["financial_confirmation"],"polarity":1}
+      ],
+      "financial_bridge": {"volume_driver":"wafer_demand","asp_driver":"mix","margin_drivers":["utilization","mix"]}
+    },
+    {
+      "model_id": "ccl_pcb_high_speed",
+      "name": "CCL / PCB — High Speed",
+      "products": ["CCL", "High-speed PCB"],
+      "demand_equation": "Material demand = system shipment × board area × layer count × high-speed material content",
+      "revenue_equation": "Revenue = material volume × blended ASP",
+      "margin_equation": "Gross margin = f(high-end mix, ASP, utilization, copper/glass/resin cost)",
+      "drivers": [
+        {"driver_id":"system_demand","name":"AI server / networking system demand","weight":0.35,"chains":["Cloud","Compute","Networking"],"dimensions":["buyer_commitment","orders_backlog","physical_throughput"],"polarity":1},
+        {"driver_id":"spec_upgrade","name":"Speed / layer / material specification upgrade","weight":0.25,"chains":["Networking","Compute"],"dimensions":["physical_throughput","orders_backlog"],"polarity":1},
+        {"driver_id":"pricing_utilization","name":"Pricing / utilization","weight":0.25,"chains":["Networking","CCL"],"dimensions":["market_tightness","financial_confirmation"],"polarity":1},
+        {"driver_id":"input_cost","name":"Copper / glass / resin cost pressure","weight":0.15,"chains":["CCL"],"dimensions":["market_tightness"],"polarity":-1}
+      ],
+      "financial_bridge": {"volume_driver":"system_demand","asp_driver":"spec_upgrade","margin_drivers":["pricing_utilization","input_cost"]}
+    }
+  ]
+}
