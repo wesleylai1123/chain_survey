@@ -39,7 +39,7 @@ class FreeIndustryEvidenceTests(unittest.TestCase):
         }])
         out = build_snapshot_evidence(frame)
         self.assertEqual(out.iloc[0]["provenance"], "REAL_POINT_IN_TIME_FREE")
-        self.assertEqual(out.iloc[0]["signal"], 0.274)
+        self.assertAlmostEqual(out.iloc[0]["signal"], 0.274, places=6)
 
 
 if __name__ == "__main__":
