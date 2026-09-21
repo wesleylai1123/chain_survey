@@ -97,12 +97,27 @@ def _evidence_row(
     }
 
 
-def revenue_snapshot_to_evidence(frame: pd.DataFrame, relationships: pd.DataFrame) -> pd.DataFrame:
+def revenue_snapshot_to_evidence(frame: pd.DataFrame, relationships: pd.DataFrame, companies: pd.DataFrame | None = None) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame()
     rel = relationships.copy()
     rel = rel[rel["product"].isin(PRODUCT_CHAIN)]
-    joined = frame.merge(rel[["company", "product", "weight"]], on="company", how="inner")
+    if companies is not None and not companies.empty:
+        master = companies[["name", "ticker"]].copy()
+        master["ticker_key"] = master["ticker"].astype(str).str.replace(r"\..*$", "", regex=True)
+        rel = rel.merge(master, left_on="company", right_on="name", how="left")
+        by_ticker = frame.merge(
+            rel[["company", "product", "weight", "ticker_key"]],
+            left_on="ticker",
+            right_on="ticker_key",
+            how="inner",
+            suffixes=("_feed", ""),
+        )
+        if not by_ticker.empty:
+            by_ticker["company"] = by_ticker["company"].fillna(by_ticker.get("company_feed"))
+        joined = by_ticker
+    else:
+        joined = frame.merge(rel[["company", "product", "weight"]], on="company", how="inner")
     rows: list[dict[str, Any]] = []
     for _, row in joined.iterrows():
         yoy = row.get("yoy_pct")
@@ -252,7 +267,7 @@ def collect_all(
                     fetched.payload, source_id=sid, market=source["market"],
                     collected_at=fetched.collected_at, source_url=fetched.url,
                 )
-                evidence_frames.append(revenue_snapshot_to_evidence(parsed, relationships))
+                evidence_frames.append(revenue_snapshot_to_evidence(parsed, relationships, companies))
                 rows = len(parsed)
 
             elif kind == "data_gov_dataset_csv":
