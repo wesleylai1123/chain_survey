@@ -7,3 +7,4 @@ product_mix,product_mix,company_ir,quarterly,pdf/table,planned,For product reven
 regional_mix,regional_mix,company_ir,quarterly,pdf/table,planned,For revenue by geography and end market
 macro_factors,macro_factors,internal_research,ad-hoc,csv,active,Curated macro factor reference table for scenario seeding
 macro_exposures,macro_exposures,internal_research,ad-hoc,csv,active,Curated exposure mappings from macro factors to companies products and markets
+tsmc_monthly_revenue_ir,point_in_time_evidence,TSMC Investor Relations,monthly,html,active,Official monthly consolidated revenue with publication calendar\nmoea_export_orders,point_in_time_evidence,MOEA Department of Statistics,monthly,html/xls,active,Official Taiwan export orders by product with publication timestamp\n
