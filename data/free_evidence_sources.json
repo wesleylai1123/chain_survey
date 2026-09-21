@@ -1,0 +1,45 @@
+{
+  "sources": [
+    {
+      "source_id": "twse_monthly_revenue",
+      "provider": "TWSE",
+      "kind": "monthly_revenue_json",
+      "url": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
+      "market": "TWSE",
+      "enabled": true
+    },
+    {
+      "source_id": "tpex_monthly_revenue",
+      "provider": "TPEx",
+      "kind": "monthly_revenue_json",
+      "url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O",
+      "market": "TPEx",
+      "enabled": true
+    },
+    {
+      "source_id": "moea_export_orders_info_comm",
+      "provider": "MOEA",
+      "kind": "data_gov_dataset_csv",
+      "dataset_id": "16361",
+      "chain": "Networking",
+      "dimension": "orders_backlog",
+      "enabled": true
+    },
+    {
+      "source_id": "moea_export_orders_electronics",
+      "provider": "MOEA",
+      "kind": "data_gov_dataset_csv",
+      "dataset_id": "16362",
+      "chain": "Compute",
+      "dimension": "orders_backlog",
+      "enabled": true
+    },
+    {
+      "source_id": "tpca_monthly_industry",
+      "provider": "TPCA",
+      "kind": "tpca_public_listing",
+      "url": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184",
+      "enabled": true
+    }
+  ]
+}
