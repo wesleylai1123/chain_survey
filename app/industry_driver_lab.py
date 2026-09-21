@@ -16,9 +16,9 @@ from core.industry_driver_engine import (
     evaluate_industry_model,
     map_models_to_companies,
 )
-from scripts.build_real_point_in_time_evidence import DEFAULT_RAW, build_real_evidence
+from scripts.build_canonical_industry_evidence import build_canonical_evidence
 
-EVIDENCE_PATH = DEFAULT_RAW
+EVIDENCE_PATH = ROOT / "data" / "evidence_observations_canonical.csv"
 REL_PATH = ROOT / "data" / "company_product_relationships.csv"
 
 
