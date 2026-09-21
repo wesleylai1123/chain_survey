@@ -7,6 +7,24 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--free-evidence" in sys.argv:
+        from app.free_evidence_dashboard import launch_free_evidence_dashboard
+
+        launch_free_evidence_dashboard()
+        return
+
+    if "--industry-driver" in sys.argv:
+        from app.industry_driver_lab import launch_industry_driver_lab
+
+        launch_industry_driver_lab()
+        return
+
+    if "--demand-evidence" in sys.argv:
+        from app.demand_evidence_lab import launch_demand_evidence_lab
+
+        launch_demand_evidence_lab()
+        return
+
     if "--turnaround" in sys.argv:
         from app.turnaround_radar import launch_turnaround_radar
 
@@ -44,7 +62,6 @@ def main() -> None:
         return
 
     from app.gui_app import launch_app
-
     launch_app()
 
 
