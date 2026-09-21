@@ -9,7 +9,7 @@ from scripts.build_real_point_in_time_evidence import build_real_evidence, norma
 
 class RealPointInTimeEvidenceTests(unittest.TestCase):
     def test_signal_transform_is_reproducible(self) -> None:
-        self.assertEqual(normalize_yoy_to_signal(53.3), 0.533)
+        self.assertAlmostEqual(normalize_yoy_to_signal(53.3), 0.533, places=12)
         self.assertEqual(normalize_yoy_to_signal(250), 1.0)
         self.assertEqual(normalize_yoy_to_signal(-130), -1.0)
 
