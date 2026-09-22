@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from io import StringIO
 from urllib.request import Request, urlopen
 import argparse
 import re
@@ -90,9 +91,6 @@ def main() -> None:
     parser=argparse.ArgumentParser()
     parser.add_argument("--output",type=Path,default=OUTPUT)
     args=parser.parse_args()
-    # Import here so parser tests can import module even if this helper changes.
-    global StringIO
-    from io import StringIO
     current=parse_public_page(_fetch())
     history=append_history(current,args.output)
     args.output.parent.mkdir(parents=True,exist_ok=True)
