@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 import time
 
@@ -79,26 +80,27 @@ def parse_list_page(html: str, min_year: int) -> list[dict]:
     return rows
 
 
-def backfill(min_year: int=2023,max_pages: int=60,delay: float=0.2) -> pd.DataFrame:
+def backfill(min_year: int=2023,max_pages: int=40,delay: float=0.0,workers: int=4) -> pd.DataFrame:
     rows=[]
-    empty_streak=0
-    for page in range(1,max_pages+1):
-        html=_fetch(LIST_URL.format(page=page))
-        parsed=parse_list_page(html,min_year)
-        if parsed:
-            rows.extend(parsed)
-            empty_streak=0
-        else:
-            empty_streak+=1
-        soup=BeautifulSoup(html,"lxml")
-        text=soup.get_text(" ",strip=True)
-        years=[int(x) for x in re.findall(r"(20\d{2})年",text)]
-        if years and min(years)<min_year and empty_streak>=2:
-            break
-        if empty_streak>=5:
-            break
+    failures=[]
+    def load(page: int):
         if delay:
-            time.sleep(delay)
+            time.sleep(delay * ((page - 1) % max(workers,1)))
+        html=_fetch(LIST_URL.format(page=page), timeout=12)
+        return page, parse_list_page(html,min_year)
+
+    with ThreadPoolExecutor(max_workers=max(1,workers)) as pool:
+        futures={pool.submit(load,page):page for page in range(1,max_pages+1)}
+        for future in as_completed(futures):
+            page=futures[future]
+            try:
+                _,parsed=future.result()
+                rows.extend(parsed)
+            except Exception as exc:
+                failures.append((page,str(exc)))
+                print(f"TPCA_PAGE_SKIP page={page} {exc}")
+    if failures:
+        print(f"TPCA_BACKFILL_WARN failures={len(failures)}")
     if not rows:
         raise RuntimeError("TPCA history backfill returned no matching rows")
     frame=pd.DataFrame(rows)
@@ -109,11 +111,11 @@ def backfill(min_year: int=2023,max_pages: int=60,delay: float=0.2) -> pd.DataFr
 def main() -> None:
     parser=argparse.ArgumentParser()
     parser.add_argument("--min-year",type=int,default=2023)
-    parser.add_argument("--max-pages",type=int,default=60)
-    parser.add_argument("--delay",type=float,default=0.2)
+    parser.add_argument("--max-pages",type=int,default=40)
+    parser.add_argument("--delay",type=float,default=0.0)\n    parser.add_argument("--workers",type=int,default=4)
     parser.add_argument("--output",type=Path,default=OUTPUT)
     args=parser.parse_args()
-    frame=backfill(args.min_year,args.max_pages,args.delay)
+    frame=backfill(args.min_year,args.max_pages,args.delay,args.workers)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     frame.to_csv(args.output,index=False)
     counts=frame.groupby("metric_id")["period"].nunique().to_dict()
