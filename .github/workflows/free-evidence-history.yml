@@ -53,7 +53,7 @@ jobs:
 
       - name: Backfill TPCA public industry history
         run: |
-          python scripts/backfill_tpca_history.py             --min-year 2024             --max-pages 60             --delay 0.15
+          python scripts/backfill_tpca_history.py --min-year 2024 --max-pages 40 --workers 4 --delay 0
 
       - name: Append TrendForce public price snapshot
         run: |
