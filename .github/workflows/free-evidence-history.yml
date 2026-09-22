@@ -1,0 +1,114 @@
+name: Free Evidence History
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore persisted history
+        shell: bash
+        run: |
+          git fetch origin evidence-data || true
+          git checkout origin/evidence-data -- data/history 2>/dev/null || true
+          mkdir -p data/history artifacts
+
+      - name: Run history parser tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_mops_history_parser.py' -v | tee mops-history-test-results.txt
+          python -m unittest discover -s tests -p 'test_tpca_history_parser.py' -v | tee tpca-history-test-results.txt
+          python -m unittest discover -s tests -p 'test_trendforce_public_history.py' -v | tee trendforce-history-test-results.txt
+          python -m unittest discover -s tests -p 'test_free_evidence_history_panel.py' -v | tee history-panel-test-results.txt
+
+      - name: Backfill MOPS-derived ABF monthly history
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          python scripts/backfill_mops_abf_history.py --from-month 2024-01 --to-month "$(date -d '1 month ago' +%Y-%m)" --transport finmind --delay 0
+
+      - name: Backfill TPCA public industry history
+        run: |
+          python scripts/backfill_tpca_history.py --min-year 2024 --max-pages 40 --workers 4 --delay 0
+
+      - name: Append TrendForce public price snapshot
+        run: |
+          python scripts/collect_trendforce_public_history.py
+
+      - name: Build correlation-ready history panel
+        run: |
+          python scripts/build_free_evidence_history_panel.py
+          python scripts/render_free_evidence_history_coverage.py
+
+      - name: Validate historical coverage
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          panel=pd.read_csv('data/history/free_industry_history_panel.csv')
+          coverage=pd.read_csv('data/history/free_industry_history_coverage.csv')
+          assert panel['source_id'].nunique() >= 3, panel['source_id'].unique()
+          mops=panel[panel['source_id']=='mops_abf_monthly_revenue']
+          assert mops['entity'].nunique() == 3, mops['entity'].unique()
+          assert mops['period'].nunique() >= 18, mops['period'].nunique()
+          tpca=panel[panel['source_id']=='tpca_public_industry']
+          assert tpca['period'].nunique() >= 6, tpca['period'].nunique()
+          tf=panel[panel['source_id']=='trendforce_public_dram']
+          assert len(tf) >= 1
+          published=pd.to_datetime(panel['published_at'], utc=True)
+          periods=pd.to_datetime(panel['period_date'], utc=True)
+          assert (published >= periods).all()
+          print('FREE_EVIDENCE_HISTORY_VALID',len(panel),coverage.shape[0],panel['period'].nunique())
+          PY
+
+      - name: Upload free evidence history artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-evidence-history
+          path: |
+            data/history/mops_abf_monthly_revenue_history.csv
+            data/history/tpca_industry_history.csv
+            data/history/trendforce_public_price_history.csv
+            data/history/free_industry_history_panel.csv
+            data/history/free_industry_history_coverage.csv
+            artifacts/free-industry-history-coverage.png
+            *history-test-results.txt
+          if-no-files-found: error
+
+      - name: Persist history to evidence-data branch
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C evidence-data
+          git add data/history
+          if git diff --cached --quiet; then
+            echo "No history changes to persist"
+          else
+            git commit -m "data: refresh free industry evidence history"
+            git push origin evidence-data --force-with-lease
+          fi
