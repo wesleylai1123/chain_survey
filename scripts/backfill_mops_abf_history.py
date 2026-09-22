@@ -36,18 +36,25 @@ def _find_col(columns: list[str], needle: str) -> str:
     raise KeyError(f"Column containing {needle!r} not found in {columns}")
 
 
-def _fetch_html(year: int, month: int, timeout: int = 30) -> str:
+def _fetch_html(year: int, month: int, timeout: int = 12) -> str:
     roc_year=year-1911
-    url=f"https://mopsov.twse.com.tw/nas/t21/sii/t21sc03_{roc_year}_{month}_0.html"
-    req=Request(url,headers={"User-Agent":"Mozilla/5.0 chain_survey research bot"})
-    with urlopen(req,timeout=timeout) as resp:
-        raw=resp.read()
-    for enc in ("big5","cp950","utf-8"):
+    path=f"/nas/t21/sii/t21sc03_{roc_year}_{month}_0.html"
+    errors=[]
+    for host in ("https://doc.twse.com.tw", "https://mopsov.twse.com.tw", "https://mops.twse.com.tw"):
+        url=host+path
+        req=Request(url,headers={"User-Agent":"Mozilla/5.0 chain_survey research bot"})
         try:
-            return raw.decode(enc)
-        except UnicodeDecodeError:
-            continue
-    return raw.decode("big5",errors="ignore")
+            with urlopen(req,timeout=timeout) as resp:
+                raw=resp.read()
+            for enc in ("big5","cp950","utf-8"):
+                try:
+                    return raw.decode(enc)
+                except UnicodeDecodeError:
+                    continue
+            return raw.decode("big5",errors="ignore")
+        except Exception as exc:
+            errors.append(f"{host}: {exc}")
+    raise RuntimeError(f"Failed MOPS history {year}-{month:02d}: {'; '.join(errors)}")
 
 
 def parse_mops_month(html: str, year: int, month: int) -> pd.DataFrame:
@@ -106,13 +113,20 @@ def month_range(start: str, end: str):
 
 def backfill(start: str, end: str, delay: float = 0.25) -> pd.DataFrame:
     frames=[]
+    failures=[]
     for year,month in month_range(start,end):
-        html=_fetch_html(year,month)
-        parsed=parse_mops_month(html,year,month)
-        if not parsed.empty:
-            frames.append(parsed)
+        try:
+            html=_fetch_html(year,month)
+            parsed=parse_mops_month(html,year,month)
+            if not parsed.empty:
+                frames.append(parsed)
+        except Exception as exc:
+            failures.append((year,month,str(exc)))
+            print(f"MOPS_MONTH_SKIP {year}-{month:02d} {exc}")
         if delay:
             time.sleep(delay)
+    if failures:
+        print(f"MOPS_BACKFILL_WARN failures={len(failures)}")
     if not frames:
         raise RuntimeError("MOPS backfill returned no target rows")
     result=pd.concat(frames,ignore_index=True).drop_duplicates(["ticker","period"]).sort_values(["period","ticker"])
@@ -122,7 +136,8 @@ def backfill(start: str, end: str, delay: float = 0.25) -> pd.DataFrame:
 def main() -> None:
     parser=argparse.ArgumentParser()
     parser.add_argument("--from-month",default="2023-01")
-    parser.add_argument("--to-month",default=pd.Timestamp.now(tz="Asia/Taipei").strftime("%Y-%m"))
+    previous_month=(pd.Timestamp.now(tz="Asia/Taipei")-pd.offsets.MonthBegin(1)).strftime("%Y-%m")
+    parser.add_argument("--to-month",default=previous_month)
     parser.add_argument("--delay",type=float,default=0.25)
     parser.add_argument("--output",type=Path,default=OUTPUT)
     args=parser.parse_args()
