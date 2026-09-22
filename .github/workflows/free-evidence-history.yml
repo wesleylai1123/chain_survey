@@ -47,7 +47,7 @@ jobs:
 
       - name: Backfill MOPS ABF monthly history
         run: |
-          python scripts/backfill_mops_abf_history.py             --from-month 2024-01             --to-month "$(date +%Y-%m)"             --delay 0.15
+          python scripts/backfill_mops_abf_history.py             --from-month 2024-01             --to-month "$(date -d '1 month ago' +%Y-%m)"             --delay 0.15
 
       - name: Backfill TPCA public industry history
         run: |
