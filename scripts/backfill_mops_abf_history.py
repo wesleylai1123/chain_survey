@@ -36,11 +36,11 @@ def _find_col(columns: list[str], needle: str) -> str:
     raise KeyError(f"Column containing {needle!r} not found in {columns}")
 
 
-def _fetch_html(year: int, month: int, timeout: int = 12) -> str:
+def _fetch_html(year: int, month: int, timeout: int = 6) -> str:
     roc_year=year-1911
     path=f"/nas/t21/sii/t21sc03_{roc_year}_{month}_0.html"
     errors=[]
-    for host in ("https://doc.twse.com.tw", "https://mopsov.twse.com.tw", "https://mops.twse.com.tw"):
+    for host in ("https://mops.twse.com.tw", "https://doc.twse.com.tw", "https://mopsov.twse.com.tw"):
         url=host+path
         req=Request(url,headers={"User-Agent":"Mozilla/5.0 chain_survey research bot"})
         try:
