@@ -1,0 +1,39 @@
+{
+  "schema_version": "ValidatedDriverRegistryV1",
+  "generated_from": {
+    "research_run_id": "driver-validation-20260925T133001Z-e1d1bd73",
+    "code_sha": "e1d1bd733af5309e22acd38fcd4c944919d742e7",
+    "evidence_snapshot_sha": "902e20f678f5656b6d5def78a4f8d1358b155a20"
+  },
+  "drivers": [
+    {
+      "driver_id": "tpca_pcb_revenue_yoy_to_abf_revenue_1m",
+      "status": "VALIDATED",
+      "industry_model_id": "ic_substrate_abf_bt",
+      "target_driver_id": "end_demand",
+      "source_metric": "pcb_revenue_yoy",
+      "source": "TPCA public industry",
+      "evidence_group_prefix": "tpca_pcb_revenue_",
+      "target_metric": "abf_revenue_yoy_basket",
+      "direction": "positive",
+      "expected_lag_months": 1,
+      "relation_type": "EMPIRICAL_RELATION",
+      "mechanism": "Broad PCB industry revenue momentum captures common electronics / server-networking demand that historically leads the ABF substrate revenue basket.",
+      "validation": {
+        "sample_size": 31,
+        "spearman": 0.5800988032303457,
+        "pearson": 0.634361240464508,
+        "chronological_oos": 0.5151515151515151,
+        "rolling_sign_share": 0.8529411764705882,
+        "cross_company_sign_share": 1.0,
+        "walk_forward_oos_median": 0.8,
+        "walk_forward_sign_share": 1.0,
+        "bootstrap_ci_95": [0.08019923100094623, 0.7943536011070806],
+        "block_permutation_p": 0.006993006993006993,
+        "fdr_q": 0.04195804195804196,
+        "gates_passed": 6,
+        "gates_total": 6
+      }
+    }
+  ]
+}
