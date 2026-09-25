@@ -7,7 +7,8 @@ import pandas as pd
 from core.industry_driver_engine import (
     evaluate_all_industry_models,
     evaluate_industry_model,
-    load_industry_models,\n    load_validated_driver_registry,
+    load_industry_models,
+    load_validated_driver_registry,
     map_models_to_companies,
 )
 
