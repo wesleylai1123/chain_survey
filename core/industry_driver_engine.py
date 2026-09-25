@@ -9,7 +9,17 @@ import pandas as pd
 from core.evidence_demand_engine import deduplicate_evidence, score_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MODEL_PATH = ROOT / "data" / "industry_driver_models.json"
+DEFAULT_MODEL_PATH = ROOT / "data" / "industry_driver_models.json"\nDEFAULT_VALIDATED_DRIVER_PATH = ROOT / "data" / "validated_driver_registry.json"
+
+
+def load_validated_driver_registry(path: str | Path = DEFAULT_VALIDATED_DRIVER_PATH) -> dict[str, dict[str, Any]]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    result: dict[str, dict[str, Any]] = {}
+    for driver in payload.get("drivers", []):
+        if driver.get("status") not in {"VALIDATED", "PRODUCTION"}:
+            continue
+        result[str(driver["driver_id"])] = driver
+    return result
 
 
 def load_industry_models(path: str | Path = DEFAULT_MODEL_PATH) -> dict[str, dict[str, Any]]:
@@ -135,7 +145,7 @@ def evaluate_industry_model(
             for key in ("demand_equation", "supply_equation", "revenue_equation", "margin_equation")
             if key in model
         },
-        "evidence_groups": groups,
+        "evidence_groups": groups,\n        "validated_relations": [\n            registry[rid]\n            for driver in model.get("drivers", [])\n            for rid in driver.get("validated_relations", [])\n            if rid in registry\n        ],
     }
 
 
