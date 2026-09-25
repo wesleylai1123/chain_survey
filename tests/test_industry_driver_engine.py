@@ -7,7 +7,7 @@ import pandas as pd
 from core.industry_driver_engine import (
     evaluate_all_industry_models,
     evaluate_industry_model,
-    load_industry_models,
+    load_industry_models,\n    load_validated_driver_registry,
     map_models_to_companies,
 )
 
@@ -37,6 +37,11 @@ class IndustryDriverEngineTests(unittest.TestCase):
             "ccl_pcb_high_speed",
         })
 
+    def test_only_validated_registry_entries_are_loaded(self) -> None:
+        registry = load_validated_driver_registry()
+        self.assertIn("tpca_pcb_revenue_yoy_to_abf_revenue_1m", registry)
+        self.assertEqual(registry["tpca_pcb_revenue_yoy_to_abf_revenue_1m"]["status"], "VALIDATED")
+
     def test_abf_model_translates_evidence_into_product_economics(self) -> None:
         result = evaluate_industry_model(self._evidence(), "ic_substrate_abf_bt", as_of_date="2026-09-12")
         self.assertGreater(result["score"], 50)
@@ -44,6 +49,11 @@ class IndustryDriverEngineTests(unittest.TestCase):
         self.assertGreater(result["product_economics"]["asp_score"], 50)
         self.assertGreater(result["coverage"], 50)
         self.assertIn("Revenue = shipment volume", result["equations"]["revenue_equation"])
+        end_demand = result["drivers"][result["drivers"]["driver_id"] == "end_demand"].iloc[0]
+        self.assertEqual(end_demand["evidence_status"], "EMPIRICALLY_LINKED")
+        self.assertEqual(int(end_demand["empirical_best_lag_months"]), 1)
+        self.assertAlmostEqual(float(end_demand["empirical_spearman"]), 0.5800988032303457)
+        self.assertEqual(len(result["validated_relations"]), 1)
 
     def test_all_models_return_rankable_table(self) -> None:
         table = evaluate_all_industry_models(self._evidence(), as_of_date="2026-09-12")
