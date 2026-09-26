@@ -137,13 +137,16 @@ class AbfResearchLab(tk.Tk):
         self.book.pack(fill="both", expand=True)
 
         timing = tk.Frame(self.book, bg=BG)
+        scenarios = tk.Frame(self.book, bg=BG)
         sensitivity = tk.Frame(self.book, bg=BG)
         flow = tk.Frame(self.book, bg=BG)
         self.book.add(timing, text="Indicator Timing")
+        self.book.add(scenarios, text="Scenario Evidence")
         self.book.add(sensitivity, text="Revenue Sensitivity")
         self.book.add(flow, text="Driver → Sensitivity → Model")
 
         self._build_timing_tab(timing)
+        self._build_scenario_tab(scenarios)
         self._build_sensitivity_tab(sensitivity)
         self._build_flow_tab(flow)
 
@@ -277,6 +280,86 @@ class AbfResearchLab(tk.Tk):
             rows = self.indicators[self.indicators["timing_class"] == klass].reset_index(drop=True)
             card = self._timing_bucket(grid, klass, subtitle, rows, accent, soft)
             card.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 7, 0 if i == 2 else 7))
+
+    def _scenario_source_card(self, parent, row: pd.Series, scenario: str) -> tk.Frame:
+        validated = str(row["status"]) == "VALIDATED"
+        accent = GREEN if validated else AMBER
+        soft = GREEN_SOFT if validated else AMBER_SOFT
+        card = self._card(parent)
+        body = self._inner(card)
+
+        top = tk.Frame(body, bg=CARD)
+        top.pack(fill="x")
+        tk.Label(top, text=str(row["source_name"]), bg=CARD, fg=TEXT, font=("Segoe UI", 11, "bold")).pack(side="left")
+        self._pill(top, str(row["status"]), accent, soft).pack(side="right")
+
+        tk.Label(body, text=str(row.get("role","")), bg=CARD, fg=MUTED, font=("Segoe UI", 9), wraplength=560, justify="left").pack(anchor="w", pady=(4, 10))
+
+        stats = tk.Frame(body, bg=CARD)
+        stats.pack(fill="x")
+        values = [
+            ("N", str(int(row["sample_size"]))),
+            ("Spearman", "—" if pd.isna(row["spearman"]) else f"{float(row['spearman']):+.2f}"),
+            ("Hit rate", "—" if pd.isna(row["target_direction_hit_rate"]) else f"{float(row['target_direction_hit_rate'])*100:.0f}%"),
+            ("OOS", "—" if pd.isna(row["oos_spearman"]) else f"{float(row['oos_spearman']):+.2f}"),
+            ("FDR q", "—" if pd.isna(row.get("fdr_q")) else f"{float(row['fdr_q']):.3f}"),
+        ]
+        for i, (label, value) in enumerate(values):
+            box = tk.Frame(stats, bg=SLATE_SOFT, padx=8, pady=7)
+            box.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 3, 0 if i == len(values)-1 else 3))
+            stats.grid_columnconfigure(i, weight=1)
+            tk.Label(box, text=label, bg=SLATE_SOFT, fg=MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            fg = RED if label in {"OOS","FDR q"} and not validated else TEXT
+            tk.Label(box, text=value, bg=SLATE_SOFT, fg=fg, font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(2,0))
+
+        transform = f"{row.get('feature_transform','LEVEL')} → {row.get('target_transform','LEVEL')}"
+        trigger = f"{row.get('feature_trigger','')} → {row.get('target_trigger','')}"
+        tk.Label(
+            body,
+            text=f"Transform: {transform}   |   Trigger: {trigger}   |   Lead: {int(row['lag_months'])}M",
+            bg=CARD, fg=MUTED, font=("Segoe UI", 8)
+        ).pack(anchor="w", pady=(9,0))
+        return card
+
+    def _build_scenario_tab(self, parent) -> None:
+        intro = tk.Frame(parent, bg=BG)
+        intro.pack(fill="x", padx=18, pady=(18, 12))
+        tk.Label(intro, text="Upside and downside are independent hypotheses", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="Each side owns its source list, point-in-time sample, OOS test, bootstrap/permutation result and FDR-adjusted validation status. Shared sources do not share validation.",
+            bg=BG, fg=MUTED, font=("Segoe UI", 10), wraplength=1450, justify="left"
+        ).pack(anchor="w", pady=(4,0))
+
+        if self.scenarios.empty:
+            empty = self._card(parent)
+            empty.pack(fill="x", padx=18)
+            tk.Label(self._inner(empty), text="Scenario validation results are unavailable.", bg=CARD, fg=MUTED, font=("Segoe UI", 11)).pack(anchor="w")
+            return
+
+        grid = tk.Frame(parent, bg=BG)
+        grid.pack(fill="both", expand=True, padx=18, pady=(0,18))
+        for i in range(2):
+            grid.grid_columnconfigure(i, weight=1, uniform="scenario")
+
+        for col, scenario in enumerate(("UPSIDE","DOWNSIDE")):
+            side = tk.Frame(grid, bg=BG)
+            side.grid(row=0, column=col, sticky="nsew", padx=(0 if col==0 else 7, 7 if col==0 else 0))
+            accent, soft = (GREEN, GREEN_SOFT) if scenario=="UPSIDE" else (RED, RED_SOFT)
+            head = self._card(side, bg=soft)
+            head.pack(fill="x", pady=(0,8))
+            hb = self._inner(head)
+            tk.Label(hb, text=scenario, bg=soft, fg=accent, font=("Segoe UI", 13, "bold")).pack(anchor="w")
+            tk.Label(
+                hb,
+                text="Acceleration / positive operating outcome" if scenario=="UPSIDE" else "Deceleration / negative operating outcome",
+                bg=soft, fg=TEXT, font=("Segoe UI", 9)
+            ).pack(anchor="w", pady=(2,0))
+
+            rows=self.scenarios[self.scenarios["scenario"]==scenario].reset_index(drop=True)
+            for _,row in rows.iterrows():
+                card=self._scenario_source_card(side,row,scenario)
+                card.pack(fill="x", pady=5)
 
     def _company_sensitivity_card(self, parent, row: pd.Series) -> tk.Frame:
         status = str(row["sensitivity_status"])
