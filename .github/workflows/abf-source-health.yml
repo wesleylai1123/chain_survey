@@ -1,0 +1,45 @@
+name: ABF Source Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 1 * * *"
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Validate source registry and parser contract
+        run: |
+          python -m unittest discover -s tests -p 'test_abf_source_registry.py' -v
+          python -m unittest discover -s tests -p 'test_abf_source_manifest.py' -v
+      - name: Discover primary-source documents
+        run: |
+          python scripts/collect_abf_source_manifest.py --timeout 20 --retries 2
+      - name: Summarize source health
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          h=pd.read_csv("artifacts/abf_source_health.csv")
+          print(h[["source_id","stock_id","healthy","status","error"]].to_string(index=False))
+          primary=h[h.get("fallback_for",pd.Series(index=h.index,dtype=object)).isna()]
+          for stock in ("3037","3189","8046"):
+              assert h[(h.stock_id.astype(str)==stock) & h.healthy.fillna(False)].shape[0] >= 1, stock
+          print("ABF_SOURCE_HEALTH_OK")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: abf-source-health
+          path: |
+            artifacts/abf_source_manifest.csv
+            artifacts/abf_source_health.csv
+          if-no-files-found: warn
