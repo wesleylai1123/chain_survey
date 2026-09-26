@@ -34,8 +34,15 @@ def main() -> None:
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
     scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
+    scenario_json={}
+    for key,value in scenario_details.items():
+        item=dict(value)
+        cross=item.get("cross_company")
+        if isinstance(cross,pd.DataFrame):
+            item["cross_company"]=cross.where(pd.notna(cross),None).to_dict("records")
+        scenario_json[key]=item
     (OUT/"abf_scenario_validation_details.json").write_text(
-        json.dumps(scenario_details,ensure_ascii=False,indent=2,default=str)+"\n",
+        json.dumps(scenario_json,ensure_ascii=False,indent=2,default=str)+"\n",
         encoding="utf-8",
     )
 
