@@ -45,6 +45,24 @@ def _factor_status(panel: pd.DataFrame, columns: list[str], min_rows: int) -> tu
     return "AVAILABLE","usable rows per company: "+", ".join(f"{k}={v}" for k,v in counts.items())
 
 
+def _operating_history_detail(subset: pd.DataFrame, req: dict[str,Any]) -> str:
+    if subset.empty:
+        return "No primary-source historical dataset currently connected"
+    n=len(subset)
+    companies=subset["stock_id"].astype(str).nunique()
+    start=pd.to_datetime(subset["period_end"],errors="coerce").min()
+    end=pd.to_datetime(subset["period_end"],errors="coerce").max()
+    minimum=int(req.get("minimum_observations",1))
+    company_min=int(req.get("minimum_companies",1))
+    span = f"{start.date()}..{end.date()}" if pd.notna(start) and pd.notna(end) else "unknown"
+    hosts=",".join(sorted(set(subset.get("source_host",pd.Series(dtype=str)).astype(str))))
+    return (
+        f"{n} primary observations; companies={companies}; span={span}; "
+        f"minimum_observations={minimum}; minimum_companies={company_min}; hosts={hosts}; "
+        "historical/cross-company validation still required"
+    )
+
+
 def audit_abf_data_coverage(
     history: pd.DataFrame,
     factor_panel: pd.DataFrame | None=None,
@@ -114,8 +132,8 @@ def audit_abf_data_coverage(
             subset=observed[observed["data_id"]==req["data_id"]] if not observed.empty else observed
             n=len(subset)
             status="INSUFFICIENT_HISTORY" if n else "MISSING"
-            detail=f"{n} source-backed observations; historical validation pending" if n else "No historical dataset currently connected"
-            source="ABF operating observations" if n else "not connected"
+            detail=_operating_history_detail(subset,req)
+            source="ABF operating observations / primary sources only" if n else "not connected"
         else:
             raise ValueError(f"Unsupported requirement kind: {kind}")
 
