@@ -90,7 +90,20 @@ def evaluate_industry_model(
 
     scored = score_evidence(evidence, as_of_date=as_of_date)
     groups = deduplicate_evidence(scored)
-    driver_rows = [_driver_signal(groups, driver) for driver in model.get("drivers", [])]
+    registry = load_validated_driver_registry()
+
+    driver_rows = []
+    for driver in model.get("drivers", []):
+        row = _driver_signal(groups, driver)
+        relation_ids = list(driver.get("validated_relations", []))
+        relations = [registry[rid] for rid in relation_ids if rid in registry]
+        row["validated_relation_count"] = len(relations)
+        row["validated_relation_ids"] = ", ".join(r["driver_id"] for r in relations)
+        row["evidence_status"] = "EMPIRICALLY_LINKED" if relations else "OBSERVED"
+        row["empirical_best_lag_months"] = relations[0]["expected_lag_months"] if len(relations) == 1 else pd.NA
+        row["empirical_spearman"] = relations[0]["validation"]["spearman"] if len(relations) == 1 else pd.NA
+        row["empirical_fdr_q"] = relations[0]["validation"]["fdr_q"] if len(relations) == 1 else pd.NA
+        driver_rows.append(row)
     drivers = pd.DataFrame(driver_rows)
 
     usable = drivers[drivers["evidence_groups"] > 0].copy()
