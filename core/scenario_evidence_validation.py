@@ -36,6 +36,7 @@ def load_scenario_spec(path: str | Path=DEFAULT_SPEC) -> dict:
 def _prepare_metric(frame: pd.DataFrame, metric_id: str, transform: str) -> pd.DataFrame:
     sub=frame[frame["metric_id"]==metric_id][["period","published_at","change_pct"]].copy()
     sub["period_m"]=pd.PeriodIndex(sub["period"].astype(str).str[:7],freq="M")
+    sub["published_at"]=pd.to_datetime(sub["published_at"],utc=True,format="mixed")
     sub["change_pct"]=pd.to_numeric(sub["change_pct"],errors="coerce")
     sub=sub.sort_values("period_m")
     if transform=="LEVEL":
