@@ -6,8 +6,8 @@ from urllib.parse import urlparse
 
 import pandas as pd
 
-REQUIRED = {"stock_id", "report_date", "published_at", "source_url", "document_type"}
-OFFICIAL_HOSTS = {"mops.twse.com.tw", "mopsfin.twse.com.tw", "twse.com.tw", "www.twse.com.tw"}
+REQUIRED = {"stock_id", "report_date", "published_at", "source_url", "document_type", "document_name"}
+OFFICIAL_HOSTS = {"mops.twse.com.tw", "mopsfin.twse.com.tw", "doc.twse.com.tw", "twse.com.tw", "www.twse.com.tw"}
 
 
 def verified_filing_times(observations: pd.DataFrame) -> pd.DataFrame:
@@ -31,6 +31,8 @@ def verified_filing_times(observations: pd.DataFrame) -> pd.DataFrame:
     result["report_date"] = report.dt.strftime("%Y-%m-%d")
     if not result["document_type"].eq("quarterly_financial_report").all():
         raise ValueError("Only quarterly financial report disclosures qualify")
+    if not result["document_name"].astype(str).str.fullmatch(r"20\d{4}_\d{4}_AI1\.pdf").all():
+        raise ValueError("document_name must identify the IFRSs consolidated report")
     if not result["source_url"].map(lambda url: urlparse(str(url)).scheme == "https" and urlparse(str(url)).hostname in OFFICIAL_HOSTS).all():
         raise ValueError("Each timestamp needs a direct official HTTPS source URL")
     if not result["published_at"].astype(str).str.contains(r"(?:Z|[+-]\d{2}:\d{2})$", regex=True).all():

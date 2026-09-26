@@ -8,7 +8,7 @@ structural model equation is not evidence that a historical observation exists.
 Add a row to `data/abf_filing_observations.csv` only after verifying the exact
 publication timestamp of the **quarterly financial report** against a direct
 official TWSE/MOPS page. Columns are `stock_id`, `report_date` (quarter end),
-`published_at` (ISO 8601 including timezone), `source_url`, and `document_type`
+`published_at` (ISO 8601 including timezone), `source_url`, `document_name`, and `document_type`
 (`quarterly_financial_report`). A board meeting, preliminary result, filing
 deadline, or financial period end does not qualify as this timestamp. Duplicate
 company-quarter rows fail closed for review.
@@ -30,5 +30,6 @@ source. An observation becomes `INSUFFICIENT_HISTORY`; it is not promoted to
 `AVAILABLE` or used to calibrate a sensitivity until a separate historical
 validation establishes enough point-in-time samples and cross-company support.
 
-The current repo has no verified exact filing timestamps or product/downside
-historical observations in these files. The source collection remains open.
+The repository contains the official MOPS upload timestamps for all 78 company
+quarters from 2020 Q1 through 2026 Q2 for 3037, 3189 and 8046. Product and
+downside historical observations remain open for source collection.

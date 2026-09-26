@@ -88,7 +88,7 @@ jobs:
           assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
-          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='PROXY'
+          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
           assert not margin.empty
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
