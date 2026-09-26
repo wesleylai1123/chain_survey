@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
 from core.indicator_taxonomy import indicator_table
+from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
 OUT=ROOT/"artifacts"
@@ -24,10 +25,19 @@ def main() -> None:
         config=SensitivityConfig(),
     )
     indicators=indicator_table()
+    scenario_table,scenario_details=validate_abf_scenarios(
+        history,
+        config=ScenarioValidationConfig(),
+    )
 
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
+    scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
+    (OUT/"abf_scenario_validation_details.json").write_text(
+        json.dumps(scenario_details,ensure_ascii=False,indent=2,default=str)+"\n",
+        encoding="utf-8",
+    )
 
     basket=sensitivities[sensitivities["ticker"]=="ABF"].iloc[0]
     revenue_status=(
@@ -48,8 +58,7 @@ def main() -> None:
         "driver":{
             "driver_id":"end_demand",
             "meaning":"Compute / networking end-demand state",
-            "source_indicator":"tpca_pcb_revenue_yoy",
-            "relation_status":"VALIDATED"
+            "scenario_validation":scenario_table.where(pd.notna(scenario_table),None).to_dict("records")
         },
         "sensitivity":{
             "model_type":"linear_beta_v1",
@@ -71,7 +80,8 @@ def main() -> None:
         }
     }
     (OUT/"abf_research_snapshot.json").write_text(json.dumps(snapshot,ensure_ascii=False,indent=2,default=str)+"\n",encoding="utf-8")
-    print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators))
+    print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators),len(scenario_table))
+    print(scenario_table[["scenario","source_name","sample_size","spearman","target_direction_hit_rate","oos_spearman","status"]].to_string(index=False))
     print(sensitivities[["company","beta","beta_ci_low","beta_ci_high","r2","oos_r2","impact_per_10ppt_driver"]].to_string(index=False))
 
 
