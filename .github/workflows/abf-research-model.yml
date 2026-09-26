@@ -24,14 +24,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore ABF history and factor data
+      - name: Restore ABF industry history
         run: |
           git fetch origin evidence-data
           git checkout origin/evidence-data -- data/history
           test -s data/history/free_industry_history_panel.csv
-          git fetch origin factor-data
+
+      - name: Build targeted ABF financial history
+        shell: bash
+        run: |
+          set -o pipefail
           mkdir -p artifacts
-          git show origin/factor-data:persistent/factor_validation/factor_validation_full.csv > artifacts/factor_validation_dataset.csv
+          python scripts/refresh_factor_validation.py             --stocks 3037,3189,8046             --start 2020-01-01             --sleep-seconds 0.1             --cache-dir artifacts/abf_factor_cache             --manifest artifacts/abf_factor_cache_manifest.json             --output artifacts/factor_validation_dataset.csv             --raw-dir artifacts/abf_factor_raw             2>&1 | tee abf-factor-refresh-results.txt
           test -s artifacts/factor_validation_dataset.csv
 
       - name: Run ABF timing and sensitivity tests
@@ -142,6 +146,7 @@ jobs:
             abf-sensitivity-test-results.txt
             abf-data-coverage-test-results.txt
             abf-margin-transmission-test-results.txt
+            abf-factor-refresh-results.txt
             abf-research-results.txt
             abf-research-ui-smoke-results.txt
           if-no-files-found: error
