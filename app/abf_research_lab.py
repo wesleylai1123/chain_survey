@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
 from core.indicator_taxonomy import indicator_table
+from core.directional_indicator_engine import scenario_transmission
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 
@@ -180,7 +181,7 @@ class AbfResearchLab(tk.Tk):
             magnitude_note = "Direction and magnitude pass OOS checks"
 
         cards = [
-            ("Leading relation", "PCB YoY → ABF", "+1 month · VALIDATED", BLUE, BLUE_SOFT),
+            ("Leading relation", "PCB YoY ↕ ABF", "+1 month · direction validated both ways", BLUE, BLUE_SOFT),
             ("Revenue magnitude", magnitude, magnitude_note, AMBER, AMBER_SOFT),
             ("Financial chain", "Revenue → GM → EPS", "GM = gross margin; downstream calibration pending", TEAL, TEAL_SOFT),
             ("Research sample", sample_value, sample_note, GREEN, GREEN_SOFT),
@@ -214,6 +215,18 @@ class AbfResearchLab(tk.Tk):
             ).pack(anchor="w", pady=(2, 3))
             status_fg, status_bg = (GREEN, GREEN_SOFT) if row["evidence_status"] == "VALIDATED" else (MUTED, SLATE_SOFT)
             self._pill(item, str(row["evidence_status"]), status_fg, status_bg).pack(anchor="w")
+
+            cases = tk.Frame(item, bg=CARD)
+            cases.pack(fill="x", pady=(7, 0))
+            pos = tk.Frame(cases, bg=GREEN_SOFT, padx=8, pady=6)
+            pos.pack(fill="x", pady=(0, 4))
+            tk.Label(pos, text="▲ Beneficial", bg=GREEN_SOFT, fg=GREEN, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            tk.Label(pos, text=str(row.get("positive_case","")), bg=GREEN_SOFT, fg=TEXT, font=("Segoe UI", 8), wraplength=360, justify="left").pack(anchor="w")
+            neg = tk.Frame(cases, bg=RED_SOFT, padx=8, pady=6)
+            neg.pack(fill="x")
+            tk.Label(neg, text="▼ Adverse", bg=RED_SOFT, fg=RED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            tk.Label(neg, text=str(row.get("negative_case","")), bg=RED_SOFT, fg=TEXT, font=("Segoe UI", 8), wraplength=360, justify="left").pack(anchor="w")
+
             if idx != len(rows) - 1:
                 tk.Frame(body, bg="#EEF2F6", height=1).pack(fill="x", pady=(0, 12))
         return card
@@ -266,13 +279,22 @@ class AbfResearchLab(tk.Tk):
             fg=TEXT,
             font=("Segoe UI", 22, "bold"),
         ).pack(anchor="w", pady=(14, 2))
+        upside = scenario_transmission(float(row["beta"]), 10.0)
+        downside = scenario_transmission(float(row["beta"]), -10.0)
         tk.Label(
             body,
-            text=f"+10ppt PCB YoY → fitted revenue effect {float(row['impact_per_10ppt_driver']):+.1f}ppt",
+            text=f"+10ppt PCB YoY → fitted revenue effect {upside:+.1f}ppt",
             bg=CARD,
-            fg=MUTED,
-            font=("Segoe UI", 9),
+            fg=GREEN,
+            font=("Segoe UI", 9, "bold"),
         ).pack(anchor="w")
+        tk.Label(
+            body,
+            text=f"-10ppt PCB YoY → fitted revenue effect {downside:+.1f}ppt",
+            bg=CARD,
+            fg=RED,
+            font=("Segoe UI", 9, "bold"),
+        ).pack(anchor="w", pady=(2,0))
 
         stats = tk.Frame(body, bg=CARD)
         stats.pack(fill="x", pady=(14, 0))
