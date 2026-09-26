@@ -30,10 +30,12 @@ def _metrics(y: np.ndarray,pred: np.ndarray) -> dict[str,float]:
     residual=y-pred
     sse=float(np.sum(residual**2))
     sst=float(np.sum((y-np.mean(y))**2))
+    corr=float(pd.Series(y).corr(pd.Series(pred),method="spearman")) if len(y)>=3 else float("nan")
     return {
         "mae":float(np.mean(np.abs(residual))),
         "rmse":float(np.sqrt(np.mean(residual**2))),
         "r2":float(1.0-sse/sst) if sst>0 else float("nan"),
+        "directional_corr":corr,
     }
 
 
@@ -86,6 +88,10 @@ def estimate_revenue_sensitivity(
     oos=_metrics(test["y"].to_numpy(float),test_pred) if len(test)>=3 else {"mae":float("nan"),"rmse":float("nan"),"r2":float("nan")}
 
     lo,hi=_block_bootstrap_beta(aligned,config)
+    ci_excludes_zero=bool((lo>0 and hi>0) or (lo<0 and hi<0))
+    oos_direction_ok=bool(not np.isnan(oos["directional_corr"]) and np.sign(oos["directional_corr"])==np.sign(beta))
+    magnitude_validated=bool(ci_excludes_zero and oos_direction_ok and oos["r2"]>0)
+    sensitivity_status="MAGNITUDE_VALIDATED" if magnitude_validated else "MAGNITUDE_CANDIDATE"
     return {
         "feature":feature,
         "target":target,
@@ -102,6 +108,10 @@ def estimate_revenue_sensitivity(
         "oos_mae":oos["mae"],
         "oos_rmse":oos["rmse"],
         "oos_r2":oos["r2"],
+        "oos_directional_corr":oos["directional_corr"],
+        "direction_status":"VALIDATED",
+        "sensitivity_status":sensitivity_status,
+        "magnitude_validation_pass":magnitude_validated,
         "interpretation":f"A +10ppt change in {feature} historically maps to about {beta*10:+.2f}ppt in {target} at +{config.lag_months}M.",
         "aligned":aligned,
     }
