@@ -51,7 +51,7 @@ def main() -> None:
             "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")
         },
         "downstream":{
-            "revenue":"CALIBRATED",
+            "revenue":"DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE",
             "gross_margin":"NOT_YET_CALIBRATED",
             "operating_margin":"NOT_YET_CALIBRATED",
             "eps":"NOT_YET_CALIBRATED"
