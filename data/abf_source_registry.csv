@@ -1,0 +1,7 @@
+stock_id,company,source_type,source_url,source_host,primary,use_for,notes
+3037,Unimicron,MOPS document archive,https://doc.twse.com.tw/server-java/t57sb01,doc.twse.com.tw,true,"filing;investor_material;annual_report","Primary regulator archive; filter by co_id=3037"
+3189,Kinsus,Investor conference archive,https://www.kinsus.com.tw/zh-tw/download/investor_conferences/index,www.kinsus.com.tw,true,"guidance;utilization;product_mix;capacity;downside","Official conference archive"
+3189,Kinsus,Sustainability reports,https://www.kinsus.com.tw/en/download/sustainability_reports/index,www.kinsus.com.tw,true,"capacity_proxy;production_proxy;resource_intensity","Official annual ESG archive"
+3189,Kinsus,Monthly revenue,https://www.kinsus.com.tw/en/annual/monthly_revenue,www.kinsus.com.tw,true,"company_revenue","Official monthly revenue history"
+8046,Nan Ya PCB,Investor and financial archive,https://www.nanyapcb.com.tw/nypcb/english/InvestorRelations/FinancialReports,www.nanyapcb.com.tw,true,"guidance;utilization;product_mix;capacity;downside;financials","Official investor-event archive with presentation files and videos"
+8046,Nan Ya PCB,ABF technology roadmap,https://www.nanyapcb.com.tw/nypcb/chinese/Technology/ABFSRoadmap,www.nanyapcb.com.tw,true,"capacity;technology_mix;product_capability","Official ABF roadmap"
