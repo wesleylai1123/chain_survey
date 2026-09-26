@@ -35,6 +35,7 @@ jobs:
         run: |
           set -o pipefail
           python -m unittest discover -s tests -p 'test_indicator_taxonomy.py' -v | tee indicator-taxonomy-test-results.txt
+          python -m unittest discover -s tests -p 'test_directional_indicator_engine.py' -v | tee directional-indicator-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
 
       - name: Build real ABF research snapshot
@@ -105,6 +106,7 @@ jobs:
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
             indicator-taxonomy-test-results.txt
+            directional-indicator-test-results.txt
             abf-sensitivity-test-results.txt
             abf-research-results.txt
             abf-research-ui-smoke-results.txt
