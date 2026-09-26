@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--abf-research" in sys.argv:
+        from app.abf_research_lab import launch_abf_research_lab
+
+        launch_abf_research_lab()
+        return
+
     if "--turnaround" in sys.argv:
         from app.turnaround_radar import launch_turnaround_radar
 
