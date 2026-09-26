@@ -63,6 +63,19 @@ class AbfResearchLab(tk.Tk):
         )
         return table
 
+    def _scenario_status(self, scenario: str) -> str:
+        if self.scenarios.empty:
+            return "N/A"
+        rows=self.scenarios[self.scenarios["scenario"]==scenario]
+        statuses=set(rows["status"].astype(str))
+        if "VALIDATED" in statuses:
+            return "VALIDATED"
+        if "CANDIDATE" in statuses:
+            return "CANDIDATE"
+        if "INSUFFICIENT" in statuses:
+            return "INSUFFICIENT"
+        return "N/A"
+
     def _configure_style(self) -> None:
         style = ttk.Style(self)
         try:
@@ -198,10 +211,7 @@ class AbfResearchLab(tk.Tk):
             magnitude = "Validated"
             magnitude_note = "Direction and magnitude pass OOS checks"
 
-        side_status = {}
-        if not self.scenarios.empty:
-            side_status = dict(zip(self.scenarios["scenario"], self.scenarios["status"]))
-        lead_note = f"UPSIDE {side_status.get('UPSIDE','N/A')} · DOWNSIDE {side_status.get('DOWNSIDE','N/A')}"
+        lead_note = f"UPSIDE {self._scenario_status('UPSIDE')} · DOWNSIDE {self._scenario_status('DOWNSIDE')}"
         cards = [
             ("Leading relation", "PCB YoY ↕ ABF", lead_note, BLUE, BLUE_SOFT),
             ("Revenue magnitude", magnitude, magnitude_note, AMBER, AMBER_SOFT),
@@ -319,6 +329,12 @@ class AbfResearchLab(tk.Tk):
             text=f"Transform: {transform}   |   Trigger: {trigger}   |   Lead: {int(row['lag_months'])}M",
             bg=CARD, fg=MUTED, font=("Segoe UI", 8)
         ).pack(anchor="w", pady=(9,0))
+        coverage=f"{row.get('first_period','?')} → {row.get('last_period','?')}"
+        tk.Label(
+            body,
+            text=f"Source history: {coverage} · URLs {int(row.get('source_url_count',0))} · PIT: {row.get('knowledge_time_methods','')}",
+            bg=CARD, fg=MUTED, font=("Segoe UI", 8), wraplength=620, justify="left"
+        ).pack(anchor="w", pady=(3,0))
         return card
 
     def _build_scenario_tab(self, parent) -> None:
@@ -484,12 +500,9 @@ class AbfResearchLab(tk.Tk):
         for i in range(7):
             row.grid_columnconfigure(i, weight=1 if i % 2 == 0 else 0)
 
-        up = self.scenarios[self.scenarios["scenario"]=="UPSIDE"].iloc[0] if not self.scenarios.empty and (self.scenarios["scenario"]=="UPSIDE").any() else None
-        down = self.scenarios[self.scenarios["scenario"]=="DOWNSIDE"].iloc[0] if not self.scenarios.empty and (self.scenarios["scenario"]=="DOWNSIDE").any() else None
-        indicator_status = (
-            f"UP {up['status']} / DOWN {down['status']}"
-            if up is not None and down is not None else "PENDING"
-        )
+        up_state = self._scenario_status("UPSIDE")
+        down_state = self._scenario_status("DOWNSIDE")
+        indicator_status = f"UP {up_state} / DOWN {down_state}"
         blocks = [
             ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Observed point-in-time source. Upside and downside are validated on separate subsets.", indicator_status, BLUE, BLUE_SOFT),
             ("02 · DRIVER", "ABF End Demand", "Economic state: improving or deteriorating? Confidence comes from evidence breadth and quality.", "STATE", TEAL, TEAL_SOFT),
@@ -509,8 +522,6 @@ class AbfResearchLab(tk.Tk):
         tk.Label(body, text="ABF calibration ladder", bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(anchor="w")
         tk.Label(body, text="What is proven today vs what remains research work", bg=CARD, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=(3, 12))
 
-        up_state = str(up["status"]) if up is not None else "PENDING"
-        down_state = str(down["status"]) if down is not None else "PENDING"
         ladder = [
             ("Upside leading case", "Own evidence subset / OOS / bootstrap / permutation", up_state, GREEN if up_state=="VALIDATED" else AMBER, GREEN_SOFT if up_state=="VALIDATED" else AMBER_SOFT),
             ("Downside leading case", "Independently validated; may use different sources", down_state, GREEN if down_state=="VALIDATED" else AMBER, GREEN_SOFT if down_state=="VALIDATED" else AMBER_SOFT),
