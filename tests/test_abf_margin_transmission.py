@@ -14,7 +14,7 @@ class AbfMarginTransmissionTests(unittest.TestCase):
         for ticker in ("3037.TW","3189.TW","8046.TW"):
             rev=np.linspace(-0.3,0.5,16)+rng.normal(0,0.03,16)
             gm=0.18+0.05*np.roll(rev,1)+rng.normal(0,0.005,16)
-            for i,date in enumerate(pd.date_range("2021-03-31",periods=16,freq="Q")):
+            for i,date in enumerate(pd.date_range("2021-03-31",periods=16,freq="QE")):
                 rows.append({
                     "ticker":ticker,
                     "report_date":date.date().isoformat(),
