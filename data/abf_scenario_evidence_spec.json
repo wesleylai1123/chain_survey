@@ -1,0 +1,50 @@
+{
+  "schema_version": "ABFScenarioEvidenceSpecV1",
+  "industry_model_id": "ic_substrate_abf_bt",
+  "principle": "Upside and downside have independent source lists and independent validation. Shared sources do not share validation status.",
+  "target_metric": "abf_revenue_yoy_basket",
+  "scenarios": {
+    "UPSIDE": {
+      "desired_target_direction": "POSITIVE",
+      "leading_sources": [
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "pcb_revenue_yoy",
+          "source_name": "TPCA PCB Revenue YoY",
+          "lag_months": 1,
+          "trigger": "POSITIVE_FEATURE",
+          "role": "Leading demand/throughput evidence"
+        }
+      ],
+      "confirmatory_sources": [
+        {
+          "source_id": "mops_abf_monthly_revenue",
+          "metric_id": "abf_company_revenue_yoy::*",
+          "source_name": "MOPS-derived ABF company monthly revenue",
+          "role": "Coincident company confirmation"
+        }
+      ]
+    },
+    "DOWNSIDE": {
+      "desired_target_direction": "NEGATIVE",
+      "leading_sources": [
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "pcb_revenue_yoy",
+          "source_name": "TPCA PCB Revenue YoY",
+          "lag_months": 1,
+          "trigger": "NEGATIVE_FEATURE",
+          "role": "Leading deterioration evidence; independently validated from upside"
+        }
+      ],
+      "confirmatory_sources": [
+        {
+          "source_id": "mops_abf_monthly_revenue",
+          "metric_id": "abf_company_revenue_yoy::*",
+          "source_name": "MOPS-derived ABF company monthly revenue",
+          "role": "Coincident deterioration confirmation"
+        }
+      ]
+    }
+  }
+}
