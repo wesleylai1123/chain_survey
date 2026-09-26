@@ -8,7 +8,7 @@ import pandas as pd
 
 ROOT=Path(__file__).resolve().parents[1]
 DEFAULT_REQUIREMENTS=ROOT/"data"/"abf_data_requirements.json"
-ABF_TICKERS=("3037.TW","3189.TW","8046.TW")
+ABF_STOCK_IDS=("3037","3189","8046")
 
 
 def load_requirements(path: str | Path=DEFAULT_REQUIREMENTS) -> dict[str,Any]:
@@ -21,14 +21,23 @@ def _factor_status(panel: pd.DataFrame, columns: list[str], min_rows: int) -> tu
     missing=[c for c in columns if c not in panel.columns]
     if missing:
         return "MISSING",f"factor-data missing columns: {', '.join(missing)}"
-    abf=panel[panel["ticker"].astype(str).isin(ABF_TICKERS)].copy() if "ticker" in panel else pd.DataFrame()
+    if "ticker" in panel:
+        work=panel.copy()
+        work["_stock_id"]=work["ticker"].astype(str).str.extract(r"(\d{4})",expand=False)
+        abf=work[work["_stock_id"].isin(ABF_STOCK_IDS)].copy()
+    elif "stock_id" in panel:
+        work=panel.copy()
+        work["_stock_id"]=work["stock_id"].astype(str).str.extract(r"(\d{4})",expand=False)
+        abf=work[work["_stock_id"].isin(ABF_STOCK_IDS)].copy()
+    else:
+        abf=pd.DataFrame()
     if abf.empty:
         return "MISSING","factor-data has no ABF company rows"
     counts={}
-    for ticker in ABF_TICKERS:
-        rows=abf[abf["ticker"].astype(str)==ticker]
+    for stock_id in ABF_STOCK_IDS:
+        rows=abf[abf["_stock_id"]==stock_id]
         usable=rows[columns].notna().all(axis=1).sum()
-        counts[ticker]=int(usable)
+        counts[stock_id]=int(usable)
     if min(counts.values()) < min_rows:
         return "INSUFFICIENT_HISTORY","usable rows per company: "+", ".join(f"{k}={v}" for k,v in counts.items())
     return "AVAILABLE","usable rows per company: "+", ".join(f"{k}={v}" for k,v in counts.items())
