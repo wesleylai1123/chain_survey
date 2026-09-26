@@ -51,9 +51,9 @@ class AbfResearchLab(tk.Tk):
         self.book=ttk.Notebook(root)
         self.book.pack(fill="both",expand=True)
 
-        timing=ttk.Frame(book,padding=10)
-        sens=ttk.Frame(book,padding=10)
-        flow=ttk.Frame(book,padding=10)
+        timing=ttk.Frame(self.book,padding=10)
+        sens=ttk.Frame(self.book,padding=10)
+        flow=ttk.Frame(self.book,padding=10)
         self.book.add(timing,text="Indicator Timing")
         self.book.add(sens,text="Revenue Sensitivity")
         self.book.add(flow,text="Driver ↔ Sensitivity ↔ Model")
