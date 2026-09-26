@@ -1,6 +1,6 @@
 # ABF source observations
 
-The two CSV files in `data/` are intentionally header-only. A field name or a
+The two CSV files in `data/` are source-intake files. A field name or a
 structural model equation is not evidence that a historical observation exists.
 
 ## Quarterly filing time
@@ -27,11 +27,23 @@ period end and scope, numeric value and unit, publication precision, direct
 source URL, source page, and a short identifying excerpt. Use `EXACT_SECOND`
 only with a timezone-aware `published_at`. When the original document supplies
 only its date, use `DATE_ONLY` with `published_date`; availability is then set
-conservatively to the following day. Keep revisions as separate source records
-only when they do not duplicate the same metric, company, period, scope and
-source. An observation becomes `INSUFFICIENT_HISTORY`; it is not promoted to
-`AVAILABLE` or used to calibrate a sensitivity until a separate historical
-validation establishes enough point-in-time samples and cross-company support.
+conservatively to the following day.
+
+Calibration data is stricter than general research evidence. The operating
+intake accepts only primary company/regulator hosts (TWSE/MOPS or the official
+sites for Unimicron, Kinsus and Nanya PCB). Analyst reports, media summaries and
+other secondary sources may be useful for research discovery, but they must not
+enter the source-backed calibration table. The verifier derives `source_host`
+and `source_tier=PRIMARY` and rejects an unapproved host instead of silently
+promoting it.
+
+Keep revisions as separate source records only when they do not duplicate the
+same metric, company, period, scope and source. A source-backed row becomes
+`INSUFFICIENT_HISTORY`; it is not promoted to `AVAILABLE` or used to calibrate
+a sensitivity until separate historical validation establishes enough
+point-in-time samples and cross-company support. Coverage detail reports the
+primary-source observation count, company count, historical span and declared
+minimum sample gates so a partial series cannot look complete.
 
 The repository contains the official MOPS upload timestamps for all 78 company
 quarters from 2020 Q1 through 2026 Q2 for 3037, 3189 and 8046.
