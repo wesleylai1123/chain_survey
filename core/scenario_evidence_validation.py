@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from core.driver_validation_engine import block_bootstrap_ci, block_permutation_pvalue
+from core.driver_validation_engine import benjamini_hochberg, block_bootstrap_ci, block_permutation_pvalue
 from core.operating_correlation_engine import build_abf_basket
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -214,4 +214,24 @@ def validate_abf_scenarios(
             result["role"]=source["role"]
             rows.append({k:v for k,v in result.items() if k!="gates"})
             details[f"{scenario}|{source['metric_id']}"]=result
-    return pd.DataFrame(rows),details
+    table=pd.DataFrame(rows)
+    if table.empty:
+        return table,details
+
+    table["fdr_q"]=np.nan
+    for scenario in ("UPSIDE","DOWNSIDE"):
+        mask=table["scenario"]==scenario
+        if mask.any():
+            table.loc[mask,"fdr_q"]=benjamini_hochberg(table.loc[mask,"permutation_p"]).to_numpy()
+
+    table["fdr_pass"]=table["fdr_q"]<=0.10
+    for idx,row in table.iterrows():
+        base_status=str(row["status"])
+        if base_status=="VALIDATED" and not bool(row["fdr_pass"]):
+            table.at[idx,"status"]="CANDIDATE"
+        key=f"{row['scenario']}|{row['metric_id']}"
+        if key in details:
+            details[key]["fdr_q"]=None if pd.isna(row["fdr_q"]) else float(row["fdr_q"])
+            details[key]["fdr_pass"]=bool(row["fdr_pass"]) if not pd.isna(row["fdr_q"]) else False
+            details[key]["status"]=str(table.at[idx,"status"])
+    return table,details
