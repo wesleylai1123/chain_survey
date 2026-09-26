@@ -78,9 +78,9 @@ class IndustryDriverLab(tk.Tk):
         self.model_tree.selection_set(self.selected_model.get())
 
         ttk.Label(left, text="Driver decomposition", font=("Segoe UI", 12, "bold")).pack(anchor="w", pady=(12,4))
-        dcols=("driver","score","confidence","groups","weight")
+        dcols=("driver","score","confidence","groups","weight","status","lag","rho")
         self.driver_tree=ttk.Treeview(left,columns=dcols,show="headings",height=12)
-        for c,w in [("driver",260),("score",80),("confidence",100),("groups",90),("weight",80)]:
+        for c,w in [("driver",240),("score",70),("confidence",90),("groups",80),("weight",70),("status",130),("lag",70),("rho",70)]:
             self.driver_tree.heading(c,text=c.replace("_"," ").title())
             self.driver_tree.column(c,width=w,anchor="w" if c=="driver" else "center")
         self.driver_tree.pack(fill="both",expand=True)
@@ -125,9 +125,12 @@ class IndustryDriverLab(tk.Tk):
         result=evaluate_industry_model(self.evidence,self.selected_model.get())
         self.driver_tree.delete(*self.driver_tree.get_children())
         for _,row in result["drivers"].iterrows():
+            lag = "-" if pd.isna(row.get("empirical_best_lag_months")) else f"{int(row['empirical_best_lag_months'])}M"
+            rho = "-" if pd.isna(row.get("empirical_spearman")) else f"{float(row['empirical_spearman']):+.2f}"
             self.driver_tree.insert("","end",values=(
                 row["driver_name"],f"{row['score']:.1f}",f"{row['confidence']:.0f}%",
-                int(row["evidence_groups"]),f"{row['weight']:.2f}"
+                int(row["evidence_groups"]),f"{row['weight']:.2f}",
+                row.get("evidence_status","OBSERVED"),lag,rho
             ))
 
         self.equation_text.delete("1.0","end")

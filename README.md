@@ -1,147 +1,626 @@
-# Fundamental Chain Reaction Platform
+# Fundamental Alpha Research Platform
 
-A cross-platform desktop GUI for exploring company relationships, event propagation, financial snapshots, and signal correlations.
+chain_survey is the main research product in a three-repository investment research stack.
 
-## Features
+The platform is built around one idea:
 
-- Company explorer with profile, products, upstream/downstream links, and financial trend chart
-- Multi-layer event simulator with first-layer, second-layer, and third-layer propagation
-- Propagation controls for decay, polarity, lag, and industry/sector sensitivity
-- Real-fundamental overlays from official monthly revenue and quarterly statements that modulate event scores
-- Relationship graph viewer centered on a selected company
-- Correlation Lab for arbitrary X/Y analysis before promoting signals into investment rules
-- Correlation scanner with Pearson/Spearman, transforms, lags, split-sample stability, and future-return targets
-- Formalized data model for companies, products, relationships, event templates, and financial field definitions
-- Registry for future real-world data connectors such as monthly revenue, quarterly filings, IR summaries, and news events
-- Runs as a local desktop app on Windows, macOS, and WSL Ubuntu 24.04 with GUI support
+> Do not start from price prediction. Start from where industry profit is moving, identify the operating driver, connect it to products and companies, validate the relation point-in-time, and only then translate it into earnings and investment hypotheses.
 
-## Requirements
+Core causal chain:
 
-- Python 3.11+ recommended
-- `tkinter` available in the Python runtime
-- On WSL Ubuntu 24.04, GUI support via WSLg or another X server
+~~~
+Industry / demand evidence
+        ↓
+Demand / supply state
+        ↓
+Industry driver
+        ↓
+Product economics
+        ↓
+Company exposure
+        ↓
+Revenue / margin / EPS
+        ↓
+Turnaround / inflection
+        ↓
+Expectation gap
+        ↓
+Valuation / strategy validation
+~~~
 
-## Local Quick Start
+## Repository roles
 
-macOS, Linux, and WSL:
+| Repository | Responsibility | What it should NOT become |
+| --- | --- | --- |
+| chain_survey | Fundamental research, evidence, causal drivers, product economics, company impact, turnaround, research runs | A generic trading/backtest framework |
+| invest_backtest | Strategy validation, walk-forward, costs, portfolio/risk, performance | A second copy of fundamental research logic |
+| market-temperature-dashboard | Macro / market-regime context and risk state | A company-level stock picker |
 
-```bash
-./run.sh
-```
+Target contract flow:
 
-Windows PowerShell:
+~~~
+market-temperature-dashboard
+        │
+        │ MarketRegimeV1
+        ▼
+chain_survey
+        │
+        │ ResearchSignalV1 / ValidatedDriver
+        ▼
+invest_backtest
+        │
+        │ BacktestResultV1
+        ▼
+research feedback
+~~~
 
-```powershell
-.\run.ps1
-```
+chain_survey remains the main research workspace.
 
-The launcher creates `.venv`, installs `requirements.txt`, and starts the desktop GUI.
+---
 
-## Install
+## What is implemented today
 
-```bash
-python -m venv .venv
-```
+### 1. Real point-in-time evidence
 
-Activate the environment:
+Evidence rows keep both the economic period and the time the data became knowable.
 
-```bash
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-```
+Important fields include:
 
-```bash
-# macOS / WSL Ubuntu
-source .venv/bin/activate
-```
+~~~
+period_date
+published_at
+raw_value
+source
+source_type
+reliability
+transform
+transform_version
+provenance
+~~~
 
-Install dependencies:
+Historical scoring enforces:
 
-```bash
-pip install -r requirements.txt
-```
+~~~
+published_at <= evaluation_as_of_date
+~~~
 
-## Run
+so unpublished data cannot leak into historical research.
+
+Current free evidence families include:
+
+- TWSE / MOPS-derived company monthly revenue
+- Taiwan MOEA export orders
+- TSMC monthly revenue
+- TPCA PCB / material / CCL public industry data
+- TrendForce public DRAM price snapshots
+
+TrendForce public history is append-only because the complete historical download is not freely exposed. The system does not fabricate missing history.
+
+### 2. Evidence-based demand inference
+
+The demand engine does not accept a headline such as "AI demand is strong" as a fact.
+
+Each observation is normalized and discounted:
+
+~~~
+Effective Evidence
+=
+Normalized Signal
+× Source Reliability
+× Freshness
+~~~
+
+Repeated reports describing the same causal event are collapsed by evidence_group before aggregation.
+
+The engine separates:
+
+- Buyer Commitment
+- Orders / Backlog
+- Physical Throughput
+- Market Tightness
+- Financial Confirmation
+
+Independent supply-chain confirmations increase confidence; duplicate narratives do not.
+
+Run:
+
+~~~
+python app/main.py --demand-evidence
+~~~
+
+### 3. Industry Driver Models
+
+Industry logic is config-driven rather than hard-coded into the UI.
+
+Current models:
+
+- IC Substrate — ABF / BT
+- Memory — DRAM / HBM / NAND
+- Foundry — Advanced Node
+- CCL / PCB — High Speed
+
+Each model can define:
+
+~~~
+Demand equation
+Supply equation
+Revenue equation
+Margin equation
+Drivers
+Evidence mappings
+Financial bridge
+~~~
+
+Example ABF model:
+
+~~~
+ABF demand
+=
+Chip shipment
+× Substrate area per chip
+× Layer / complexity factor
+
+Revenue
+=
+Shipment volume × ASP
+
+Gross margin
+=
+f(ASP, utilization, mix, yield, material cost)
+~~~
+
+Run:
+
+~~~
+python app/main.py --industry-driver
+~~~
+
+### 4. Historical free-evidence panel
+
+The free evidence history is persisted separately and rebuilt into a correlation-ready panel.
+
+Current persisted history includes:
+
+- ABF company monthly revenue history for 欣興 / 景碩 / 南電
+- TPCA PCB / material / CCL monthly history
+- append-only TrendForce public DRAM snapshots
+
+The history pipeline checks:
+
+- no duplicate source + metric + period keys
+- publication time is never earlier than the economic period
+- minimum coverage for correlation eligibility
+- parser behavior through fixtures/tests
+
+TrendForce metrics are excluded from correlation ranking until enough observations exist.
+
+### 5. Point-in-time operating correlation
+
+Candidate industry indicators are tested against future operating fundamentals, not immediately against stock returns.
+
+The first operating scan currently tests TPCA industry metrics against:
+
+- 欣興 monthly revenue YoY
+- 景碩 monthly revenue YoY
+- 南電 monthly revenue YoY
+- median ABF revenue basket
+
+For each feature / target / lag combination, the engine calculates:
+
+- Spearman correlation
+- Pearson correlation
+- sample size
+- first-half / second-half stability
+- chronological 70/30 OOS correlation
+- lag from 0–6 months
+
+Positive lag means the industry feature leads the target.
+
+### 6. Validated Driver Pipeline
+
+High correlation alone is not enough to enter the industry model.
+
+Candidate drivers pass through:
+
+~~~
+Point-in-time validity
+        ↓
+Sample-size gate
+        ↓
+Rolling 12M / 18M stability
+        ↓
+Cross-company generalization
+        ↓
+Chronological OOS
+        ↓
+Moving-block bootstrap
+        ↓
+Block permutation test
+        ↓
+Nested walk-forward lag selection
+        ↓
+Benjamini-Hochberg FDR
+        ↓
+VALIDATED
+~~~
+
+Current status ladder:
+
+~~~
+EXPERIMENTAL
+    ↓
+CANDIDATE
+    ↓
+VALIDATED
+    ↓
+PRODUCTION
+    ↓
+RETIRED
+~~~
+
+A driver cannot be promoted simply because it has the largest correlation.
+
+### 7. First validated empirical relation
+
+The first relation that passed the full validation pipeline is:
+
+~~~
+TPCA PCB Revenue YoY
+        ↓
+lead 1 month
+        ↓
+ABF Revenue YoY Basket
+~~~
+
+Validation snapshot:
+
+~~~
+Samples                    31
+Spearman                 +0.580
+Pearson                  +0.634
+Chronological OOS        +0.515
+Rolling sign share        85.3%
+Cross-company sign share 100.0%
+Walk-forward OOS median  +0.800
+Permutation p             0.007
+FDR q                     0.042
+Robustness gates           6 / 6
+~~~
+
+This relation is stored in:
+
+~~~
+data/validated_driver_registry.json
+~~~
+
+and attached to the ABF end_demand driver as an EMPIRICALLY_LINKED relation.
+
+Important design choice:
+
+> Validation does not add the same signal a second time.
+
+The TPCA observation already contributes through the evidence engine. The validated relation upgrades its evidence status, lag knowledge, and confidence/explanation layer instead of double-counting the signal.
+
+### 8. ResearchRunV1
+
+Every robust validation run records its research context.
+
+A research run contains:
+
+~~~
+research_run_id
+question
+created_at
+code_sha
+evidence_snapshot_sha
+history_path
+methodology
+candidate_count
+validated_count
+results
+~~~
+
+This makes a research conclusion reproducible against the exact code and data snapshot used at the time.
+
+### 9. Product / company earnings bridge
+
+The product earnings layer models:
+
+~~~
+Product revenue = Volume × ASP
+
+Product gross profit = Revenue × Gross margin
+~~~
+
+and bridges product-level changes into:
+
+~~~
+Operating income
+→ Pre-tax income
+→ Net income
+→ EPS
+~~~
+
+The platform also supports multi-product EPS attribution.
+
+### 10. Turnaround / inflection radar
+
+The turnaround engine looks for improving operating fundamentals rather than merely low prices.
+
+Current features include:
+
+- revenue acceleration
+- gross-margin momentum
+- operating-margin momentum
+- EPS acceleration
+- cash-flow momentum
+- inventory relief
+- cycle state
+
+Validation uses future returns only as an evaluation target, never as an input to the turnaround score.
+
+Run:
+
+~~~
+python app/main.py --turnaround
+~~~
+
+---
+
+## End-to-end research flow
+
+~~~
+1. Collect evidence
+   └─ MOPS / MOEA / TSMC / TPCA / TrendForce public
+
+2. Preserve point-in-time availability
+   └─ period_date + published_at
+
+3. Normalize evidence
+   └─ signal × reliability × freshness
+
+4. Deduplicate causal events
+   └─ evidence_group
+
+5. Infer demand / supply state
+   └─ independent-chain confirmation
+
+6. Map evidence into industry-specific drivers
+   └─ ABF / Memory / Foundry / CCL
+
+7. Build historical operating series
+   └─ correlation-ready panel
+
+8. Scan candidate lead-lag relations
+   └─ Spearman / Pearson / lag / OOS
+
+9. Validate candidates
+   └─ rolling / cross-company / bootstrap / permutation / walk-forward / FDR
+
+10. Promote only robust relations
+    └─ validated_driver_registry.json
+
+11. Attach validated empirical edge to industry model
+    └─ no double-counting
+
+12. Translate industry driver → product economics
+    └─ Volume / ASP / Margin
+
+13. Bridge product economics → company EPS
+
+14. Detect fundamental inflection
+    └─ Turnaround Radar
+
+15. Compare with market expectations
+    └─ planned Expectation Gap layer
+
+16. Send research signal to invest_backtest
+    └─ strategy / portfolio / risk validation
+~~~
+
+Detailed methodology:
+
+- docs/FUNDAMENTAL_ALPHA_ARCHITECTURE.md
+
+---
+
+## Key commands
 
 Main desktop app:
 
-```bash
+~~~
 python app/main.py
-```
+~~~
+
+Demand Evidence Lab:
+
+~~~
+python app/main.py --demand-evidence
+~~~
+
+Industry Driver Lab:
+
+~~~
+python app/main.py --industry-driver
+~~~
+
+Turnaround Radar:
+
+~~~
+python app/main.py --turnaround
+~~~
+
+Collection Progress:
+
+~~~
+python app/main.py --collection-progress
+~~~
 
 Correlation Lab:
 
-```bash
+~~~
 python app/main.py --correlation
-```
+~~~
 
-The Correlation Lab supports:
+Run operating correlations:
 
-- arbitrary numeric X and Y columns from demo data or a loaded CSV
-- Pearson and Spearman correlation
-- raw level, difference, percent change, and forward-return transforms
-- positive/negative lag alignment; positive lag means X leads Y
-- first-half versus second-half correlation stability checks
-- an all-column scanner that ranks feature/lag combinations against a chosen target
+~~~
+python scripts/run_operating_correlations.py
+~~~
 
-For stock research, prefer testing changes in a candidate signal against future returns or future fundamental changes instead of correlating two trending raw level series.
+Run robust driver validation:
 
-## WSL Ubuntu 24.04 Notes
+~~~
+python scripts/run_driver_validation.py
+~~~
 
-- If you use modern WSL on Windows 11, WSLg usually provides GUI support out of the box.
-- If `tkinter` is missing, install it with:
+---
 
-```bash
-sudo apt update
-sudo apt install -y python3-tk
-```
+## Important data files
 
-## Canonical Data Model
+| Path | Purpose |
+| --- | --- |
+| data/company_master.csv | Company master |
+| data/product_master.csv | Product master |
+| data/company_product_relationships.csv | Company × product exposure |
+| data/industry_driver_models.json | Industry equations and driver definitions |
+| data/validated_driver_registry.json | Empirically validated driver relations |
+| data/monthly_revenue.csv | Canonical company monthly revenue |
+| data/quarterly_financials.csv | Canonical quarterly financials |
+| data/evidence_observations_canonical.csv | Current canonical evidence snapshot |
+| data/history/free_industry_history_panel.csv | Correlation-ready historical panel when restored from evidence-data |
+| data/data_model_manifest.json | Dataset manifest |
 
-- `data/company_master.csv`: company master data
-- `data/product_master.csv`: product master data
-- `data/company_relationships.csv`: company-to-company relationships
-- `data/company_product_relationships.csv`: company-to-product relationships
-- `data/product_relationships.csv`: product dependency graph
-- `data/product_market_relationships.csv`: product-to-market exposure graph
-- `data/event_templates.json`: formal event templates with seed rules and propagation parameters
-- `data/financial_field_definitions.csv`: financial metric definitions
-- `data/external_data_sources.csv`: registry of planned real-world data sources
-- `data/monthly_revenue.csv`: official monthly revenue canonical table
-- `data/quarterly_financials.csv`: official quarterly financial canonical table
-- `data/data_model_manifest.json`: manifest of the formalized datasets
+Persistent history is stored on the evidence-data branch. Factor-validation history uses the separate factor-data branch.
 
-Legacy demo files remain in `data/companies.csv`, `data/products.csv`, `data/edges.csv`, and `data/events.json`, but the application now prefers the canonical files above.
+---
 
-## Refresh Official TWSE Data
+## CI / research integrity
 
-Run the ingestion script to pull the latest official monthly revenue and quarterly financial data for the Taiwan-listed companies in `company_master.csv`:
+The repository uses GitHub Actions to check:
 
-```bash
-python scripts/refresh_twse_data.py
-```
+- Python tests
+- parser behavior
+- point-in-time guards
+- history coverage
+- operating correlation output
+- validated-driver pipeline
+- UI smoke tests
+- screenshot artifacts
+- full regression against existing features
 
-The script writes:
+Research principle:
 
-- `data/monthly_revenue.csv`
-- `data/quarterly_financials.csv`
+> Fail closed.
 
-## Relationship Types
+If history is too short, publication time is unknown, a parser breaks, or a driver fails robustness gates, the system should say insufficient / candidate instead of manufacturing a confident result.
 
-- `produces`
-- `supplier_of`
-- `customer_of`
-- `depends_on`
-- `belongs_to`
-- `exposed_to`
+---
 
+## Current limitations
 
-## Evidence-based demand inference
+- the free history panel is still short for true cross-cycle validation
+- TrendForce public DRAM history is still accumulating
+- some publication timestamps use conservative proxies
+- validated operating relations are not yet calibrated into EPS sensitivities
+- macro-regime segmentation is not yet wired into driver validation
+- expectation-gap versus analyst consensus is still planned
+- a validated driver is not the same as causal proof
+- no research output should be interpreted as a buy/sell recommendation
 
-Use the evidence lab to inspect how source reliability, freshness, causal deduplication, and independent supply-chain confirmations combine into a demand state:
+---
 
-```bash
-python app/main.py --demand-evidence
-```
+## Near-term roadmap
 
-The bundled `data/evidence_observations.csv` is illustrative demo data, not a market forecast. Replace it with sourced observations carrying dates, source types, reliability, half-life, causal evidence groups, and normalized directional signals.
+1. Driver lifecycle
+   - automatic revalidation
+   - degradation / retirement status
+   - regime-conditioned confidence
+
+2. Industry Driver → Product Economics
+   - calibrate Volume / ASP / Margin sensitivity
+   - attach empirical lag / confidence to financial bridges
+
+3. Product Economics → EPS
+   - use product exposure and product earnings attribution
+   - produce base / bull / bear earnings scenarios
+
+4. Expectation Gap
+   - compare internal EPS scenarios with consensus / market expectations
+
+5. Cross-repo contracts
+   - MarketRegimeV1
+   - ResearchSignalV1
+   - BacktestResultV1
+
+6. Research automation
+   - versioned research runs
+   - reusable research skills
+   - controlled AutoResearch loop against fixed point-in-time benchmarks
+
+---
+
+## Local setup
+
+Python 3.11+ is recommended.
+
+~~~
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+~~~
+
+Windows PowerShell:
+
+~~~
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+~~~
+
+Launchers:
+
+~~~
+./run.sh
+~~~
+
+~~~
+.\run.ps1
+~~~
+
+---
+
+## Research philosophy
+
+The platform should answer:
+
+~~~
+What changed?
+↓
+Which industry driver changed?
+↓
+Which product economics changed?
+↓
+Which companies are exposed?
+↓
+How much can revenue / margin / EPS change?
+↓
+Was this relationship historically robust?
+↓
+What did the market likely already price in?
+~~~
+
+The goal is not to create a model that sounds confident.
+
+The goal is to create a research system where every important claim can be traced back to:
+
+~~~
+source
+publication time
+transform
+historical evidence
+validation result
+model relation
+company exposure
+financial impact
+~~~

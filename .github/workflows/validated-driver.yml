@@ -1,0 +1,77 @@
+name: Validated Driver Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore evidence history
+        run: |
+          git fetch origin evidence-data
+          git checkout origin/evidence-data -- data/history
+          test -s data/history/free_industry_history_panel.csv
+
+      - name: Run validation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_driver_validation_engine.py' -v | tee driver-validation-test-results.txt
+
+      - name: Run validated driver pipeline
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_driver_validation.py 2>&1 | tee driver-validation-results.txt
+
+      - name: Validate artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+
+          r=pd.read_csv('artifacts/validated_driver_candidates.csv')
+          run=json.load(open('artifacts/research_run.json',encoding='utf-8'))
+
+          assert len(r) > 0
+          assert set(r['status']) <= {'CANDIDATE','VALIDATED'}
+          assert r['sample_size'].min() >= 18
+          assert r['fdr_q'].between(0,1).all()
+          assert r['rolling_sign_share'].between(0,1).all()
+          assert r['cross_company_sign_share'].between(0,1).all()
+          assert r['walk_forward_sign_share'].between(0,1).all()
+          assert run['schema_version']=='ResearchRunV1'
+          assert run['candidate_count']==len(r)
+          assert run['evidence_snapshot_sha']!='unknown'
+          print('VALIDATED_DRIVER_ARTIFACTS_OK',len(r),(r.status=='VALIDATED').sum())
+          print(r[['feature','target','lag_months','spearman','test_30','rolling_sign_share','cross_company_sign_share','walk_forward_oos_median','permutation_p','fdr_q','status']].to_string(index=False))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: validated-driver-preview
+          path: |
+            artifacts/validated_driver_candidates.csv
+            artifacts/validated_driver_details.json
+            artifacts/research_run.json
+            driver-validation-test-results.txt
+            driver-validation-results.txt
+          if-no-files-found: error
