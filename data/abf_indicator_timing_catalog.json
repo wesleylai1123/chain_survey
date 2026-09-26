@@ -1,0 +1,83 @@
+{
+  "schema_version": "IndicatorTimingCatalogV1",
+  "industry_model_id": "ic_substrate_abf_bt",
+  "principle": "Timing class is always relative to a target variable and must distinguish structural expectation from empirical validation.",
+  "indicators": [
+    {
+      "indicator_id": "tpca_pcb_revenue_yoy",
+      "name": "TPCA PCB Revenue YoY",
+      "source_metric": "pcb_revenue_yoy",
+      "source": "TPCA public industry",
+      "relative_to": "abf_revenue_yoy_basket",
+      "timing_class": "LEADING",
+      "lead_lag": {"value": 1, "unit": "month"},
+      "evidence_status": "VALIDATED",
+      "relation_id": "tpca_pcb_revenue_yoy_to_abf_revenue_1m",
+      "role": "Early external demand/throughput signal before ABF company revenue confirmation.",
+      "use_in_model": "driver_state_and_revenue_sensitivity"
+    },
+    {
+      "indicator_id": "abf_company_monthly_revenue_yoy",
+      "name": "ABF Company Monthly Revenue YoY",
+      "source_metric_pattern": "abf_company_revenue_yoy::*",
+      "source": "MOPS-derived monthly revenue",
+      "relative_to": "abf_current_operating_state",
+      "timing_class": "COINCIDENT",
+      "lead_lag": {"value": 0, "unit": "month"},
+      "evidence_status": "OBSERVED",
+      "role": "Confirms that industry demand is already reaching company revenue.",
+      "use_in_model": "current_state_confirmation"
+    },
+    {
+      "indicator_id": "abf_revenue_yoy_basket",
+      "name": "ABF Revenue YoY Basket",
+      "source_metric": "abf_revenue_yoy_basket",
+      "source": "Derived median of 欣興 / 景碩 / 南電",
+      "relative_to": "abf_current_operating_state",
+      "timing_class": "COINCIDENT",
+      "lead_lag": {"value": 0, "unit": "month"},
+      "evidence_status": "DERIVED",
+      "role": "Reduces company-specific noise and represents the common ABF revenue cycle.",
+      "use_in_model": "sensitivity_target_and_cycle_confirmation"
+    },
+    {
+      "indicator_id": "gross_margin",
+      "name": "Gross Margin",
+      "source_metric": "gross_margin",
+      "source": "Quarterly financial statements",
+      "relative_to": "abf_demand_and_revenue_inflection",
+      "timing_class": "LAGGING",
+      "lead_lag": {"value": null, "unit": "quarter"},
+      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "role": "Confirms that demand/revenue improvement has propagated through utilization, pricing, mix and fixed-cost absorption.",
+      "use_in_model": "margin_confirmation_and_sensitivity_target",
+      "note": "Lag and sensitivity are not yet empirically calibrated."
+    },
+    {
+      "indicator_id": "operating_margin",
+      "name": "Operating Margin",
+      "source_metric": "operating_margin",
+      "source": "Quarterly financial statements",
+      "relative_to": "abf_revenue_inflection",
+      "timing_class": "LAGGING",
+      "lead_lag": {"value": null, "unit": "quarter"},
+      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "role": "Confirms operating leverage after gross-profit improvement and OPEX absorption.",
+      "use_in_model": "earnings_bridge_confirmation",
+      "note": "Lag and sensitivity are not yet empirically calibrated."
+    },
+    {
+      "indicator_id": "eps",
+      "name": "EPS",
+      "source_metric": "eps",
+      "source": "Quarterly financial statements",
+      "relative_to": "abf_demand_and_revenue_inflection",
+      "timing_class": "LAGGING",
+      "lead_lag": {"value": null, "unit": "quarter"},
+      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "role": "Late financial confirmation that operating changes have propagated through the income statement.",
+      "use_in_model": "final_financial_confirmation",
+      "note": "Lag and sensitivity are not yet empirically calibrated."
+    }
+  ]
+}
