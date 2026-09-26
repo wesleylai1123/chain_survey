@@ -1,0 +1,8 @@
+metric_id,kind,product,observed_at,published_at,session_average,change_pct,source_url,source,knowledge_time_method
+dram_contract_ddr4_16gb_sodimm,contract,DDR4 16GB SO-DIMM,2026-07-31T15:00:00+08:00,2026-07-31T15:00:00+08:00,265.0,16.74,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_contract_ddr5_8gb_sodimm,contract,DDR5 8GB SO-DIMM,2026-07-31T15:00:00+08:00,2026-07-31T15:00:00+08:00,130.0,13.04,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_spot_ddr5_16gb,spot,DDR5 16Gb (2Gx8) 4800/5600,2026-09-21T18:10:00+08:00,2026-09-21T18:10:00+08:00,56.933,1.67,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_spot_ddr5_16gb,spot,DDR5 16Gb (2Gx8) 4800/5600,2026-09-22T14:40:00+08:00,2026-09-22T14:40:00+08:00,57.167,0.41,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_spot_ddr5_16gb,spot,DDR5 16Gb (2Gx8) 4800/5600,2026-09-23T14:40:00+08:00,2026-09-23T14:40:00+08:00,57.5,0.58,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_spot_ddr5_16gb,spot,DDR5 16Gb (2Gx8) 4800/5600,2026-09-24T14:40:00+08:00,2026-09-24T14:40:00+08:00,57.667,0.29,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
+dram_spot_ddr5_16gb,spot,DDR5 16Gb (2Gx8) 4800/5600,2026-09-24T18:10:00+08:00,2026-09-24T18:10:00+08:00,57.667,0.29,https://www.trendforce.com/price/dram/dram_contract,TrendForce public DRAM price page,page_last_update
