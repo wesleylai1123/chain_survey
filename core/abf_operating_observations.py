@@ -12,16 +12,31 @@ REQUIRED = {
     "source_page", "source_excerpt",
 }
 PUBLICATION_PRECISIONS = {"EXACT_SECOND", "DATE_ONLY"}
+PRIMARY_SOURCE_HOSTS = {
+    "mops.twse.com.tw", "mopsov.twse.com.tw", "mopsfin.twse.com.tw",
+    "doc.twse.com.tw", "twse.com.tw", "www.twse.com.tw",
+    "unimicron.com", "www.unimicron.com",
+    "kinsus.com.tw", "www.kinsus.com.tw",
+    "nanyapcb.com.tw", "www.nanyapcb.com.tw",
+}
+
+
+def _source_host(url: object) -> str:
+    parsed = urlparse(str(url))
+    return (parsed.hostname or "").lower()
 
 
 def verified_operating_observations(frame: pd.DataFrame, allowed_ids: set[str]) -> pd.DataFrame:
     if frame.empty and not len(frame.columns):
-        return pd.DataFrame(columns=sorted(REQUIRED))
+        return pd.DataFrame(columns=[*sorted(REQUIRED), "available_date", "source_host", "source_tier"])
     missing = REQUIRED - set(frame.columns)
     if missing:
         raise ValueError(f"Operating observations missing columns: {sorted(missing)}")
     result = frame.copy()
     if result.empty:
+        result["source_host"] = pd.Series(dtype=str)
+        result["source_tier"] = pd.Series(dtype=str)
+        result["available_date"] = pd.Series(dtype=str)
         return result
     if not result["data_id"].isin(allowed_ids).all():
         raise ValueError("Unknown ABF data_id")
@@ -49,8 +64,18 @@ def verified_operating_observations(frame: pd.DataFrame, allowed_ids: set[str]) 
     published_dates=pd.to_datetime(result["published_date"],errors="coerce")
     if dated.any() and published_dates[dated].isna().any():
         raise ValueError("Date-only publication requires published_date")
-    if not result["source_url"].map(lambda u: urlparse(str(u)).scheme == "https" and bool(urlparse(str(u)).hostname)).all():
+
+    result["source_host"] = result["source_url"].map(_source_host)
+    valid_https = result["source_url"].map(
+        lambda u: urlparse(str(u)).scheme == "https" and bool(urlparse(str(u)).hostname)
+    )
+    if not valid_https.all():
         raise ValueError("Observation requires a direct HTTPS source URL")
+    if not result["source_host"].isin(PRIMARY_SOURCE_HOSTS).all():
+        bad = sorted(set(result.loc[~result["source_host"].isin(PRIMARY_SOURCE_HOSTS), "source_host"]))
+        raise ValueError(f"Operating calibration requires primary company/regulator sources; rejected hosts: {bad}")
+    result["source_tier"] = "PRIMARY"
+
     if result.duplicated(["data_id", "stock_id", "period_end", "observation_scope", "source_url"]).any():
         raise ValueError("Duplicate source observation")
     available=pd.Series(pd.NaT,index=result.index,dtype="datetime64[ns]")
