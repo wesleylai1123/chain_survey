@@ -7,3 +7,4 @@ pillow>=10
 scipy>=1.11
 lxml>=5.3
 beautifulsoup4>=4.12
+pypdf>=5.0
