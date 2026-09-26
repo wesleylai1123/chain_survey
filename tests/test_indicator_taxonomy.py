@@ -15,7 +15,7 @@ class IndicatorTaxonomyTests(unittest.TestCase):
         item=classify_indicator("tpca_pcb_revenue_yoy")
         self.assertEqual(item["timing_class"],"LEADING")
         self.assertEqual(item["lead_lag"]["value"],1)
-        self.assertEqual(item["evidence_status"],"VALIDATED")
+        self.assertEqual(item["evidence_status"],"FULL_SAMPLE_RELATION_VALIDATED")
 
     def test_financial_confirmation_is_lagging_not_fake_validated(self) -> None:
         eps=classify_indicator("eps")
@@ -26,6 +26,9 @@ class IndicatorTaxonomyTests(unittest.TestCase):
     def test_table_contains_all_three_timing_classes(self) -> None:
         table=indicator_table()
         self.assertEqual(set(table["timing_class"]),{"LEADING","COINCIDENT","LAGGING"})
+        self.assertTrue((table["economic_orientation"]=="HIGHER_IS_BETTER").all())
+        self.assertTrue(table["positive_case"].astype(bool).all())
+        self.assertTrue(table["negative_case"].astype(bool).all())
 
 
 if __name__=="__main__":

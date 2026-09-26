@@ -35,6 +35,8 @@ jobs:
         run: |
           set -o pipefail
           python -m unittest discover -s tests -p 'test_indicator_taxonomy.py' -v | tee indicator-taxonomy-test-results.txt
+          python -m unittest discover -s tests -p 'test_directional_indicator_engine.py' -v | tee directional-indicator-test-results.txt
+          python -m unittest discover -s tests -p 'test_scenario_evidence_validation.py' -v | tee scenario-evidence-validation-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
 
       - name: Build real ABF research snapshot
@@ -51,15 +53,24 @@ jobs:
 
           timing=pd.read_csv('artifacts/abf_indicator_timing.csv')
           sens=pd.read_csv('artifacts/abf_revenue_sensitivity.csv')
+          scenarios=pd.read_csv('artifacts/abf_scenario_validation.csv')
           snap=json.load(open('artifacts/abf_research_snapshot.json',encoding='utf-8'))
 
           assert {'LEADING','COINCIDENT','LAGGING'} <= set(timing['timing_class'])
           lead=timing[timing.indicator_id=='tpca_pcb_revenue_yoy'].iloc[0]
           assert lead['timing_class']=='LEADING'
           assert int(lead['lag_value'])==1
-          assert lead['evidence_status']=='VALIDATED'
+          assert lead['evidence_status']=='FULL_SAMPLE_RELATION_VALIDATED'
 
           assert set(sens['ticker'])=={'3037.TW','3189.TW','8046.TW','ABF'}
+          assert set(scenarios['scenario'])=={'UPSIDE','DOWNSIDE'}
+          assert scenarios['source_name'].notna().all()
+          assert scenarios['sample_size'].ge(0).all()
+          # Each source owns its own status; never infer downside from upside.
+          assert set(scenarios['status']) <= {'VALIDATED','CANDIDATE','INSUFFICIENT'}
+          assert scenarios['source_urls'].notna().all()
+          assert scenarios['knowledge_time_methods'].notna().all()
+          assert scenarios['cross_company_positive_share'].between(0,1).all()
           assert sens['sample_size'].min() >= 24
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
@@ -101,10 +112,15 @@ jobs:
             artifacts/abf_indicator_timing.csv
             artifacts/abf_revenue_sensitivity.csv
             artifacts/abf_research_snapshot.json
+            artifacts/abf_scenario_validation.csv
+            artifacts/abf_scenario_validation_details.json
             artifacts/abf-indicator-timing.png
+            artifacts/abf-scenario-evidence.png
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
             indicator-taxonomy-test-results.txt
+            directional-indicator-test-results.txt
+            scenario-evidence-validation-test-results.txt
             abf-sensitivity-test-results.txt
             abf-research-results.txt
             abf-research-ui-smoke-results.txt

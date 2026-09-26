@@ -39,8 +39,9 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True,exist_ok=True)
     files=[
         capture(app,0,"abf-indicator-timing.png"),
-        capture(app,1,"abf-revenue-sensitivity.png"),
-        capture(app,2,"abf-driver-sensitivity-model.png"),
+        capture(app,1,"abf-scenario-evidence.png"),
+        capture(app,2,"abf-revenue-sensitivity.png"),
+        capture(app,3,"abf-driver-sensitivity-model.png"),
     ]
     print(f"ABF_RESEARCH_UI_SMOKE_OK indicators={len(app.indicators)} sensitivity={len(app.sensitivity)}")
     for path in files:

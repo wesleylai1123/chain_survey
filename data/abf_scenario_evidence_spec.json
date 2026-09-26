@@ -1,0 +1,111 @@
+{
+  "schema_version": "ABFScenarioEvidenceSpecV2",
+  "industry_model_id": "ic_substrate_abf_bt",
+  "principle": "Upside and downside are independent hypotheses. Each source specifies feature and target transforms; deterioration may mean deceleration before YoY turns negative.",
+  "target_metric": "abf_revenue_yoy_basket",
+  "scenarios": {
+    "UPSIDE": {
+      "desired_target_direction": "POSITIVE",
+      "leading_sources": [
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "pcb_revenue_yoy",
+          "source_name": "TPCA PCB Revenue YoY",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "POSITIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "POSITIVE",
+          "role": "Leading acceleration evidence"
+        },
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "rigid_pcb_export_yoy",
+          "source_name": "TPCA Rigid PCB Export YoY",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "POSITIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "POSITIVE",
+          "role": "Independent export-throughput acceleration candidate"
+        }
+      ],
+      "confirmatory_sources": [
+        {
+          "source_id": "mops_abf_monthly_revenue",
+          "metric_id": "abf_company_revenue_yoy::*",
+          "source_name": "MOPS-derived ABF company monthly revenue",
+          "role": "Coincident company confirmation"
+        }
+      ]
+    },
+    "DOWNSIDE": {
+      "desired_target_direction": "NEGATIVE",
+      "leading_sources": [
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "pcb_revenue_yoy",
+          "source_name": "TPCA PCB Revenue YoY deceleration",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "NEGATIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "NEGATIVE",
+          "role": "Leading broad PCB deceleration evidence"
+        },
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "rigid_pcb_export_yoy",
+          "source_name": "TPCA Rigid PCB Export YoY deceleration",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "NEGATIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "NEGATIVE",
+          "role": "Export-throughput deterioration candidate"
+        },
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "pcb_material_revenue_yoy",
+          "source_name": "TPCA PCB Material Revenue YoY deceleration",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "NEGATIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "NEGATIVE",
+          "role": "Upstream material-demand deterioration candidate"
+        },
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "ccl_export_yoy",
+          "source_name": "TPCA CCL Export YoY deceleration",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "NEGATIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "NEGATIVE",
+          "role": "CCL export deterioration candidate"
+        },
+        {
+          "source_id": "tpca_public_industry",
+          "metric_id": "ccl_import_yoy",
+          "source_name": "TPCA CCL Import YoY deceleration",
+          "lag_months": 1,
+          "feature_transform": "MOMENTUM",
+          "trigger": "NEGATIVE",
+          "target_transform": "MOMENTUM",
+          "target_trigger": "NEGATIVE",
+          "role": "CCL import / market-tightness deterioration candidate"
+        }
+      ],
+      "confirmatory_sources": [
+        {
+          "source_id": "mops_abf_monthly_revenue",
+          "metric_id": "abf_company_revenue_yoy::*",
+          "source_name": "MOPS-derived ABF company monthly revenue",
+          "role": "Coincident deterioration confirmation"
+        }
+      ]
+    }
+  }
+}
