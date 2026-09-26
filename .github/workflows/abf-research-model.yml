@@ -63,12 +63,21 @@ jobs:
           assert sens['sample_size'].min() >= 24
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
-          assert snap['downstream']['revenue']=='DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE'
+          assert snap['downstream']['revenue'] in {
+              'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE',
+              'DIRECTION_AND_MAGNITUDE_VALIDATED'
+          }
+          basket=sens[sens.ticker=='ABF'].iloc[0]
+          expected=(
+              'DIRECTION_AND_MAGNITUDE_VALIDATED'
+              if bool(basket['magnitude_validation_pass'])
+              else 'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE'
+          )
+          assert snap['downstream']['revenue']==expected
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
 
           print('ABF_RESEARCH_OUTPUTS_OK')
           assert set(sens['direction_status'])=={'VALIDATED'}
-          assert not sens['magnitude_validation_pass'].any()
           print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','oos_directional_corr','sensitivity_status','impact_per_10ppt_driver']].to_string(index=False))
           PY
 
