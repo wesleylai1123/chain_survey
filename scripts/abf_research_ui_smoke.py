@@ -12,7 +12,22 @@ if str(ROOT) not in sys.path:
 
 from app.abf_research_lab import AbfResearchLab
 
-OUT=ROOT/"artifacts"/"abf-research-lab.png"
+OUT_DIR=ROOT/"artifacts"
+
+
+def capture(app: AbfResearchLab, index: int, name: str) -> Path:
+    app.book.select(index)
+    app.update_idletasks()
+    app.update()
+    out=OUT_DIR/name
+    if shutil.which("scrot"):
+        subprocess.run(["scrot",str(out)],check=True)
+    else:
+        ImageGrab.grab().save(out)
+    if not out.exists() or out.stat().st_size==0:
+        raise RuntimeError(f"Screenshot missing: {out}")
+    return out
+
 
 def main() -> None:
     app=AbfResearchLab()
@@ -21,14 +36,17 @@ def main() -> None:
         raise RuntimeError("Indicator taxonomy incomplete")
     if app.sensitivity.empty:
         raise RuntimeError("Sensitivity table missing; history not restored")
-    OUT.parent.mkdir(parents=True,exist_ok=True)
-    if shutil.which("scrot"):
-        subprocess.run(["scrot",str(OUT)],check=True)
-    else:
-        ImageGrab.grab().save(OUT)
+    OUT_DIR.mkdir(parents=True,exist_ok=True)
+    files=[
+        capture(app,0,"abf-indicator-timing.png"),
+        capture(app,1,"abf-revenue-sensitivity.png"),
+        capture(app,2,"abf-driver-sensitivity-model.png"),
+    ]
     print(f"ABF_RESEARCH_UI_SMOKE_OK indicators={len(app.indicators)} sensitivity={len(app.sensitivity)}")
-    print(f"ABF_RESEARCH_UI_SCREENSHOT={OUT}")
+    for path in files:
+        print(f"ABF_RESEARCH_UI_SCREENSHOT={path}")
     app.destroy()
+
 
 if __name__=="__main__":
     main()
