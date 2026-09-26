@@ -4,6 +4,7 @@ import unittest
 import pandas as pd
 
 from core.abf_data_coverage import audit_abf_data_coverage
+from core.abf_operating_observations import verified_operating_observations
 
 
 class AbfDataCoverageTests(unittest.TestCase):
@@ -44,16 +45,36 @@ class AbfDataCoverageTests(unittest.TestCase):
             "source_page":"1", "source_excerpt":"Test disclosure",
         }])
         result=audit_abf_data_coverage(pd.DataFrame(), operating_observations=observation)
-        status=dict(zip(result["data_id"],result["status"]))
-        self.assertEqual(status["order_cancellation"],"INSUFFICIENT_HISTORY")
-        self.assertEqual(status["abf_asp_history"],"MISSING")
+        row=result[result["data_id"]=="order_cancellation"].iloc[0]
+        self.assertEqual(row["status"],"INSUFFICIENT_HISTORY")
+        self.assertIn("1 primary observations",row["detail"])
+        self.assertIn("companies=1",row["detail"])
+        self.assertEqual(
+            verified_operating_observations(observation,{"order_cancellation"}).iloc[0]["source_tier"],
+            "PRIMARY",
+        )
+
+    def test_rejects_secondary_source_as_calibration_data(self) -> None:
+        observation=pd.DataFrame([{
+            "data_id":"abf_product_mix_history", "stock_id":"3189", "period_end":"2025-06-30",
+            "observation_scope":"QUARTER", "value":44.7, "unit":"percent",
+            "published_at":"", "published_date":"2026-09-12",
+            "publication_precision":"DATE_ONLY", "source_url":"https://example-research.com/report",
+            "source_page":"3", "source_excerpt":"ABF mix estimate",
+        }])
+        with self.assertRaisesRegex(ValueError,"primary company/regulator sources"):
+            verified_operating_observations(observation,{"abf_product_mix_history"})
 
     def test_official_ic_substrate_proxy_does_not_fill_exact_abf_mix(self) -> None:
         observations=pd.read_csv("data/abf_operating_observations.csv",dtype={"stock_id":str})
         result=audit_abf_data_coverage(pd.DataFrame(),operating_observations=observations)
+        proxy=result[result["data_id"]=="ic_substrate_revenue_mix_history"].iloc[0]
         status=dict(zip(result["data_id"],result["status"]))
         self.assertEqual(status["ic_substrate_revenue_mix_history"],"INSUFFICIENT_HISTORY")
         self.assertEqual(status["abf_product_mix_history"],"MISSING")
+        self.assertIn("4 primary observations",proxy["detail"])
+        self.assertIn("companies=1",proxy["detail"])
+        self.assertIn("mopsov.twse.com.tw",proxy["detail"])
 
 
 if __name__=="__main__":
