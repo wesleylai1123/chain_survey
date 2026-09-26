@@ -624,3 +624,44 @@ model relation
 company exposure
 financial impact
 ~~~
+
+
+## ABF indicator timing and sensitivity
+
+The ABF reference model explicitly separates four concepts:
+
+- **Indicator** — a dated observable metric.
+- **Driver** — the economic state or mechanism inferred from indicators.
+- **Sensitivity** — the empirical magnitude from a validated observable to a downstream operating metric.
+- **Model** — the structural industry equations that route drivers through revenue, margin and EPS.
+
+Timing is always **target-relative**:
+
+- **Leading**: useful before the target is visible. Current validated example: TPCA PCB Revenue YoY leads the ABF revenue basket by 1 month.
+- **Coincident**: confirms the current operating state. Current examples: 欣興 / 景碩 / 南電 monthly revenue YoY and the ABF revenue basket.
+- **Lagging**: confirms financial propagation. Current examples: Gross Margin, Operating Margin and EPS relative to the original demand/revenue inflection.
+
+The current real-data result makes an important distinction:
+
+```text
+Direction:
+TPCA PCB Revenue ↑ -> future ABF Revenue ↑
+= VALIDATED
+
+Magnitude:
+exact revenue beta
+= CANDIDATE until chronological OOS magnitude validation passes
+```
+
+A driver score is never treated as a financial beta, and validated correlation is not added as a second copy of the same evidence.
+
+Run:
+
+```bash
+python app/main.py --abf-research
+```
+
+The ABF Research Lab includes:
+- Indicator Timing
+- Revenue Sensitivity
+- Driver ↔ Sensitivity ↔ Model
