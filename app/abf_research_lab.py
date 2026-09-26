@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
 from core.indicator_taxonomy import indicator_table
 from core.directional_indicator_engine import scenario_transmission
+from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 
@@ -45,8 +46,22 @@ class AbfResearchLab(tk.Tk):
         self.configure(bg=BG)
         self.indicators = indicator_table()
         self.sensitivity = self._load_sensitivity()
+        self.scenarios = self._load_scenarios()
         self._configure_style()
         self._build()
+
+    def _load_scenarios(self) -> pd.DataFrame:
+        if not HISTORY.exists():
+            return pd.DataFrame()
+        history = pd.read_csv(HISTORY)
+        table, _ = validate_abf_scenarios(
+            history,
+            config=ScenarioValidationConfig(
+                bootstrap_iterations=500,
+                permutation_iterations=500,
+            ),
+        )
+        return table
 
     def _configure_style(self) -> None:
         style = ttk.Style(self)
@@ -180,8 +195,12 @@ class AbfResearchLab(tk.Tk):
             magnitude = "Validated"
             magnitude_note = "Direction and magnitude pass OOS checks"
 
+        side_status = {}
+        if not self.scenarios.empty:
+            side_status = dict(zip(self.scenarios["scenario"], self.scenarios["status"]))
+        lead_note = f"UPSIDE {side_status.get('UPSIDE','N/A')} · DOWNSIDE {side_status.get('DOWNSIDE','N/A')}"
         cards = [
-            ("Leading relation", "PCB YoY ↕ ABF", "+1 month · direction validated both ways", BLUE, BLUE_SOFT),
+            ("Leading relation", "PCB YoY ↕ ABF", lead_note, BLUE, BLUE_SOFT),
             ("Revenue magnitude", magnitude, magnitude_note, AMBER, AMBER_SOFT),
             ("Financial chain", "Revenue → GM → EPS", "GM = gross margin; downstream calibration pending", TEAL, TEAL_SOFT),
             ("Research sample", sample_value, sample_note, GREEN, GREEN_SOFT),
@@ -382,8 +401,14 @@ class AbfResearchLab(tk.Tk):
         for i in range(7):
             row.grid_columnconfigure(i, weight=1 if i % 2 == 0 else 0)
 
+        up = self.scenarios[self.scenarios["scenario"]=="UPSIDE"].iloc[0] if not self.scenarios.empty and (self.scenarios["scenario"]=="UPSIDE").any() else None
+        down = self.scenarios[self.scenarios["scenario"]=="DOWNSIDE"].iloc[0] if not self.scenarios.empty and (self.scenarios["scenario"]=="DOWNSIDE").any() else None
+        indicator_status = (
+            f"UP {up['status']} / DOWN {down['status']}"
+            if up is not None and down is not None else "PENDING"
+        )
         blocks = [
-            ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Observed, dated point-in-time metric. Leading +1M vs ABF revenue.", "VALIDATED", BLUE, BLUE_SOFT),
+            ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Observed point-in-time source. Upside and downside are validated on separate subsets.", indicator_status, BLUE, BLUE_SOFT),
             ("02 · DRIVER", "ABF End Demand", "Economic state: improving or deteriorating? Confidence comes from evidence breadth and quality.", "STATE", TEAL, TEAL_SOFT),
             ("03 · SENSITIVITY", "Revenue β", "How much does a validated observable move future revenue? Direction is valid; magnitude is still candidate.", "CANDIDATE", AMBER, AMBER_SOFT),
             ("04 · MODEL", "Revenue → GM → EPS", "Structural routing: Revenue = Volume × ASP; GM depends on utilization, pricing, mix, yield and cost.", "STRUCTURAL", NAVY, SLATE_SOFT),
@@ -401,8 +426,12 @@ class AbfResearchLab(tk.Tk):
         tk.Label(body, text="ABF calibration ladder", bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(anchor="w")
         tk.Label(body, text="What is proven today vs what remains research work", bg=CARD, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=(3, 12))
 
+        up_state = str(up["status"]) if up is not None else "PENDING"
+        down_state = str(down["status"]) if down is not None else "PENDING"
         ladder = [
-            ("Leading direction", "TPCA PCB Revenue → future ABF Revenue", "VALIDATED", GREEN, GREEN_SOFT),
+            ("Upside leading case", "Own evidence subset / OOS / bootstrap / permutation", up_state, GREEN if up_state=="VALIDATED" else AMBER, GREEN_SOFT if up_state=="VALIDATED" else AMBER_SOFT),
+            ("Downside leading case", "Independently validated; may use different sources", down_state, GREEN if down_state=="VALIDATED" else AMBER, GREEN_SOFT if down_state=="VALIDATED" else AMBER_SOFT),
+            ("Revenue magnitude", "Exact beta / impact size", "CANDIDATE", AMBER, AMBER_SOFT),
             ("Revenue magnitude", "Exact beta / impact size", "CANDIDATE", AMBER, AMBER_SOFT),
             ("Revenue → GM", "Does monthly revenue lead gross-margin expansion?", "NOT CALIBRATED", MUTED, SLATE_SOFT),
             ("GM → EPS", "How margin improvement propagates to earnings", "NOT CALIBRATED", MUTED, SLATE_SOFT),
