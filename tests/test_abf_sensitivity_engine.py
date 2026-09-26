@@ -43,6 +43,8 @@ class AbfSensitivityTests(unittest.TestCase):
         self.assertGreater(result["beta_ci_low"],0)
         self.assertGreater(result["r2"],0.8)
         self.assertGreater(result["sample_size"],30)
+        self.assertEqual(result["direction_status"],"VALIDATED")
+        self.assertIn(result["sensitivity_status"],{"MAGNITUDE_VALIDATED","MAGNITUDE_CANDIDATE"})
 
     def test_positive_lag_is_preserved(self) -> None:
         result=estimate_revenue_sensitivity(
