@@ -7,7 +7,7 @@ import pandas as pd
 
 from core.driver_validation_engine import benjamini_hochberg
 
-ABF_TICKERS=("3037.TW","3189.TW","8046.TW")
+ABF_STOCK_IDS=("3037","3189","8046")
 
 
 @dataclass(frozen=True)
@@ -97,7 +97,12 @@ def scan_revenue_to_margin(
     if missing:
         raise ValueError(f"Missing factor-data columns: {sorted(missing)}")
 
-    abf=panel[panel["ticker"].astype(str).isin(ABF_TICKERS)].copy()
+    abf=panel.copy()
+    if "stock_id" in abf.columns:
+        abf["_stock_id"]=abf["stock_id"].astype(str).str.extract(r"(\d{4})",expand=False)
+    else:
+        abf["_stock_id"]=abf["ticker"].astype(str).str.extract(r"(\d{4})",expand=False)
+    abf=abf[abf["_stock_id"].isin(ABF_STOCK_IDS)].copy()
     rows=[]
     for feature in features:
         if feature not in abf.columns:
