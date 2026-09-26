@@ -29,6 +29,13 @@ def main() -> None:
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
 
+    basket=sensitivities[sensitivities["ticker"]=="ABF"].iloc[0]
+    revenue_status=(
+        "DIRECTION_AND_MAGNITUDE_VALIDATED"
+        if bool(basket["magnitude_validation_pass"])
+        else "DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE"
+    )
+
     snapshot={
         "schema_version":"ABFResearchSnapshotV1",
         "industry_model_id":"ic_substrate_abf_bt",
@@ -51,7 +58,7 @@ def main() -> None:
             "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")
         },
         "downstream":{
-            "revenue":"DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE",
+            "revenue":revenue_status,
             "gross_margin":"NOT_YET_CALIBRATED",
             "operating_margin":"NOT_YET_CALIBRATED",
             "eps":"NOT_YET_CALIBRATED"
