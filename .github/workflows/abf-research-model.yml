@@ -66,8 +66,11 @@ jobs:
           assert set(scenarios['scenario'])=={'UPSIDE','DOWNSIDE'}
           assert scenarios['source_name'].notna().all()
           assert scenarios['sample_size'].ge(0).all()
-          # Each side owns an independent status; never infer one from the other.
-          assert scenarios.groupby('scenario')['status'].nunique().eq(1).all()
+          # Each source owns its own status; never infer downside from upside.
+          assert set(scenarios['status']) <= {'VALIDATED','CANDIDATE','INSUFFICIENT'}
+          assert scenarios['source_urls'].notna().all()
+          assert scenarios['knowledge_time_methods'].notna().all()
+          assert scenarios['cross_company_positive_share'].between(0,1).all()
           assert sens['sample_size'].min() >= 24
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
