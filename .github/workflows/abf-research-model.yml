@@ -112,6 +112,7 @@ jobs:
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
             artifacts/abf-indicator-timing.png
+            artifacts/abf-scenario-evidence.png
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
             indicator-taxonomy-test-results.txt
