@@ -14,13 +14,14 @@
         "value": 1,
         "unit": "month"
       },
-      "evidence_status": "VALIDATED",
+      "evidence_status": "FULL_SAMPLE_RELATION_VALIDATED",
       "relation_id": "tpca_pcb_revenue_yoy_to_abf_revenue_1m",
       "role": "Early external demand/throughput signal before ABF company revenue confirmation.",
       "use_in_model": "driver_state_and_revenue_sensitivity",
       "economic_orientation": "HIGHER_IS_BETTER",
       "positive_case": "PCB industry revenue momentum rises → supports future ABF revenue.",
-      "negative_case": "PCB industry revenue momentum falls → warns of future ABF revenue weakness."
+      "negative_case": "PCB industry revenue momentum falls → warns of future ABF revenue weakness.",
+      "note": "The full-sample +1M relation is validated. Upside/downside conditional scenario validations are separate and currently must not inherit this status."
     },
     {
       "indicator_id": "abf_company_monthly_revenue_yoy",
