@@ -82,9 +82,9 @@ class AbfResearchLab(tk.Tk):
                 font=("Segoe UI",11)
             ).pack(anchor="w")
         else:
-            scols=("company","beta","ci","r2","oos_r2","impact")
+            scols=("company","beta","ci","r2","oos_r2","status","impact")
             st=ttk.Treeview(sens,columns=scols,show="headings",height=10)
-            for c,w in [("company",120),("beta",90),("ci",180),("r2",90),("oos_r2",100),("impact",180)]:
+            for c,w in [("company",120),("beta",90),("ci",180),("r2",90),("oos_r2",100),("status",190),("impact",180)]:
                 st.heading(c,text={"ci":"95% Beta CI","impact":"Impact / +10ppt PCB YoY"}.get(c,c.replace("_"," ").title()))
                 st.column(c,width=w,anchor="center")
             st.pack(fill="x")
@@ -93,13 +93,15 @@ class AbfResearchLab(tk.Tk):
                     r["company"],f"{r['beta']:+.3f}",
                     f"[{r['beta_ci_low']:+.3f}, {r['beta_ci_high']:+.3f}]",
                     f"{r['r2']:.3f}",f"{r['oos_r2']:.3f}",
+                    r["sensitivity_status"],
                     f"{r['impact_per_10ppt_driver']:+.2f} ppt"
                 ))
             ttk.Label(
                 sens,
                 text=(
-                    "Interpretation: beta translates a validated leading indicator into revenue YoY sensitivity. "
-                    "It does NOT mean the 0–100 driver score itself has this beta."
+                    "Direction is validated, but beta magnitude is only production-ready when OOS magnitude validation passes. "
+                    "A positive in-sample beta with negative OOS R² remains MAGNITUDE_CANDIDATE. "
+                    "The 0–100 driver score itself is never treated as this beta."
                 ),
                 wraplength=1450
             ).pack(anchor="w",pady=(10,0))
@@ -150,7 +152,7 @@ class AbfResearchLab(tk.Tk):
    LAGGING:   GM / Operating Margin / EPS → financial propagation confirmation
 
 CURRENT CALIBRATION STATUS
-   Driver → Revenue         CALIBRATED (v1)
+   Driver → Revenue         DIRECTION VALIDATED / MAGNITUDE CANDIDATE
    Revenue → Gross Margin   NOT YET CALIBRATED
    GM → Operating Margin    NOT YET CALIBRATED
    Operating → EPS          structural bridge exists; empirical calibration pending
