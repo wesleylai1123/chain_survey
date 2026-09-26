@@ -35,6 +35,17 @@ class AbfDataCoverageTests(unittest.TestCase):
         self.assertEqual(status["abf_asp_history"],"MISSING")
         self.assertEqual(status["abf_utilization_history"],"MISSING")
 
+    def test_sourced_operating_row_is_insufficient_not_available(self) -> None:
+        observation=pd.DataFrame([{
+            "data_id":"order_cancellation", "stock_id":"3037", "period_end":"2025-06-30",
+            "value":1, "unit":"event", "published_at":"2025-07-01T18:00:00+08:00",
+            "source_url":"https://mops.twse.com.tw/example", "source_excerpt":"Test disclosure",
+        }])
+        result=audit_abf_data_coverage(pd.DataFrame(), operating_observations=observation)
+        status=dict(zip(result["data_id"],result["status"]))
+        self.assertEqual(status["order_cancellation"],"INSUFFICIENT_HISTORY")
+        self.assertEqual(status["abf_asp_history"],"MISSING")
+
 
 if __name__=="__main__":
     unittest.main()

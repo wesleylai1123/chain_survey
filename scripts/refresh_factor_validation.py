@@ -154,6 +154,7 @@ def main() -> None:
     parser.add_argument("--retry-failed-only", action="store_true")
     parser.add_argument("--output", default=str(ROOT / "artifacts" / "factor_validation_dataset.csv"))
     parser.add_argument("--raw-dir", default=str(ROOT / "artifacts" / "factor_validation_raw"))
+    parser.add_argument("--filing-observations", default=str(ROOT / "data" / "abf_filing_observations.csv"))
     args = parser.parse_args()
 
     stocks, companies = load_universe(args.stocks, args.universe_file, args.batch_size, args.batch_index)
@@ -178,7 +179,9 @@ def main() -> None:
     if "industry" not in companies.columns:
         companies["industry"] = companies["sector"]
 
-    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], raw["prices"], raw["valuation"])
+    filing_path = Path(args.filing_observations)
+    filings = pd.read_csv(filing_path, dtype={"stock_id": str}) if filing_path.exists() else pd.DataFrame()
+    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], raw["prices"], raw["valuation"], filing_observations=filings)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     dataset.to_csv(output, index=False)
