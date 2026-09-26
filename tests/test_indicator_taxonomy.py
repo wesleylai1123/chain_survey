@@ -26,6 +26,9 @@ class IndicatorTaxonomyTests(unittest.TestCase):
     def test_table_contains_all_three_timing_classes(self) -> None:
         table=indicator_table()
         self.assertEqual(set(table["timing_class"]),{"LEADING","COINCIDENT","LAGGING"})
+        self.assertTrue((table["economic_orientation"]=="HIGHER_IS_BETTER").all())
+        self.assertTrue(table["positive_case"].astype(bool).all())
+        self.assertTrue(table["negative_case"].astype(bool).all())
 
 
 if __name__=="__main__":
