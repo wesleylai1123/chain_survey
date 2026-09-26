@@ -89,6 +89,8 @@ jobs:
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
           assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
+          assert coverage.loc[coverage.data_id=='ic_substrate_revenue_mix_history','status'].iloc[0]=='INSUFFICIENT_HISTORY'
+          assert coverage.loc[coverage.data_id=='abf_product_mix_history','status'].iloc[0]=='MISSING'
           assert not margin.empty
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()

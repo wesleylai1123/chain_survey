@@ -38,13 +38,22 @@ class AbfDataCoverageTests(unittest.TestCase):
     def test_sourced_operating_row_is_insufficient_not_available(self) -> None:
         observation=pd.DataFrame([{
             "data_id":"order_cancellation", "stock_id":"3037", "period_end":"2025-06-30",
-            "value":1, "unit":"event", "published_at":"2025-07-01T18:00:00+08:00",
-            "source_url":"https://mops.twse.com.tw/example", "source_excerpt":"Test disclosure",
+            "observation_scope":"EVENT", "value":1, "unit":"event",
+            "published_at":"2025-07-01T18:00:00+08:00", "published_date":"",
+            "publication_precision":"EXACT_SECOND", "source_url":"https://mops.twse.com.tw/example",
+            "source_page":"1", "source_excerpt":"Test disclosure",
         }])
         result=audit_abf_data_coverage(pd.DataFrame(), operating_observations=observation)
         status=dict(zip(result["data_id"],result["status"]))
         self.assertEqual(status["order_cancellation"],"INSUFFICIENT_HISTORY")
         self.assertEqual(status["abf_asp_history"],"MISSING")
+
+    def test_official_ic_substrate_proxy_does_not_fill_exact_abf_mix(self) -> None:
+        observations=pd.read_csv("data/abf_operating_observations.csv",dtype={"stock_id":str})
+        result=audit_abf_data_coverage(pd.DataFrame(),operating_observations=observations)
+        status=dict(zip(result["data_id"],result["status"]))
+        self.assertEqual(status["ic_substrate_revenue_mix_history"],"INSUFFICIENT_HISTORY")
+        self.assertEqual(status["abf_product_mix_history"],"MISSING")
 
 
 if __name__=="__main__":
