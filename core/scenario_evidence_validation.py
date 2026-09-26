@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from core.driver_validation_engine import block_bootstrap_ci, block_permutation_pvalue
-from core.operating_correlation_engine import align_point_in_time, build_abf_basket
+from core.operating_correlation_engine import build_abf_basket
 
 ROOT=Path(__file__).resolve().parents[1]
 DEFAULT_SPEC=ROOT/"data"/"abf_scenario_evidence_spec.json"
@@ -33,12 +33,61 @@ def load_scenario_spec(path: str | Path=DEFAULT_SPEC) -> dict:
     return payload
 
 
-def _scenario_subset(aligned: pd.DataFrame, scenario: str) -> pd.DataFrame:
-    if scenario=="UPSIDE":
-        return aligned[aligned["x"]>0].copy()
-    if scenario=="DOWNSIDE":
-        return aligned[aligned["x"]<0].copy()
-    raise ValueError(scenario)
+def _prepare_metric(frame: pd.DataFrame, metric_id: str, transform: str) -> pd.DataFrame:
+    sub=frame[frame["metric_id"]==metric_id][["period","published_at","change_pct"]].copy()
+    sub["period_m"]=pd.PeriodIndex(sub["period"].astype(str).str[:7],freq="M")
+    sub["change_pct"]=pd.to_numeric(sub["change_pct"],errors="coerce")
+    sub=sub.sort_values("period_m")
+    if transform=="LEVEL":
+        sub["signal_value"]=sub["change_pct"]
+    elif transform=="MOMENTUM":
+        sub["signal_value"]=sub["change_pct"].diff()
+    else:
+        raise ValueError(f"Unsupported transform: {transform}")
+    return sub.dropna(subset=["signal_value"])
+
+
+def _align_transformed(
+    history: pd.DataFrame,
+    feature_metric: str,
+    target_metric: str,
+    lag_months: int,
+    feature_transform: str,
+    target_transform: str,
+) -> pd.DataFrame:
+    frame=build_abf_basket(history).copy()
+    feature=_prepare_metric(frame,feature_metric,feature_transform).rename(
+        columns={"published_at":"feature_published_at","signal_value":"x"}
+    )
+    target=_prepare_metric(frame,target_metric,target_transform).rename(
+        columns={"published_at":"target_published_at","signal_value":"y","period_m":"target_period"}
+    )
+    feature["target_period"]=feature["period_m"]+int(lag_months)
+    aligned=feature[["period_m","target_period","feature_published_at","x"]].merge(
+        target[["target_period","target_published_at","y"]],
+        on="target_period",
+        how="inner",
+    )
+    aligned=aligned[aligned["feature_published_at"]<=aligned["target_published_at"]]
+    return aligned.sort_values("period_m").reset_index(drop=True)
+
+
+def _scenario_subset(
+    aligned: pd.DataFrame,
+    scenario: str,
+    *,
+    feature_trigger: str,
+    target_trigger: str,
+) -> pd.DataFrame:
+    if feature_trigger not in {"POSITIVE","NEGATIVE"}:
+        raise ValueError(feature_trigger)
+    if target_trigger not in {"POSITIVE","NEGATIVE"}:
+        raise ValueError(target_trigger)
+    feature_mask=aligned["x"]>0 if feature_trigger=="POSITIVE" else aligned["x"]<0
+    side=aligned[feature_mask].copy()
+    if scenario not in {"UPSIDE","DOWNSIDE"}:
+        raise ValueError(scenario)
+    return side
 
 
 def _safe_corr(frame: pd.DataFrame) -> float:
@@ -54,15 +103,30 @@ def validate_scenario_source(
     metric_id: str,
     target_metric: str,
     lag_months: int,
+    feature_transform: str="LEVEL",
+    target_transform: str="LEVEL",
+    feature_trigger: str="POSITIVE",
+    target_trigger: str="POSITIVE",
     config: ScenarioValidationConfig=ScenarioValidationConfig(),
 ) -> dict[str,object]:
-    frame=build_abf_basket(history)
-    aligned=align_point_in_time(frame,metric_id,target_metric,lag_months)
-    side=_scenario_subset(aligned,scenario).reset_index(drop=True)
+    aligned=_align_transformed(
+        history,
+        metric_id,
+        target_metric,
+        lag_months,
+        feature_transform,
+        target_transform,
+    )
+    side=_scenario_subset(
+        aligned,
+        scenario,
+        feature_trigger=feature_trigger,
+        target_trigger=target_trigger,
+    ).reset_index(drop=True)
     n=len(side)
     corr=_safe_corr(side)
 
-    desired_positive=scenario=="UPSIDE"
+    desired_positive=target_trigger=="POSITIVE"
     if n:
         hits=(side["y"]>0) if desired_positive else (side["y"]<0)
         hit_rate=float(hits.mean())
@@ -103,6 +167,10 @@ def validate_scenario_source(
         "metric_id":metric_id,
         "target_metric":target_metric,
         "lag_months":lag_months,
+        "feature_transform":feature_transform,
+        "target_transform":target_transform,
+        "feature_trigger":feature_trigger,
+        "target_trigger":target_trigger,
         "sample_size":n,
         "spearman":corr,
         "target_direction_hit_rate":hit_rate,
@@ -135,6 +203,10 @@ def validate_abf_scenarios(
                 metric_id=source["metric_id"],
                 target_metric=target,
                 lag_months=int(source["lag_months"]),
+                feature_transform=str(source.get("feature_transform","LEVEL")),
+                target_transform=str(source.get("target_transform","LEVEL")),
+                feature_trigger=str(source.get("trigger","POSITIVE")),
+                target_trigger=str(source.get("target_trigger","POSITIVE")),
                 config=config,
             )
             result["source_id"]=source["source_id"]
