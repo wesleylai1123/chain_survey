@@ -101,7 +101,9 @@ jobs:
             artifacts/abf_indicator_timing.csv
             artifacts/abf_revenue_sensitivity.csv
             artifacts/abf_research_snapshot.json
-            artifacts/abf-research-lab.png
+            artifacts/abf-indicator-timing.png
+            artifacts/abf-revenue-sensitivity.png
+            artifacts/abf-driver-sensitivity-model.png
             indicator-taxonomy-test-results.txt
             abf-sensitivity-test-results.txt
             abf-research-results.txt
