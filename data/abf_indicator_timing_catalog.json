@@ -1,7 +1,7 @@
 {
-  "schema_version": "IndicatorTimingCatalogV1",
+  "schema_version": "IndicatorTimingCatalogV2",
   "industry_model_id": "ic_substrate_abf_bt",
-  "principle": "Timing class is always relative to a target variable and must distinguish structural expectation from empirical validation.",
+  "principle": "Timing class is target-relative; economic orientation separately defines whether an increase/decrease is beneficial or adverse.",
   "indicators": [
     {
       "indicator_id": "tpca_pcb_revenue_yoy",
@@ -10,11 +10,17 @@
       "source": "TPCA public industry",
       "relative_to": "abf_revenue_yoy_basket",
       "timing_class": "LEADING",
-      "lead_lag": {"value": 1, "unit": "month"},
+      "lead_lag": {
+        "value": 1,
+        "unit": "month"
+      },
       "evidence_status": "VALIDATED",
       "relation_id": "tpca_pcb_revenue_yoy_to_abf_revenue_1m",
       "role": "Early external demand/throughput signal before ABF company revenue confirmation.",
-      "use_in_model": "driver_state_and_revenue_sensitivity"
+      "use_in_model": "driver_state_and_revenue_sensitivity",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "PCB industry revenue momentum rises → supports future ABF revenue.",
+      "negative_case": "PCB industry revenue momentum falls → warns of future ABF revenue weakness."
     },
     {
       "indicator_id": "abf_company_monthly_revenue_yoy",
@@ -23,10 +29,16 @@
       "source": "MOPS-derived monthly revenue",
       "relative_to": "abf_current_operating_state",
       "timing_class": "COINCIDENT",
-      "lead_lag": {"value": 0, "unit": "month"},
+      "lead_lag": {
+        "value": 0,
+        "unit": "month"
+      },
       "evidence_status": "OBSERVED",
       "role": "Confirms that industry demand is already reaching company revenue.",
-      "use_in_model": "current_state_confirmation"
+      "use_in_model": "current_state_confirmation",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "Revenue momentum improves → confirms current operating strength.",
+      "negative_case": "Revenue momentum deteriorates → confirms current operating weakness."
     },
     {
       "indicator_id": "abf_revenue_yoy_basket",
@@ -35,10 +47,16 @@
       "source": "Derived median of 欣興 / 景碩 / 南電",
       "relative_to": "abf_current_operating_state",
       "timing_class": "COINCIDENT",
-      "lead_lag": {"value": 0, "unit": "month"},
+      "lead_lag": {
+        "value": 0,
+        "unit": "month"
+      },
       "evidence_status": "DERIVED",
       "role": "Reduces company-specific noise and represents the common ABF revenue cycle.",
-      "use_in_model": "sensitivity_target_and_cycle_confirmation"
+      "use_in_model": "sensitivity_target_and_cycle_confirmation",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "Revenue momentum improves → confirms current operating strength.",
+      "negative_case": "Revenue momentum deteriorates → confirms current operating weakness."
     },
     {
       "indicator_id": "gross_margin",
@@ -47,11 +65,17 @@
       "source": "Quarterly financial statements",
       "relative_to": "abf_demand_and_revenue_inflection",
       "timing_class": "LAGGING",
-      "lead_lag": {"value": null, "unit": "quarter"},
+      "lead_lag": {
+        "value": null,
+        "unit": "quarter"
+      },
       "evidence_status": "CAUSAL_HYPOTHESIS",
       "role": "Confirms that demand/revenue improvement has propagated through utilization, pricing, mix and fixed-cost absorption.",
       "use_in_model": "margin_confirmation_and_sensitivity_target",
-      "note": "Lag and sensitivity are not yet empirically calibrated."
+      "note": "Lag and sensitivity are not yet empirically calibrated.",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "Gross margin expands → confirms better pricing/utilization/mix or cost absorption.",
+      "negative_case": "Gross margin contracts → confirms pricing/utilization/mix/cost pressure."
     },
     {
       "indicator_id": "operating_margin",
@@ -60,11 +84,17 @@
       "source": "Quarterly financial statements",
       "relative_to": "abf_revenue_inflection",
       "timing_class": "LAGGING",
-      "lead_lag": {"value": null, "unit": "quarter"},
+      "lead_lag": {
+        "value": null,
+        "unit": "quarter"
+      },
       "evidence_status": "CAUSAL_HYPOTHESIS",
       "role": "Confirms operating leverage after gross-profit improvement and OPEX absorption.",
       "use_in_model": "earnings_bridge_confirmation",
-      "note": "Lag and sensitivity are not yet empirically calibrated."
+      "note": "Lag and sensitivity are not yet empirically calibrated.",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "Operating margin expands → confirms operating leverage.",
+      "negative_case": "Operating margin contracts → confirms negative operating leverage."
     },
     {
       "indicator_id": "eps",
@@ -73,11 +103,17 @@
       "source": "Quarterly financial statements",
       "relative_to": "abf_demand_and_revenue_inflection",
       "timing_class": "LAGGING",
-      "lead_lag": {"value": null, "unit": "quarter"},
+      "lead_lag": {
+        "value": null,
+        "unit": "quarter"
+      },
       "evidence_status": "CAUSAL_HYPOTHESIS",
       "role": "Late financial confirmation that operating changes have propagated through the income statement.",
       "use_in_model": "final_financial_confirmation",
-      "note": "Lag and sensitivity are not yet empirically calibrated."
+      "note": "Lag and sensitivity are not yet empirically calibrated.",
+      "economic_orientation": "HIGHER_IS_BETTER",
+      "positive_case": "EPS improves → confirms positive earnings propagation.",
+      "negative_case": "EPS deteriorates → confirms negative earnings propagation."
     }
   ]
 }
