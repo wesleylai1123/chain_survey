@@ -97,6 +97,52 @@ def _safe_corr(frame: pd.DataFrame) -> float:
     return float(frame["x"].corr(frame["y"],method="spearman"))
 
 
+def _source_lineage(history: pd.DataFrame, metric_id: str) -> dict[str,object]:
+    rows=history[history["metric_id"]==metric_id].copy()
+    urls=sorted(set(rows.get("source_url",pd.Series(dtype=str)).dropna().astype(str)))
+    methods=sorted(set(rows.get("knowledge_time_method",pd.Series(dtype=str)).dropna().astype(str)))
+    periods=sorted(rows.get("period",pd.Series(dtype=str)).dropna().astype(str))
+    return {
+        "source_urls":" | ".join(urls),
+        "source_url_count":len(urls),
+        "knowledge_time_methods":" | ".join(methods),
+        "first_period":periods[0] if periods else None,
+        "last_period":periods[-1] if periods else None,
+    }
+
+
+def _cross_company_scenario(
+    history: pd.DataFrame,
+    *,
+    scenario: str,
+    metric_id: str,
+    lag_months: int,
+    feature_transform: str,
+    target_transform: str,
+    feature_trigger: str,
+    target_trigger: str,
+) -> pd.DataFrame:
+    rows=[]
+    for ticker in ("3037.TW","3189.TW","8046.TW"):
+        target=f"abf_company_revenue_yoy::{ticker}"
+        aligned=_align_transformed(
+            history,metric_id,target,lag_months,feature_transform,target_transform
+        )
+        side=_scenario_subset(
+            aligned,scenario,feature_trigger=feature_trigger,target_trigger=target_trigger
+        ).reset_index(drop=True)
+        corr=_safe_corr(side)
+        desired_positive=target_trigger=="POSITIVE"
+        hits=(side["y"]>0) if desired_positive else (side["y"]<0)
+        rows.append({
+            "ticker":ticker,
+            "sample_size":len(side),
+            "spearman":corr,
+            "target_direction_hit_rate":float(hits.mean()) if len(side) else float("nan"),
+        })
+    return pd.DataFrame(rows)
+
+
 def validate_scenario_source(
     history: pd.DataFrame,
     *,
@@ -138,6 +184,22 @@ def validate_scenario_source(
     test=side.iloc[split:] if n>split else side.iloc[0:0]
     oos_corr=_safe_corr(test)
 
+    cross=_cross_company_scenario(
+        history,
+        scenario=scenario,
+        metric_id=metric_id,
+        lag_months=lag_months,
+        feature_transform=feature_transform,
+        target_transform=target_transform,
+        feature_trigger=feature_trigger,
+        target_trigger=target_trigger,
+    )
+    valid_company_corr=cross["spearman"].dropna()
+    cross_company_positive_share=(
+        float((valid_company_corr>0).mean()) if not valid_company_corr.empty else 0.0
+    )
+    lineage=_source_lineage(history,metric_id)
+
     seed=config.random_seed + (0 if scenario=="UPSIDE" else 10000)
     if n>=6:
         boot_lo,boot_hi=block_bootstrap_ci(
@@ -161,6 +223,7 @@ def validate_scenario_source(
         "oos_direction": (not np.isnan(oos_corr)) and oos_corr>0 and abs(oos_corr)>=config.min_abs_oos,
         "bootstrap_excludes_zero": bootstrap_excludes_zero,
         "permutation_p": (not np.isnan(pvalue)) and pvalue<=0.10,
+        "cross_company": cross_company_positive_share >= (2/3),
     }
     status="VALIDATED" if all(gates.values()) else ("INSUFFICIENT" if not gates["sample_size"] else "CANDIDATE")
     return {
@@ -179,6 +242,9 @@ def validate_scenario_source(
         "bootstrap_ci_low":boot_lo,
         "bootstrap_ci_high":boot_hi,
         "permutation_p":pvalue,
+        "cross_company_positive_share":cross_company_positive_share,
+        "cross_company":cross,
+        **lineage,
         "gate_pass_count":sum(bool(v) for v in gates.values()),
         "gate_count":len(gates),
         "status":status,
@@ -213,7 +279,7 @@ def validate_abf_scenarios(
             result["source_id"]=source["source_id"]
             result["source_name"]=source["source_name"]
             result["role"]=source["role"]
-            rows.append({k:v for k,v in result.items() if k!="gates"})
+            rows.append({k:v for k,v in result.items() if k not in {"gates","cross_company"}})
             details[f"{scenario}|{source['metric_id']}"]=result
     table=pd.DataFrame(rows)
     if table.empty:
