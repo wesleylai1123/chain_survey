@@ -60,7 +60,7 @@ jobs:
           lead=timing[timing.indicator_id=='tpca_pcb_revenue_yoy'].iloc[0]
           assert lead['timing_class']=='LEADING'
           assert int(lead['lag_value'])==1
-          assert lead['evidence_status']=='VALIDATED'
+          assert lead['evidence_status']=='FULL_SAMPLE_RELATION_VALIDATED'
 
           assert set(sens['ticker'])=={'3037.TW','3189.TW','8046.TW','ABF'}
           assert set(scenarios['scenario'])=={'UPSIDE','DOWNSIDE'}
