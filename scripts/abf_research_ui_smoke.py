@@ -40,8 +40,10 @@ def main() -> None:
     files=[
         capture(app,0,"abf-indicator-timing.png"),
         capture(app,1,"abf-scenario-evidence.png"),
-        capture(app,2,"abf-revenue-sensitivity.png"),
-        capture(app,3,"abf-driver-sensitivity-model.png"),
+        capture(app,2,"abf-data-coverage.png"),
+        capture(app,3,"abf-revenue-to-gm.png"),
+        capture(app,4,"abf-revenue-sensitivity.png"),
+        capture(app,5,"abf-driver-sensitivity-model.png"),
     ]
     print(f"ABF_RESEARCH_UI_SMOKE_OK indicators={len(app.indicators)} sensitivity={len(app.sensitivity)}")
     for path in files:

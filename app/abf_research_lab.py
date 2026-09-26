@@ -15,8 +15,11 @@ from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_reve
 from core.indicator_taxonomy import indicator_table
 from core.directional_indicator_engine import scenario_transmission
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
+from core.abf_data_coverage import audit_abf_data_coverage
+from core.abf_margin_transmission import scan_revenue_to_margin
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
+FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -47,6 +50,10 @@ class AbfResearchLab(tk.Tk):
         self.indicators = indicator_table()
         self.sensitivity = self._load_sensitivity()
         self.scenarios = self._load_scenarios()
+        self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+        history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
+        self.coverage = audit_abf_data_coverage(history, self.factor)
+        self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
         self._configure_style()
         self._build()
 
@@ -151,15 +158,21 @@ class AbfResearchLab(tk.Tk):
 
         timing = tk.Frame(self.book, bg=BG)
         scenarios = tk.Frame(self.book, bg=BG)
+        coverage = tk.Frame(self.book, bg=BG)
+        margin = tk.Frame(self.book, bg=BG)
         sensitivity = tk.Frame(self.book, bg=BG)
         flow = tk.Frame(self.book, bg=BG)
         self.book.add(timing, text="Indicator Timing")
         self.book.add(scenarios, text="Scenario Evidence")
+        self.book.add(coverage, text="Data Coverage")
+        self.book.add(margin, text="Revenue → GM")
         self.book.add(sensitivity, text="Revenue Sensitivity")
         self.book.add(flow, text="Driver → Sensitivity → Model")
 
         self._build_timing_tab(timing)
         self._build_scenario_tab(scenarios)
+        self._build_coverage_tab(coverage)
+        self._build_margin_tab(margin)
         self._build_sensitivity_tab(sensitivity)
         self._build_flow_tab(flow)
 
@@ -376,6 +389,67 @@ class AbfResearchLab(tk.Tk):
             for _,row in rows.iterrows():
                 card=self._scenario_source_card(side,row,scenario)
                 card.pack(fill="x", pady=5)
+
+    def _build_coverage_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="What data do we actually have?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="AVAILABLE = usable history; PROXY = usable but not exact; INSUFFICIENT = connected but too short; MISSING = no historical dataset connected.",
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("layer","label","importance","status","detail","source")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={"layer":150,"label":310,"importance":90,"status":160,"detail":430,"source":300}
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        tree.pack(fill="both",expand=True)
+        order={"MISSING":0,"INSUFFICIENT_HISTORY":1,"PROXY":2,"NOT_CONNECTED":3,"AVAILABLE":4}
+        data=self.coverage.copy()
+        data["_order"]=data["status"].map(order).fillna(9)
+        data=data.sort_values(["_order","importance","layer"])
+        for _,r in data.iterrows():
+            tree.insert("", "end", values=(r["layer"],r["label"],r["importance"],r["status"],r["detail"],r["source"]))
+
+    def _build_margin_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Does revenue lead gross-margin improvement?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="This scan reuses point-in-time factor-data. Filing availability is still a conservative +60/+90 day proxy, not exact filing timestamps.",
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        if self.margin_scan.empty:
+            card=self._card(parent,bg=AMBER_SOFT)
+            card.pack(fill="x",padx=18)
+            tk.Label(self._inner(card),text="factor-data is not connected locally; Revenue → GM scan unavailable.",bg=AMBER_SOFT,fg=AMBER,font=("Segoe UI",11,"bold")).pack(anchor="w")
+            return
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("feature","target","lag","timing","n","rho","oos","cross","fdr","status")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=20)
+        widths={"feature":190,"target":190,"lag":60,"timing":100,"n":60,"rho":90,"oos":90,"cross":100,"fdr":90,"status":120}
+        for col in cols:
+            tree.heading(col,text=col.title())
+            tree.column(col,width=widths[col],anchor="center")
+        tree.pack(fill="both",expand=True)
+        for _,r in self.margin_scan.iterrows():
+            tree.insert("", "end", values=(
+                r["feature"],r["target"],int(r["lag_quarters"]),r["timing_class"],int(r["sample_size"]),
+                "—" if pd.isna(r["spearman"]) else f"{float(r['spearman']):+.2f}",
+                "—" if pd.isna(r["oos_spearman"]) else f"{float(r['oos_spearman']):+.2f}",
+                f"{float(r['cross_company_sign_share'])*100:.0f}%",
+                "—" if pd.isna(r["fdr_q"]) else f"{float(r['fdr_q']):.3f}",
+                r["status"],
+            ))
 
     def _company_sensitivity_card(self, parent, row: pd.Series) -> tk.Frame:
         status = str(row["sensitivity_status"])

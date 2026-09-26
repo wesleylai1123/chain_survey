@@ -1,0 +1,27 @@
+{
+  "schema_version": "ABFDataRequirementsV1",
+  "industry_model_id": "ic_substrate_abf_bt",
+  "requirements": [
+    {"data_id":"pcb_revenue_yoy","layer":"leading_demand","label":"TPCA PCB Revenue YoY","kind":"evidence_metric","metric_id":"pcb_revenue_yoy","minimum_observations":24,"importance":"CORE"},
+    {"data_id":"rigid_pcb_export_yoy","layer":"leading_demand","label":"TPCA Rigid PCB Export YoY","kind":"evidence_metric","metric_id":"rigid_pcb_export_yoy","minimum_observations":24,"importance":"SUPPORTING"},
+    {"data_id":"pcb_material_revenue_yoy","layer":"leading_demand","label":"TPCA PCB Material Revenue YoY","kind":"evidence_metric","metric_id":"pcb_material_revenue_yoy","minimum_observations":24,"importance":"SUPPORTING"},
+    {"data_id":"ccl_import_export","layer":"leading_demand","label":"TPCA CCL Import / Export YoY","kind":"evidence_metric_pair","metric_ids":["ccl_import_yoy","ccl_export_yoy"],"minimum_observations":24,"importance":"SUPPORTING"},
+    {"data_id":"company_monthly_revenue","layer":"coincident","label":"欣興 / 景碩 / 南電 Monthly Revenue YoY","kind":"evidence_company_metrics","metric_prefix":"abf_company_revenue_yoy::","minimum_observations":24,"importance":"CORE"},
+    {"data_id":"quarterly_margin_history","layer":"financial_confirmation","label":"Quarterly GM / Operating Margin / EPS history","kind":"factor_columns","columns":["gross_margin","gross_margin_qoq","gross_margin_yoy_delta","operating_margin","eps","eps_yoy"],"minimum_rows_per_company":8,"importance":"CORE"},
+    {"data_id":"company_inventory_history","layer":"downside_confirmation","label":"Company Inventory history","kind":"factor_columns","columns":["inventory","inventory_yoy"],"minimum_rows_per_company":8,"importance":"SUPPORTING"},
+    {"data_id":"quarterly_exact_filing_time","layer":"point_in_time","label":"Exact quarterly filing timestamps","kind":"factor_availability_exact","importance":"CORE"},
+    {"data_id":"abf_product_mix_history","layer":"product_bridge","label":"Historical ABF product revenue mix by company","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_asp_history","layer":"pricing","label":"ABF ASP history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_volume_history","layer":"volume","label":"ABF shipment / volume history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_utilization_history","layer":"margin_driver","label":"ABF capacity utilization history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_capacity_history","layer":"supply","label":"ABF capacity / expansion history","kind":"missing_external","importance":"SUPPORTING"},
+    {"data_id":"abf_backlog_orders","layer":"leading_demand","label":"ABF backlog / order history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_lead_time","layer":"market_tightness","label":"ABF lead-time history","kind":"missing_external","importance":"SUPPORTING"},
+    {"data_id":"order_cancellation","layer":"downside_leading","label":"Order cancellation / cut history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"customer_inventory_correction","layer":"downside_leading","label":"Customer inventory correction history","kind":"missing_external","importance":"CORE"},
+    {"data_id":"abf_raw_material_cost","layer":"margin_driver","label":"Copper / glass / resin input-cost history","kind":"missing_external","importance":"SUPPORTING"},
+    {"data_id":"product_level_inventory","layer":"downside_confirmation","label":"ABF product-level inventory history","kind":"missing_external","importance":"SUPPORTING"},
+    {"data_id":"consensus_eps","layer":"expectation_gap","label":"Point-in-time analyst consensus EPS","kind":"missing_external","importance":"CORE"},
+    {"data_id":"company_guidance_history","layer":"leading_demand","label":"Company guidance / outlook history","kind":"missing_external","importance":"SUPPORTING"}
+  ]
+}

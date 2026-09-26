@@ -12,14 +12,20 @@ if str(ROOT) not in sys.path:
 
 from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
 from core.indicator_taxonomy import indicator_table
+from core.abf_data_coverage import audit_abf_data_coverage
+from core.abf_margin_transmission import scan_revenue_to_margin
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
+FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
 OUT=ROOT/"artifacts"
 
 
 def main() -> None:
     history=pd.read_csv(HISTORY)
+    factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+    coverage=audit_abf_data_coverage(history,factor)
+    margin_scan=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
     sensitivities=estimate_company_revenue_sensitivities(
         history,
         config=SensitivityConfig(),
@@ -33,6 +39,8 @@ def main() -> None:
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
+    coverage.to_csv(OUT/"abf_data_coverage.csv",index=False)
+    margin_scan.to_csv(OUT/"abf_revenue_to_margin_scan.csv",index=False)
     scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
     scenario_json={}
     for key,value in scenario_details.items():
@@ -73,6 +81,16 @@ def main() -> None:
             "target_units":"ABF company revenue YoY percentage points",
             "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")
         },
+        "data_coverage":{
+            "available":int((coverage["status"]=="AVAILABLE").sum()),
+            "proxy":int((coverage["status"]=="PROXY").sum()),
+            "missing":int((coverage["status"]=="MISSING").sum()),
+            "insufficient":int((coverage["status"]=="INSUFFICIENT_HISTORY").sum()),
+            "not_connected":int((coverage["status"]=="NOT_CONNECTED").sum())
+        },
+        "margin_transmission":{
+            "rows":margin_scan.where(pd.notna(margin_scan),None).to_dict("records")
+        },
         "downstream":{
             "revenue":revenue_status,
             "gross_margin":"NOT_YET_CALIBRATED",
@@ -87,7 +105,12 @@ def main() -> None:
         }
     }
     (OUT/"abf_research_snapshot.json").write_text(json.dumps(snapshot,ensure_ascii=False,indent=2,default=str)+"\n",encoding="utf-8")
-    print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators),len(scenario_table))
+    print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators),len(scenario_table),len(coverage),len(margin_scan))
+    print("ABF_DATA_COVERAGE")
+    print(coverage[["layer","label","status","detail"]].to_string(index=False))
+    if not margin_scan.empty:
+        print("ABF_REVENUE_TO_MARGIN")
+        print(margin_scan[["feature","target","lag_quarters","sample_size","spearman","oos_spearman","cross_company_sign_share","fdr_q","status"]].to_string(index=False))
     print(scenario_table[["scenario","source_name","sample_size","spearman","target_direction_hit_rate","oos_spearman","status"]].to_string(index=False))
     print(sensitivities[["company","beta","beta_ci_low","beta_ci_high","r2","oos_r2","impact_per_10ppt_driver"]].to_string(index=False))
 

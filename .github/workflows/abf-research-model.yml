@@ -24,11 +24,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore ABF history
+      - name: Restore ABF industry history
         run: |
           git fetch origin evidence-data
           git checkout origin/evidence-data -- data/history
           test -s data/history/free_industry_history_panel.csv
+
+      - name: Build targeted ABF financial history
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          python scripts/refresh_factor_validation.py             --stocks 3037,3189,8046             --start 2020-01-01             --sleep-seconds 0.1             --cache-dir artifacts/abf_factor_cache             --manifest artifacts/abf_factor_cache_manifest.json             --output artifacts/factor_validation_dataset.csv             --raw-dir artifacts/abf_factor_raw             2>&1 | tee abf-factor-refresh-results.txt
+          test -s artifacts/factor_validation_dataset.csv
 
       - name: Run ABF timing and sensitivity tests
         shell: bash
@@ -38,6 +46,8 @@ jobs:
           python -m unittest discover -s tests -p 'test_directional_indicator_engine.py' -v | tee directional-indicator-test-results.txt
           python -m unittest discover -s tests -p 'test_scenario_evidence_validation.py' -v | tee scenario-evidence-validation-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_data_coverage.py' -v | tee abf-data-coverage-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
 
       - name: Build real ABF research snapshot
         shell: bash
@@ -54,6 +64,8 @@ jobs:
           timing=pd.read_csv('artifacts/abf_indicator_timing.csv')
           sens=pd.read_csv('artifacts/abf_revenue_sensitivity.csv')
           scenarios=pd.read_csv('artifacts/abf_scenario_validation.csv')
+          coverage=pd.read_csv('artifacts/abf_data_coverage.csv')
+          margin=pd.read_csv('artifacts/abf_revenue_to_margin_scan.csv')
           snap=json.load(open('artifacts/abf_research_snapshot.json',encoding='utf-8'))
 
           assert {'LEADING','COINCIDENT','LAGGING'} <= set(timing['timing_class'])
@@ -72,6 +84,12 @@ jobs:
           assert scenarios['knowledge_time_methods'].notna().all()
           assert scenarios['cross_company_positive_share'].between(0,1).all()
           assert sens['sample_size'].min() >= 24
+          assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
+          assert (coverage['data_id']=='abf_asp_history').any()
+          assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
+          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='PROXY'
+          assert not margin.empty
+          assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
           assert snap['downstream']['revenue'] in {
@@ -112,16 +130,23 @@ jobs:
             artifacts/abf_indicator_timing.csv
             artifacts/abf_revenue_sensitivity.csv
             artifacts/abf_research_snapshot.json
+            artifacts/abf_data_coverage.csv
+            artifacts/abf_revenue_to_margin_scan.csv
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
             artifacts/abf-indicator-timing.png
             artifacts/abf-scenario-evidence.png
+            artifacts/abf-data-coverage.png
+            artifacts/abf-revenue-to-gm.png
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
             indicator-taxonomy-test-results.txt
             directional-indicator-test-results.txt
             scenario-evidence-validation-test-results.txt
             abf-sensitivity-test-results.txt
+            abf-data-coverage-test-results.txt
+            abf-margin-transmission-test-results.txt
+            abf-factor-refresh-results.txt
             abf-research-results.txt
             abf-research-ui-smoke-results.txt
           if-no-files-found: error
