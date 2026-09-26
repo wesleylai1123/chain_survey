@@ -47,6 +47,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_scenario_evidence_validation.py' -v | tee scenario-evidence-validation-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_data_coverage.py' -v | tee abf-data-coverage-test-results.txt
+          python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
 
       - name: Build real ABF research snapshot
@@ -87,7 +88,9 @@ jobs:
           assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
-          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='PROXY'
+          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
+          assert coverage.loc[coverage.data_id=='ic_substrate_revenue_mix_history','status'].iloc[0]=='INSUFFICIENT_HISTORY'
+          assert coverage.loc[coverage.data_id=='abf_product_mix_history','status'].iloc[0]=='MISSING'
           assert not margin.empty
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
@@ -145,6 +148,7 @@ jobs:
             scenario-evidence-validation-test-results.txt
             abf-sensitivity-test-results.txt
             abf-data-coverage-test-results.txt
+            filing-availability-test-results.txt
             abf-margin-transmission-test-results.txt
             abf-factor-refresh-results.txt
             abf-research-results.txt

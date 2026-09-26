@@ -18,13 +18,15 @@ from core.scenario_evidence_validation import ScenarioValidationConfig, validate
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
 FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
+OPERATING=ROOT/"data"/"abf_operating_observations.csv"
 OUT=ROOT/"artifacts"
 
 
 def main() -> None:
     history=pd.read_csv(HISTORY)
     factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
-    coverage=audit_abf_data_coverage(history,factor)
+    operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
+    coverage=audit_abf_data_coverage(history,factor,operating_observations=operating)
     margin_scan=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
     sensitivities=estimate_company_revenue_sensitivities(
         history,

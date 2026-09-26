@@ -20,6 +20,7 @@ from core.abf_margin_transmission import scan_revenue_to_margin
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
+OPERATING = ROOT / "data" / "abf_operating_observations.csv"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -52,7 +53,8 @@ class AbfResearchLab(tk.Tk):
         self.scenarios = self._load_scenarios()
         self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
-        self.coverage = audit_abf_data_coverage(history, self.factor)
+        operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
+        self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
         self._configure_style()
         self._build()

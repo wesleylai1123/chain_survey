@@ -6,6 +6,8 @@ from typing import Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from core.filing_availability import verified_filing_times
+
 
 INCOME_ALIASES: Mapping[str, Sequence[str]] = {
     "revenue": ("Revenue", "OperatingRevenue", "OperatingRevenueNet"),
@@ -176,6 +178,7 @@ def build_factor_validation_dataset(
     valuation: pd.DataFrame | None = None,
     *,
     availability_policy: AvailabilityPolicy = AvailabilityPolicy(),
+    filing_observations: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Build a quarterly, point-in-time-aware factor validation panel.
 
@@ -213,6 +216,23 @@ def build_factor_validation_dataset(
 
     panel["available_date"] = panel["report_date"].apply(lambda value: _availability_date(pd.Timestamp(value), availability_policy))
     panel["availability_method"] = panel["report_date"].dt.quarter.map(lambda q: "report_date+90d_proxy" if q == 4 else "report_date+60d_proxy")
+    panel["filing_published_at"] = pd.NA
+    panel["filing_source_url"] = pd.NA
+    panel["filing_document_name"] = pd.NA
+    if filing_observations is not None and not filing_observations.empty:
+        filings = verified_filing_times(filing_observations)
+        filings["report_date"] = pd.to_datetime(filings["report_date"])
+        panel = panel.merge(
+            filings[["stock_id", "report_date", "published_at", "source_url", "document_name", "available_date"]],
+            on=["stock_id", "report_date"], how="left", suffixes=("", "_filing"), validate="many_to_one",
+        )
+        exact = panel["available_date_filing"].notna()
+        panel.loc[exact, "available_date"] = panel.loc[exact, "available_date_filing"]
+        panel.loc[exact, "availability_method"] = "official_filing_timestamp_next_day"
+        panel.loc[exact, "filing_published_at"] = panel.loc[exact, "published_at"]
+        panel.loc[exact, "filing_source_url"] = panel.loc[exact, "source_url"]
+        panel.loc[exact, "filing_document_name"] = panel.loc[exact, "document_name"]
+        panel = panel.drop(columns=["available_date_filing", "published_at", "source_url", "document_name"])
 
     company_map = companies.copy()
     company_map["stock_id"] = company_map["ticker"].astype(str).str.extract(r"(\d{4})", expand=False)
@@ -226,7 +246,7 @@ def build_factor_validation_dataset(
     panel["available_date"] = pd.to_datetime(panel["available_date"]).dt.date.astype(str)
 
     preferred = [
-        "name", "ticker", "stock_id", "sector", "industry", "report_date", "available_date", "availability_method", "cycle",
+        "name", "ticker", "stock_id", "sector", "industry", "report_date", "available_date", "availability_method", "filing_published_at", "filing_source_url", "filing_document_name", "cycle",
         "revenue", "revenue_yoy", "monthly_revenue_3m", "monthly_revenue_3m_yoy", "gross_margin", "gross_margin_qoq", "gross_margin_yoy_delta",
         "operating_margin", "net_margin", "eps", "eps_yoy", "inventory", "inventory_yoy", "roe_proxy", "debt_to_equity", "ocf_margin", "capex_to_revenue",
         "pe", "pb", "dividend_yield", "price_at_available", *TARGET_COLUMNS, "universe_revenue_yoy", "universe_revenue_yoy_delta",
