@@ -1,0 +1,98 @@
+name: ABF Research Model
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore ABF history
+        run: |
+          git fetch origin evidence-data
+          git checkout origin/evidence-data -- data/history
+          test -s data/history/free_industry_history_panel.csv
+
+      - name: Run ABF timing and sensitivity tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_indicator_taxonomy.py' -v | tee indicator-taxonomy-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
+
+      - name: Build real ABF research snapshot
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_abf_research_model.py 2>&1 | tee abf-research-results.txt
+
+      - name: Validate ABF research outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+
+          timing=pd.read_csv('artifacts/abf_indicator_timing.csv')
+          sens=pd.read_csv('artifacts/abf_revenue_sensitivity.csv')
+          snap=json.load(open('artifacts/abf_research_snapshot.json',encoding='utf-8'))
+
+          assert {'LEADING','COINCIDENT','LAGGING'} <= set(timing['timing_class'])
+          lead=timing[timing.indicator_id=='tpca_pcb_revenue_yoy'].iloc[0]
+          assert lead['timing_class']=='LEADING'
+          assert int(lead['lag_value'])==1
+          assert lead['evidence_status']=='VALIDATED'
+
+          assert set(sens['ticker'])=={'3037.TW','3189.TW','8046.TW','ABF'}
+          assert sens['sample_size'].min() >= 24
+          assert (sens['beta'] > 0).all()
+          assert (sens['beta_ci_low'] > 0).all()
+          assert snap['downstream']['revenue']=='CALIBRATED'
+          assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
+
+          print('ABF_RESEARCH_OUTPUTS_OK')
+          print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','impact_per_10ppt_driver']].to_string(index=False))
+          PY
+
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+
+      - name: Render ABF Research Lab
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/abf_research_ui_smoke.py | tee abf-research-ui-smoke-results.txt
+          grep -q "ABF_RESEARCH_UI_SMOKE_OK" abf-research-ui-smoke-results.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: abf-research-preview
+          path: |
+            artifacts/abf_indicator_timing.csv
+            artifacts/abf_revenue_sensitivity.csv
+            artifacts/abf_research_snapshot.json
+            artifacts/abf-research-lab.png
+            indicator-taxonomy-test-results.txt
+            abf-sensitivity-test-results.txt
+            abf-research-results.txt
+            abf-research-ui-smoke-results.txt
+          if-no-files-found: error
