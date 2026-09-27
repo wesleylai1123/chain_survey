@@ -17,6 +17,7 @@ from core.directional_indicator_engine import scenario_transmission
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_data_provenance import build_abf_data_provenance
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
@@ -55,6 +56,7 @@ class AbfResearchLab(tk.Tk):
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
         operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
         self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
+        self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
         self._configure_style()
         self._build()
@@ -161,12 +163,14 @@ class AbfResearchLab(tk.Tk):
         timing = tk.Frame(self.book, bg=BG)
         scenarios = tk.Frame(self.book, bg=BG)
         coverage = tk.Frame(self.book, bg=BG)
+        provenance = tk.Frame(self.book, bg=BG)
         margin = tk.Frame(self.book, bg=BG)
         sensitivity = tk.Frame(self.book, bg=BG)
         flow = tk.Frame(self.book, bg=BG)
         self.book.add(timing, text="Indicator Timing")
         self.book.add(scenarios, text="Scenario Evidence")
         self.book.add(coverage, text="Data Coverage")
+        self.book.add(provenance, text="Source & Lineage")
         self.book.add(margin, text="Revenue → GM")
         self.book.add(sensitivity, text="Revenue Sensitivity")
         self.book.add(flow, text="Driver → Sensitivity → Model")
@@ -174,6 +178,7 @@ class AbfResearchLab(tk.Tk):
         self._build_timing_tab(timing)
         self._build_scenario_tab(scenarios)
         self._build_coverage_tab(coverage)
+        self._build_provenance_tab(provenance)
         self._build_margin_tab(margin)
         self._build_sensitivity_tab(sensitivity)
         self._build_flow_tab(flow)
@@ -417,6 +422,65 @@ class AbfResearchLab(tk.Tk):
         data=data.sort_values(["_order","importance","layer"])
         for _,r in data.iterrows():
             tree.insert("", "end", values=(r["layer"],r["label"],r["importance"],r["status"],r["detail"],r["source"]))
+
+    def _build_provenance_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Can this data be trusted and reproduced?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text=(
+                "Source class, directness, point-in-time method, observed span and continuity are shown separately. "
+                "Official does not automatically mean model-eligible: proxies remain SUPPORT_ONLY and event data remain EVENT_STUDY_ONLY."
+            ),
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=(
+            "data_id","need_level","status","source_class","directness","model_eligibility",
+            "observation_count","first_period","last_period","gap_count","continuity",
+            "knowledge_time_method","actual_source_hosts","best_source","acquisition_method"
+        )
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={
+            "data_id":190,"need_level":85,"status":145,"source_class":155,"directness":135,
+            "model_eligibility":175,"observation_count":90,"first_period":100,"last_period":100,
+            "gap_count":75,"continuity":145,"knowledge_time_method":220,"actual_source_hosts":210,
+            "best_source":280,"acquisition_method":360
+        }
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        vs=ttk.Scrollbar(frame,orient="vertical",command=tree.yview)
+        hs=ttk.Scrollbar(frame,orient="horizontal",command=tree.xview)
+        tree.configure(yscrollcommand=vs.set,xscrollcommand=hs.set)
+        tree.grid(row=0,column=0,sticky="nsew")
+        vs.grid(row=0,column=1,sticky="ns")
+        hs.grid(row=1,column=0,sticky="ew")
+        frame.grid_rowconfigure(0,weight=1)
+        frame.grid_columnconfigure(0,weight=1)
+
+        order={"PAID_SOURCE_REQUIRED":0,"NOT_YET_ELIGIBLE":1,"SUPPORT_ONLY":2,"EVENT_STUDY_ONLY":3,"VALIDATE_BEFORE_USE":4,"CALIBRATION_ELIGIBLE":5}
+        data=self.provenance.copy()
+        data["_order"]=data["model_eligibility"].map(order).fillna(9)
+        data=data.sort_values(["_order","need_level","data_id"])
+        for _,r in data.iterrows():
+            tree.insert("", "end", values=tuple(r.get(col,"") for col in cols))
+
+        note=self._card(parent,bg=SLATE_SOFT)
+        note.pack(fill="x",padx=18,pady=(0,18))
+        body=self._inner(note)
+        tk.Label(body,text="Verification rule",bg=SLATE_SOFT,fg=TEXT,font=("Segoe UI",10,"bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "To verify a metric: compare Actual Source Hosts / URLs with Best Source, inspect the PIT method, "
+                "then check first/last period and gap count. A proxy can support a thesis but cannot silently replace a direct series."
+            ),
+            bg=SLATE_SOFT,fg=MUTED,font=("Segoe UI",9),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
 
     def _build_margin_tab(self, parent) -> None:
         intro=tk.Frame(parent,bg=BG)
