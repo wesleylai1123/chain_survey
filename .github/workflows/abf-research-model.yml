@@ -110,7 +110,7 @@ jobs:
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
 
           print('ABF_RESEARCH_OUTPUTS_OK')
-          assert set(sens['direction_status'])=={'VALIDATED'}
+          assert set(sens['direction_status'])=={'SUPPORTED_BY_VALIDATED_DRIVER'}
           print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','oos_directional_corr','sensitivity_status','impact_per_10ppt_driver']].to_string(index=False))
           PY
 
