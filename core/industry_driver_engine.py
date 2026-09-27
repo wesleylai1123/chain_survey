@@ -104,6 +104,7 @@ def evaluate_industry_model(
         row["empirical_spearman"] = relations[0]["validation"]["spearman"] if len(relations) == 1 else pd.NA
         row["empirical_fdr_q"] = relations[0]["validation"]["fdr_q"] if len(relations) == 1 else pd.NA
         row["weight_basis"] = "CONFIGURED_ASSUMPTION"
+        row["use_in_score"] = bool(driver.get("use_in_score", True))
         if relations:
             row["model_assessment"] = "EMPIRICALLY_LINKED"
             row["assessment_note"] = "Driver has a registered validated relation; configured weight is still not a calibrated financial sensitivity."
@@ -116,12 +117,13 @@ def evaluate_industry_model(
         driver_rows.append(row)
     drivers = pd.DataFrame(driver_rows)
 
-    usable = drivers[drivers["evidence_groups"] > 0].copy()
+    usable = drivers[(drivers["evidence_groups"] > 0) & drivers["use_in_score"]].copy()
     if usable.empty:
         overall_signal = 0.0
         coverage = 0.0
     else:
-        total_configured_weight = float(drivers["weight"].sum())
+        score_drivers=drivers[drivers["use_in_score"]].copy()
+        total_configured_weight = float(score_drivers["weight"].sum())
         used_weight = float(usable["weight"].sum())
         overall_signal = float((usable["signal"] * usable["weight"]).sum() / used_weight) if used_weight else 0.0
         coverage = used_weight / total_configured_weight if total_configured_weight else 0.0
