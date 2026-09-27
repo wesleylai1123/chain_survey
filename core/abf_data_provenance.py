@@ -24,7 +24,7 @@ def _source_class(best_source: str, directness: str) -> str:
     direct=str(directness).upper()
     if any(x in source for x in PAID_TOKENS):
         return "PAID_PIT_VENDOR"
-    if any(x in source for x in REGULATOR_TOKENS):
+    if any(x in source for x in REGULATOR_TOKENS) or source.lower().startswith(("twse_","mops_")):
         return "REGULATOR_OFFICIAL"
     if "tpca" in source.lower():
         return "INDUSTRY_ASSOCIATION"
