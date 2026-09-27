@@ -14,6 +14,7 @@ from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_reve
 from core.indicator_taxonomy import indicator_table
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_data_provenance import build_abf_data_provenance
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
@@ -27,6 +28,7 @@ def main() -> None:
     factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
     operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
     coverage=audit_abf_data_coverage(history,factor,operating_observations=operating)
+    provenance=build_abf_data_provenance(coverage,history,factor,operating)
     margin_scan=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
     sensitivities=estimate_company_revenue_sensitivities(
         history,
@@ -42,6 +44,7 @@ def main() -> None:
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
     coverage.to_csv(OUT/"abf_data_coverage.csv",index=False)
+    provenance.to_csv(OUT/"abf_data_provenance.csv",index=False)
     margin_scan.to_csv(OUT/"abf_revenue_to_margin_scan.csv",index=False)
     scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
     scenario_json={}
@@ -90,6 +93,7 @@ def main() -> None:
             "insufficient":int((coverage["status"]=="INSUFFICIENT_HISTORY").sum()),
             "not_connected":int((coverage["status"]=="NOT_CONNECTED").sum())
         },
+        "data_provenance":{"rows":provenance.where(pd.notna(provenance),None).to_dict("records")},
         "margin_transmission":{
             "rows":margin_scan.where(pd.notna(margin_scan),None).to_dict("records")
         },
@@ -110,6 +114,8 @@ def main() -> None:
     print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators),len(scenario_table),len(coverage),len(margin_scan))
     print("ABF_DATA_COVERAGE")
     print(coverage[["layer","label","status","detail"]].to_string(index=False))
+    print("ABF_DATA_PROVENANCE")
+    print(provenance[["data_id","status","source_class","directness","model_eligibility","observation_count","first_period","last_period","gap_count","continuity","knowledge_time_method","actual_source_hosts"]].to_string(index=False))
     if not margin_scan.empty:
         print("ABF_REVENUE_TO_MARGIN")
         print(margin_scan[["feature","target","lag_quarters","sample_size","spearman","oos_spearman","cross_company_sign_share","fdr_q","status"]].to_string(index=False))
