@@ -15,6 +15,7 @@ from core.indicator_taxonomy import indicator_table
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
 from core.abf_data_provenance import build_abf_data_provenance
+from core.abf_model_audit import build_abf_model_audit
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
@@ -40,11 +41,14 @@ def main() -> None:
         config=ScenarioValidationConfig(),
     )
 
+    model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table)
+
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
     indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
     coverage.to_csv(OUT/"abf_data_coverage.csv",index=False)
     provenance.to_csv(OUT/"abf_data_provenance.csv",index=False)
+    model_audit.to_csv(OUT/"abf_model_audit.csv",index=False)
     margin_scan.to_csv(OUT/"abf_revenue_to_margin_scan.csv",index=False)
     scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
     scenario_json={}
@@ -94,6 +98,7 @@ def main() -> None:
             "not_connected":int((coverage["status"]=="NOT_CONNECTED").sum())
         },
         "data_provenance":{"rows":provenance.where(pd.notna(provenance),None).to_dict("records")},
+        "model_audit":{"rows":model_audit.where(pd.notna(model_audit),None).to_dict("records")},
         "margin_transmission":{
             "rows":margin_scan.where(pd.notna(margin_scan),None).to_dict("records")
         },
@@ -116,6 +121,8 @@ def main() -> None:
     print(coverage[["layer","label","status","detail"]].to_string(index=False))
     print("ABF_DATA_PROVENANCE")
     print(provenance[["data_id","status","source_class","directness","model_eligibility","observation_count","first_period","last_period","gap_count","continuity","knowledge_time_method","actual_source_hosts"]].to_string(index=False))
+    print("ABF_MODEL_AUDIT")
+    print(model_audit[["component_type","component","assessment","model_use","metric","empirical_evidence"]].to_string(index=False))
     if not margin_scan.empty:
         print("ABF_REVENUE_TO_MARGIN")
         print(margin_scan[["feature","target","lag_quarters","sample_size","spearman","oos_spearman","cross_company_sign_share","fdr_q","status"]].to_string(index=False))
