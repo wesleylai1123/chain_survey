@@ -78,9 +78,9 @@ class IndustryDriverLab(tk.Tk):
         self.model_tree.selection_set(self.selected_model.get())
 
         ttk.Label(left, text="Driver decomposition", font=("Segoe UI", 12, "bold")).pack(anchor="w", pady=(12,4))
-        dcols=("driver","score","confidence","groups","weight","weight_basis","status","assessment","lag","rho")
+        dcols=("driver","score","confidence","groups","weight","weight_basis","active","status","assessment","lag","rho")
         self.driver_tree=ttk.Treeview(left,columns=dcols,show="headings",height=12)
-        for c,w in [("driver",220),("score",65),("confidence",80),("groups",70),("weight",65),("weight_basis",155),("status",125),("assessment",165),("lag",60),("rho",65)]:
+        for c,w in [("driver",220),("score",65),("confidence",80),("groups",70),("weight",65),("weight_basis",155),("active",70),("status",125),("assessment",165),("lag",60),("rho",65)]:
             self.driver_tree.heading(c,text=c.replace("_"," ").title())
             self.driver_tree.column(c,width=w,anchor="w" if c=="driver" else "center")
         self.driver_tree.pack(fill="both",expand=True)
@@ -135,6 +135,7 @@ class IndustryDriverLab(tk.Tk):
                 row["driver_name"],f"{row['score']:.1f}",f"{row['confidence']:.0f}%",
                 int(row["evidence_groups"]),f"{row['weight']:.2f}",
                 row.get("weight_basis","CONFIGURED_ASSUMPTION"),
+                "YES" if bool(row.get("use_in_score",True)) else "NO",
                 row.get("evidence_status","OBSERVED"),
                 row.get("model_assessment","STRUCTURAL_HYPOTHESIS"),lag,rho
             ))
@@ -142,7 +143,8 @@ class IndustryDriverLab(tk.Tk):
         self.driver_note.delete("1.0","end")
         for _,row in result["drivers"].iterrows():
             self.driver_note.insert("end",f"{row['driver_name']} — {row.get('model_assessment','')}\n")
-            self.driver_note.insert("end",f"Weight {float(row['weight']):.2f} ({row.get('weight_basis','')}) · {row.get('assessment_note','')}\n\n")
+            active="ACTIVE" if bool(row.get("use_in_score",True)) else "DISABLED FROM SCORE"
+            self.driver_note.insert("end",f"Weight {float(row['weight']):.2f} ({row.get('weight_basis','')}) · {active} · {row.get('assessment_note','')}\n\n")
 
         self.equation_text.delete("1.0","end")
         for key,value in result["equations"].items():
