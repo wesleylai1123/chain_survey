@@ -1,6 +1,8 @@
 name: ABF Source Health
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "20 1 * * *"
