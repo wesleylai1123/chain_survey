@@ -14,6 +14,19 @@ ROOT=Path(__file__).resolve().parents[1]
 MANIFEST=ROOT/"artifacts"/"abf_source_manifest.csv"
 OUTPUT=ROOT/"artifacts"/"abf_operating_candidates.csv"
 
+USE_FOR_BY_DATA_ID={
+    "abf_utilization_history":{"utilization"},
+    "abf_product_mix_history":{"product_mix"},
+    "abf_capacity_history":{"capacity"},
+    "company_guidance_history":{"guidance"},
+    "order_cancellation":{"downside"},
+    "customer_inventory_correction":{"downside"},
+    "abf_backlog_orders":{"guidance","downside"},
+    "abf_lead_time":{"guidance","capacity"},
+    "abf_asp_history":{"guidance","product_mix","downside"},
+}
+ABF_CONTEXT=re.compile(r"(?:\bABF\b|IC\s*substrate|IC載板|載板|FCBGA|flip[- ]?chip\s*BGA)",re.I)
+
 PATTERNS=[
     ("abf_utilization_history","UTILIZATION_RANGE",re.compile(r"(?:ABF[^\n]{0,80})?(?:utilization|loading|稼動率)[^\n]{0,60}?(\d{1,3}(?:\.\d+)?)\s*[-~–至]\s*(\d{1,3}(?:\.\d+)?)\s*%",re.I),"percent"),
     ("abf_utilization_history","UTILIZATION_EXACT",re.compile(r"(?:ABF[^\n]{0,80})?(?:utilization|loading|稼動率)[^\n]{0,60}?(\d{1,3}(?:\.\d+)?)\s*%",re.I),"percent"),
@@ -51,13 +64,27 @@ def _excerpt(text: str, start: int, end: int, radius: int=120) -> str:
     return text[lo:hi].strip()
 
 
-def extract_candidates_from_pages(stock_id: str, company: str, source_id: str, document_url: str, pages: list[str], document_sha256: str="") -> pd.DataFrame:
+def extract_candidates_from_pages(
+    stock_id: str,
+    company: str,
+    source_id: str,
+    document_url: str,
+    pages: list[str],
+    document_sha256: str="",
+    use_for: str="guidance;utilization;product_mix;capacity;downside",
+) -> pd.DataFrame:
     rows=[]
+    permissions={x.strip() for x in str(use_for).split(";") if x.strip()}
     for page_no,text in enumerate(pages,start=1):
         if not text:
             continue
         for data_id,signal_type,pattern,unit in PATTERNS:
+            if not (USE_FOR_BY_DATA_ID.get(data_id,set()) & permissions):
+                continue
             for m in pattern.finditer(text):
+                excerpt=_excerpt(text,m.start(),m.end())
+                if data_id.startswith("abf_") and not ABF_CONTEXT.search(excerpt):
+                    continue
                 value=value_low=value_high=pd.NA
                 direction="NEUTRAL"
                 if signal_type=="UTILIZATION_RANGE":
@@ -75,14 +102,16 @@ def extract_candidates_from_pages(stock_id: str, company: str, source_id: str, d
                     "document_url":document_url,"document_sha256":document_sha256,
                     "source_page":page_no,"data_id":data_id,"signal_type":signal_type,
                     "direction":direction,"value":value,"value_low":value_low,"value_high":value_high,
-                    "unit":unit or "event","source_excerpt":_excerpt(text,m.start(),m.end()),
+                    "unit":unit or "event","source_excerpt":excerpt,
+                    "source_permission":";".join(sorted(permissions)),
+                    "scope_gate":"ABF_CONTEXT" if data_id.startswith("abf_") else "SOURCE_PERMISSION",
                     "extraction_rule":pattern.pattern,"review_status":"CANDIDATE",
                 })
     if not rows:
         return pd.DataFrame(columns=[
             "source_id","stock_id","company","document_url","document_sha256","source_page",
             "data_id","signal_type","direction","value","value_low","value_high","unit",
-            "source_excerpt","extraction_rule","review_status",
+            "source_excerpt","source_permission","scope_gate","extraction_rule","review_status",
         ])
     return pd.DataFrame(rows).drop_duplicates(
         ["stock_id","document_url","source_page","data_id","signal_type","source_excerpt"]
@@ -102,7 +131,7 @@ def extract_manifest(manifest: pd.DataFrame, *, timeout: int=25, max_documents: 
             digest=hashlib.sha256(body).hexdigest()
             pages=pdf_pages(body)
             found=extract_candidates_from_pages(
-                str(row["stock_id"]),str(row["company"]),str(row["source_id"]),url,pages,digest
+                str(row["stock_id"]),str(row["company"]),str(row["source_id"]),url,pages,digest,str(row.get("use_for",""))
             )
             if not found.empty:
                 candidates.append(found)
