@@ -103,6 +103,16 @@ def evaluate_industry_model(
         row["empirical_best_lag_months"] = relations[0]["expected_lag_months"] if len(relations) == 1 else pd.NA
         row["empirical_spearman"] = relations[0]["validation"]["spearman"] if len(relations) == 1 else pd.NA
         row["empirical_fdr_q"] = relations[0]["validation"]["fdr_q"] if len(relations) == 1 else pd.NA
+        row["weight_basis"] = "CONFIGURED_ASSUMPTION"
+        if relations:
+            row["model_assessment"] = "EMPIRICALLY_LINKED"
+            row["assessment_note"] = "Driver has a registered validated relation; configured weight is still not a calibrated financial sensitivity."
+        elif model_id=="ic_substrate_abf_bt" and str(driver["driver_id"])=="cost_risk":
+            row["model_assessment"] = "NEEDS_REFINEMENT"
+            row["assessment_note"] = "Current bucket can mix substrate tightness with raw-material cost pressure; keep structural only until sources are separated."
+        else:
+            row["model_assessment"] = "STRUCTURAL_HYPOTHESIS"
+            row["assessment_note"] = "Economic mechanism is configured, but no validated empirical relation is registered for this driver."
         driver_rows.append(row)
     drivers = pd.DataFrame(driver_rows)
 
