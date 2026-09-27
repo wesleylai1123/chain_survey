@@ -3,6 +3,7 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.parse import quote, urlsplit, urlunsplit
 import argparse
 import hashlib
 import re
@@ -45,8 +46,13 @@ PATTERNS=[
 ]
 
 
+def _safe_url(url: str) -> str:
+    parts=urlsplit(url)
+    return urlunsplit((parts.scheme,parts.netloc,quote(parts.path),parts.query,parts.fragment))
+
+
 def fetch_pdf(url: str, timeout: int=25) -> bytes:
-    req=Request(url,headers={
+    req=Request(_safe_url(url),headers={
         "User-Agent":"Mozilla/5.0 chain_survey/1.0 research collector",
         "Accept":"application/pdf,*/*;q=0.8",
     })
@@ -83,7 +89,8 @@ def extract_candidates_from_pages(
                 continue
             for m in pattern.finditer(text):
                 excerpt=_excerpt(text,m.start(),m.end())
-                if data_id.startswith("abf_") and not ABF_CONTEXT.search(excerpt):
+                page_has_abf=bool(ABF_CONTEXT.search(text))
+                if data_id.startswith("abf_") and not (ABF_CONTEXT.search(excerpt) or page_has_abf):
                     continue
                 value=value_low=value_high=pd.NA
                 direction="NEUTRAL"
