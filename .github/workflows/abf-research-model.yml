@@ -47,6 +47,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_scenario_evidence_validation.py' -v | tee scenario-evidence-validation-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_data_coverage.py' -v | tee abf-data-coverage-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_data_provenance.py' -v | tee abf-data-provenance-test-results.txt
           python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
 
@@ -134,6 +135,7 @@ jobs:
             artifacts/abf_revenue_sensitivity.csv
             artifacts/abf_research_snapshot.json
             artifacts/abf_data_coverage.csv
+            artifacts/abf_data_provenance.csv
             artifacts/abf_revenue_to_margin_scan.csv
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
@@ -148,6 +150,7 @@ jobs:
             scenario-evidence-validation-test-results.txt
             abf-sensitivity-test-results.txt
             abf-data-coverage-test-results.txt
+            abf-data-provenance-test-results.txt
             filing-availability-test-results.txt
             abf-margin-transmission-test-results.txt
             abf-factor-refresh-results.txt
