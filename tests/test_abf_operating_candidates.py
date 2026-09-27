@@ -44,6 +44,22 @@ class AbfOperatingCandidateTests(unittest.TestCase):
         )
         self.assertEqual(set(out["review_status"]),{"CANDIDATE"})
 
+    def test_source_permission_blocks_esg_guidance_false_positive(self):
+        out=extract_candidates_from_pages(
+            "3189","Kinsus","kinsus_esg","https://example.com/esg.pdf",
+            ["展望未來需求強勁，產能需求增加。"],"abc",
+            use_for="capacity_proxy;production_proxy;resource_intensity",
+        )
+        self.assertTrue(out.empty)
+
+    def test_abf_metric_requires_abf_context(self):
+        out=extract_candidates_from_pages(
+            "3189","Kinsus","kinsus_ir","https://example.com/ir.pdf",
+            ["Overall company utilization was 82%."],"abc",
+            use_for="guidance;utilization;product_mix;capacity;downside",
+        )
+        self.assertTrue(out.empty)
+
 
 if __name__=="__main__":
     unittest.main()
