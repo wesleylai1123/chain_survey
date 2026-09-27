@@ -24,6 +24,10 @@ jobs:
       - name: Discover primary-source documents
         run: |
           python scripts/collect_abf_source_manifest.py --timeout 20 --retries 2
+      - name: Extract ABF operating candidates
+        run: |
+          python scripts/extract_abf_operating_candidates.py --max-documents 120
+
       - name: Summarize source health
         run: |
           python - <<'PY'
@@ -42,4 +46,6 @@ jobs:
           path: |
             artifacts/abf_source_manifest.csv
             artifacts/abf_source_health.csv
+            artifacts/abf_operating_candidates.csv
+            artifacts/abf_document_extract_status.csv
           if-no-files-found: warn
