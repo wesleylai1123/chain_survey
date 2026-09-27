@@ -55,6 +55,15 @@ class IndustryDriverEngineTests(unittest.TestCase):
         self.assertEqual(int(end_demand["empirical_best_lag_months"]), 1)
         self.assertAlmostEqual(float(end_demand["empirical_spearman"]), 0.5800988032303457)
         self.assertEqual(len(result["validated_relations"]), 1)
+        cost = result["drivers"][result["drivers"]["driver_id"] == "cost_risk"].iloc[0]
+        self.assertFalse(bool(cost["use_in_score"]))
+
+    def test_abf_end_demand_does_not_double_count_throughput(self) -> None:
+        result = evaluate_industry_model(self._evidence(), "ic_substrate_abf_bt", as_of_date="2026-09-12")
+        end_demand = result["drivers"][result["drivers"]["driver_id"] == "end_demand"].iloc[0]
+        throughput = result["drivers"][result["drivers"]["driver_id"] == "physical_throughput"].iloc[0]
+        self.assertEqual(int(end_demand["evidence_groups"]), 1)
+        self.assertGreater(int(throughput["evidence_groups"]), 0)
 
     def test_all_models_return_rankable_table(self) -> None:
         table = evaluate_all_industry_models(self._evidence(), as_of_date="2026-09-12")
