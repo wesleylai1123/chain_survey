@@ -206,6 +206,49 @@ def _attach_market_targets(frame: pd.DataFrame, prices: pd.DataFrame, valuation:
     return result
 
 
+def _attach_feature_return_targets(
+    frame: pd.DataFrame,
+    prices: pd.DataFrame,
+    *,
+    availability_column: str,
+    prefix: str,
+) -> pd.DataFrame:
+    result=frame.copy()
+    result[f"{prefix}_price_at_available"]=np.nan
+    result[f"{prefix}_return_basis"]=pd.NA
+    horizons={f"{prefix}_future_3m_return":3,f"{prefix}_future_6m_return":6,f"{prefix}_future_12m_return":12}
+    for column in horizons:
+        result[column]=np.nan
+    if prices.empty or availability_column not in result:
+        return result
+    pwork=prices.copy()
+    pwork["date"]=pd.to_datetime(pwork["date"],errors="coerce")
+    pwork["close"]=pd.to_numeric(pwork["close"],errors="coerce")
+    pwork=pwork.dropna(subset=["date","close"])
+    for stock_id,indices in result.groupby("stock_id",sort=False).groups.items():
+        p=pwork[pwork["stock_id"].astype(str)==str(stock_id)].sort_values("date")
+        if p.empty:
+            continue
+        dates=p["date"].to_numpy(dtype="datetime64[ns]")
+        closes=p["close"].to_numpy(dtype=float)
+        for idx in indices:
+            available=pd.to_datetime(result.at[idx,availability_column],errors="coerce")
+            if pd.isna(available):
+                continue
+            start_pos=int(np.searchsorted(dates,np.datetime64(available),side="left"))
+            if start_pos>=len(p):
+                continue
+            start_price=closes[start_pos]
+            result.at[idx,f"{prefix}_price_at_available"]=start_price
+            result.at[idx,f"{prefix}_return_basis"]=str(p.iloc[start_pos].get("price_basis","RAW_CLOSE_UNADJUSTED"))
+            for column,months in horizons.items():
+                target_date=pd.Timestamp(available)+pd.DateOffset(months=months)
+                end_pos=int(np.searchsorted(dates,np.datetime64(target_date),side="left"))
+                if end_pos<len(p) and start_price!=0:
+                    result.at[idx,column]=closes[end_pos]/start_price-1.0
+    return result
+
+
 def _assign_cycle(frame: pd.DataFrame, *, min_companies: int=20) -> pd.DataFrame:
     result = frame.copy()
     signal_column = "monthly_revenue_3m_yoy" if "monthly_revenue_3m_yoy" in result else "revenue_yoy"
@@ -331,6 +374,7 @@ def build_factor_validation_dataset(
     company_map = company_map[["stock_id", "name", "ticker", "sector", "industry"]].dropna(subset=["stock_id"]).drop_duplicates("stock_id")
     panel = panel.merge(company_map, on="stock_id", how="left")
     panel = _attach_market_targets(panel, prices, valuation if valuation is not None else pd.DataFrame())
+    panel = _attach_feature_return_targets(panel, prices, availability_column="monthly_revenue_available_date", prefix="monthly_revenue")
     panel = _assign_cycle(panel)
     panel["fundamental_source"] = "FinMind: TaiwanStockFinancialStatements/BalanceSheet/CashFlows/MonthRevenue"
     panel["market_source"] = "FinMind: price series supplied to builder + TaiwanStockPER"
@@ -347,7 +391,9 @@ def build_factor_validation_dataset(
         "dso_days", "dio_days", "dpo_days", "cash_conversion_cycle_days",
         "roe_proxy", "roe_ttm", "roe_basis", "debt_to_equity", "operating_cash_flow", "operating_cash_flow_ytd", "cashflow_basis", "ocf_margin",
         "capex", "capex_ytd", "capex_to_revenue", "free_cash_flow", "fcf_margin", "cfo_to_net_income", "accrual_ratio", "property_plant_equipment", "property_plant_equipment_yoy",
-        "pe", "pb", "dividend_yield", "price_at_available", "return_basis", *TARGET_COLUMNS, "universe_revenue_yoy", "universe_revenue_yoy_delta", "cycle_basis",
+        "pe", "pb", "dividend_yield", "price_at_available", "return_basis", *TARGET_COLUMNS,
+        "monthly_revenue_price_at_available", "monthly_revenue_return_basis", "monthly_revenue_future_3m_return", "monthly_revenue_future_6m_return", "monthly_revenue_future_12m_return",
+        "universe_revenue_yoy", "universe_revenue_yoy_delta", "cycle_basis",
         "fundamental_source", "market_source",
     ]
     ordered = [column for column in preferred if column in panel.columns]
