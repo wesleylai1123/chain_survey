@@ -172,7 +172,7 @@ def build_turnaround_history(
         np.select(
             [ccc_relief.notna(),inventory_gap_relief.notna()],
             ["CCC_RELIEF","INVENTORY_REVENUE_GAP_RELIEF"],
-            default="INVENTORY_YOY_RELIEF_FALLBACK",
+            default="NO_PRIOR_PERIOD",
         ),
         index=frame.index,
     )
