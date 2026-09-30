@@ -17,6 +17,9 @@ INCOME_ALIASES: Mapping[str, Sequence[str]] = {
     "net_income": ("IncomeAfterTaxes", "NetIncome"),
     "eps": ("EPS",),
     "cost_of_goods_sold": ("CostOfGoodsSold",),
+    "operating_expenses": ("OperatingExpenses",),
+    "non_operating_income_expense": ("TotalNonoperatingIncomeAndExpense",),
+    "income_tax_expense": ("TAX",),
 }
 BALANCE_ALIASES: Mapping[str, Sequence[str]] = {
     "total_assets": ("TotalAssets",),
@@ -31,6 +34,9 @@ BALANCE_ALIASES: Mapping[str, Sequence[str]] = {
 CASHFLOW_ALIASES: Mapping[str, Sequence[str]] = {
     "operating_cash_flow": ("CashFlowsFromOperatingActivities",),
     "capex": ("PropertyAndPlantAndEquipment", "PaymentsToAcquirePropertyPlantAndEquipment"),
+    "depreciation": ("Depreciation",),
+    "amortization": ("AmortizationExpense",),
+    "interest_expense": ("InterestExpense",),
 }
 TARGET_COLUMNS = ("future_3m_return", "future_6m_return", "future_12m_return")
 
@@ -77,7 +83,7 @@ def _deaccumulate_cashflow(cash: pd.DataFrame) -> pd.DataFrame:
     result=cash.copy().sort_values(["stock_id","report_date"]).reset_index(drop=True)
     result["report_date"]=pd.to_datetime(result["report_date"])
     result["cashflow_basis"]="DEACCUMULATED_FROM_YTD"
-    for column in ("operating_cash_flow","capex"):
+    for column in ("operating_cash_flow","capex","depreciation","amortization","interest_expense"):
         if column not in result:
             continue
         result[f"{column}_ytd"]=pd.to_numeric(result[column],errors="coerce")
@@ -303,7 +309,7 @@ def build_factor_validation_dataset(
     panel = panel.merge(_quarterly_month_revenue(monthly_revenue), on=["stock_id", "report_date"], how="left")
     panel = panel.sort_values(["stock_id", "report_date"]).reset_index(drop=True)
 
-    for column in ("revenue", "gross_profit", "operating_income", "net_income", "eps", "inventory", "accounts_receivable", "accounts_payable", "total_equity", "operating_cash_flow", "capex", "property_plant_equipment"):
+    for column in ("revenue", "gross_profit", "operating_income", "pre_tax_income", "net_income", "eps", "cost_of_goods_sold", "operating_expenses", "non_operating_income_expense", "income_tax_expense", "inventory", "accounts_receivable", "accounts_payable", "total_equity", "operating_cash_flow", "capex", "depreciation", "amortization", "interest_expense", "property_plant_equipment"):
         _add_yoy(panel, column)
     if {"gross_profit", "revenue"}.issubset(panel.columns):
         panel["gross_margin"] = _safe_divide(panel["gross_profit"], panel["revenue"])
@@ -311,6 +317,22 @@ def build_factor_validation_dataset(
         panel["gross_margin_yoy_delta"] = panel.groupby("stock_id")["gross_margin"].diff(4)
     if {"operating_income", "revenue"}.issubset(panel.columns):
         panel["operating_margin"] = _safe_divide(panel["operating_income"], panel["revenue"])
+    if {"operating_expenses","revenue"}.issubset(panel.columns):
+        panel["opex_to_revenue"]=_safe_divide(panel["operating_expenses"].abs(),panel["revenue"])
+    if {"non_operating_income_expense","pre_tax_income"}.issubset(panel.columns):
+        panel["non_operating_share_of_pretax"]=_safe_divide(panel["non_operating_income_expense"],panel["pre_tax_income"])
+    if {"income_tax_expense","pre_tax_income"}.issubset(panel.columns):
+        panel["effective_tax_rate"]=_safe_divide(panel["income_tax_expense"],panel["pre_tax_income"])
+    if {"depreciation","revenue"}.issubset(panel.columns):
+        panel["depreciation_to_revenue"]=_safe_divide(panel["depreciation"].abs(),panel["revenue"])
+    if {"depreciation","amortization"}.issubset(panel.columns):
+        panel["depreciation_amortization"]=pd.to_numeric(panel["depreciation"],errors="coerce").fillna(0)+pd.to_numeric(panel["amortization"],errors="coerce").fillna(0)
+    if {"capex","depreciation"}.issubset(panel.columns):
+        panel["capex_to_depreciation"]=_safe_divide(panel["capex"].abs(),panel["depreciation"].abs())
+    if {"property_plant_equipment","revenue"}.issubset(panel.columns):
+        panel["asset_turnover_quarterly"]=_safe_divide(panel["revenue"],panel["property_plant_equipment"])
+    if {"interest_expense","operating_income"}.issubset(panel.columns):
+        panel["interest_coverage_proxy"]=_safe_divide(panel["operating_income"],panel["interest_expense"].abs())
     if {"net_income", "revenue"}.issubset(panel.columns):
         panel["net_margin"] = _safe_divide(panel["net_income"], panel["revenue"])
     if {"total_liabilities", "total_equity"}.issubset(panel.columns):
@@ -386,11 +408,14 @@ def build_factor_validation_dataset(
     preferred = [
         "name", "ticker", "stock_id", "sector", "industry", "report_date", "available_date", "availability_method", "filing_published_at", "filing_source_url", "filing_document_name", "cycle",
         "revenue", "revenue_yoy", "monthly_revenue_3m", "monthly_revenue_3m_yoy", "monthly_revenue_available_date", "monthly_revenue_availability_method", "gross_margin", "gross_margin_qoq", "gross_margin_yoy_delta",
-        "operating_margin", "net_margin", "eps", "eps_yoy", "earnings_growth_basis", "net_income", "net_income_yoy",
+        "operating_margin", "opex_to_revenue", "net_margin", "pre_tax_income", "non_operating_income_expense", "non_operating_share_of_pretax", "income_tax_expense", "effective_tax_rate",
+        "eps", "eps_yoy", "earnings_growth_basis", "net_income", "net_income_yoy",
         "inventory", "inventory_yoy", "inventory_revenue_growth_gap", "accounts_receivable", "accounts_receivable_yoy", "ar_revenue_growth_gap", "accounts_payable", "accounts_payable_yoy",
         "dso_days", "dio_days", "dpo_days", "cash_conversion_cycle_days",
         "roe_proxy", "roe_ttm", "roe_basis", "debt_to_equity", "operating_cash_flow", "operating_cash_flow_ytd", "cashflow_basis", "ocf_margin",
-        "capex", "capex_ytd", "capex_to_revenue", "free_cash_flow", "fcf_margin", "cfo_to_net_income", "accrual_ratio", "property_plant_equipment", "property_plant_equipment_yoy",
+        "capex", "capex_ytd", "capex_to_revenue", "depreciation", "depreciation_ytd", "amortization", "amortization_ytd", "depreciation_amortization", "depreciation_to_revenue", "capex_to_depreciation",
+        "interest_expense", "interest_expense_ytd", "interest_coverage_proxy", "free_cash_flow", "fcf_margin", "cfo_to_net_income", "accrual_ratio",
+        "property_plant_equipment", "property_plant_equipment_yoy", "asset_turnover_quarterly",
         "pe", "pb", "dividend_yield", "price_at_available", "return_basis", *TARGET_COLUMNS,
         "monthly_revenue_price_at_available", "monthly_revenue_return_basis", "monthly_revenue_future_3m_return", "monthly_revenue_future_6m_return", "monthly_revenue_future_12m_return",
         "universe_revenue_yoy", "universe_revenue_yoy_delta", "cycle_basis",
