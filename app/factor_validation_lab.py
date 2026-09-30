@@ -91,13 +91,14 @@ class FactorValidationLab(tk.Tk):
         self.preview_tree.pack(fill="both", expand=True)
 
         scan_columns = (
-            "feature", "lag", "pooled", "company", "company_agree", "cross", "cross_agree", "cycle", "cycle_agree", "score"
+            "feature","target_basis","lag","pooled","company","company_agree","cross","cross_agree","cycle","cycle_agree","score"
         )
         self.scan_tree = ttk.Treeview(scan_tab, columns=scan_columns, show="headings")
         for col in scan_columns:
             self.scan_tree.heading(col, text=col.replace("_", " ").title())
             self.scan_tree.column(col, width=115, anchor="center")
         self.scan_tree.column("feature", width=190, anchor="w")
+        self.scan_tree.column("target_basis", width=230, anchor="w")
         self.scan_tree.pack(fill="both", expand=True)
 
         semantic_columns=("factor","category","source","acquisition","basis","pit","directness","status","notes")
@@ -212,11 +213,11 @@ class FactorValidationLab(tk.Tk):
                 value = row[name]
                 return "-" if pd.isna(value) else f"{value * 100:.0f}%"
             self.scan_tree.insert("", "end", values=(
-                row["feature"], int(row["lag"]), fmt("pooled_correlation"), fmt("median_company_correlation"),
+                row["feature"], row.get("target_basis",""), int(row["lag"]), fmt("pooled_correlation"), fmt("median_company_correlation"),
                 pct("company_sign_agreement"), fmt("median_cross_sectional_correlation"), pct("cross_sectional_sign_agreement"),
                 fmt("median_cycle_correlation"), pct("cycle_sign_agreement"), f"{row['generalization_score']:.3f}",
             ))
-        self.status_var.set(f"Scanned {len(result)} factor/lag combinations for {target}.")
+        self.status_var.set(f"Scanned {len(result)} factor/lag combinations for {target}; monthly-revenue factors use their own disclosure-date return target.")
 
 
 def launch_factor_validation_lab(dataset_path: str | Path | None = None) -> None:
