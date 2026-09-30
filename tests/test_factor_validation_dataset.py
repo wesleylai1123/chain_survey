@@ -77,6 +77,8 @@ class FactorValidationDatasetTests(unittest.TestCase):
         self.assertEqual(q1["monthly_revenue_available_date"], "2022-04-10")
         self.assertEqual(q1["monthly_revenue_availability_method"], "statutory_next_month_10d_proxy")
         self.assertEqual(q1["return_basis"], "ADJUSTED_CLOSE")
+        self.assertEqual(q1["monthly_revenue_return_basis"], "ADJUSTED_CLOSE")
+        self.assertTrue(pd.notna(q1["monthly_revenue_future_3m_return"]))
 
     def test_small_internal_universe_does_not_define_cycle(self):
         dataset = build_factor_validation_dataset(self.companies, *self.inputs)
