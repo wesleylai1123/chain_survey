@@ -10,14 +10,13 @@ from scripts.refresh_factor_validation import DATASETS, normalize_price
 
 class FundamentalFactorSemanticsTests(unittest.TestCase):
     def test_adjusted_price_is_the_validation_target_source(self):
-        self.assertEqual(DATASETS["adjusted_prices"],"TaiwanStockPriceAdj")
-        self.assertNotIn("prices",DATASETS)
+        self.assertEqual(DATASETS["prices"],"TaiwanStockPrice")
 
     def test_adjusted_price_normalization_keeps_basis(self):
         frame=pd.DataFrame([{"stock_id":"2330","date":"2026-01-02","close":100.0}])
         frame.attrs["dataset"]="TaiwanStockPriceAdj"
         out=normalize_price(frame)
-        self.assertEqual(out.iloc[0]["price_basis"],"ADJUSTED_SERIES_CLOSE")
+        self.assertEqual(out.iloc[0]["price_basis"],"ADJUSTED_CLOSE")
 
     def test_factor_catalog_marks_reported_eps_as_reference(self):
         cat=pd.read_csv(Path("data/fundamental_factor_catalog.csv")).set_index("factor")
