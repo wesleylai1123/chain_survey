@@ -103,8 +103,10 @@ def score_evidence(
     if "reliability" in work.columns:
         supplied = pd.to_numeric(work["reliability"], errors="coerce")
         work["reliability_used"] = supplied.where(supplied.notna(), defaults).clip(0.0, 1.0)
+        work["reliability_basis"] = supplied.notna().map({True:"ROW_SUPPLIED_PRIOR",False:"SOURCE_CLASS_PRIOR"})
     else:
         work["reliability_used"] = defaults
+        work["reliability_basis"] = "SOURCE_CLASS_PRIOR"
 
     if "half_life_days" in work.columns:
         half_life = pd.to_numeric(work["half_life_days"], errors="coerce").fillna(config.default_half_life_days)
