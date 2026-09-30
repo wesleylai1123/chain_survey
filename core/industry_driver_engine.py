@@ -238,6 +238,10 @@ def map_models_to_companies(
                     "model_name": model_row["model_name"],
                     "industry_score": float(model_row["score"]),
                     "exposure_weight": exposure,
+                    "exposure_basis": str(match.get("exposure_basis","CONFIGURED_ASSUMPTION")),
+                    "exposure_source": str(match.get("source","")),
+                    "exposure_effective_period": str(match.get("effective_period","")),
+                    "exposure_confidence": pd.to_numeric(match.get("confidence"),errors="coerce"),
                     "exposure_adjusted_signal": round((float(model_row["score"]) - 50.0) * exposure, 2),
                     "state": model_row["state"],
                     "confidence": float(model_row["confidence"]),
@@ -246,6 +250,7 @@ def map_models_to_companies(
     if not rows:
         return pd.DataFrame(columns=[
             "company", "product", "model_id", "model_name", "industry_score",
-            "exposure_weight", "exposure_adjusted_signal", "state", "confidence"
+            "exposure_weight", "exposure_basis", "exposure_source", "exposure_effective_period",
+            "exposure_confidence", "exposure_adjusted_signal", "state", "confidence"
         ])
     return pd.DataFrame(rows).sort_values("exposure_adjusted_signal", ascending=False).reset_index(drop=True)
