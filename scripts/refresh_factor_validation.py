@@ -25,7 +25,7 @@ DATASETS = {
     "balance_sheets": "TaiwanStockBalanceSheet",
     "cashflows": "TaiwanStockCashFlowsStatement",
     "monthly_revenue": "TaiwanStockMonthRevenue",
-    "prices": "TaiwanStockPrice",
+    "prices": "TaiwanStockPriceAdj",
     "valuation": "TaiwanStockPER",
 }
 
@@ -51,13 +51,17 @@ def normalize_price(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
     result = frame.copy()
-    for candidate in ("close", "close_price"):
+    aliases=("adj_close","adjusted_close","close","close_price")
+    selected=None
+    for candidate in aliases:
         if candidate in result.columns:
-            if candidate != "close":
-                result = result.rename(columns={candidate: "close"})
+            selected=candidate
             break
-    if "close" not in result.columns:
-        raise ValueError(f"Price dataset missing close column; columns={list(result.columns)}")
+    if selected is None:
+        raise ValueError(f"Adjusted price dataset missing close column; columns={list(result.columns)}")
+    if selected!="close":
+        result=result.rename(columns={selected:"close"})
+    result["price_basis"]="ADJUSTED_CLOSE" if selected in {"adj_close","adjusted_close"} or "PriceAdj" in str(frame.attrs.get("dataset","")) else "ADJUSTED_SERIES_CLOSE"
     return result
 
 
@@ -119,6 +123,7 @@ def fetch_universe_cached(
                 if not frame.empty and "stock_id" not in frame.columns:
                     frame["stock_id"] = stock_id
                 if key == "prices":
+                    frame.attrs["dataset"]=dataset
                     frame = normalize_price(frame)
                 elif key == "valuation":
                     frame = normalize_valuation(frame)
