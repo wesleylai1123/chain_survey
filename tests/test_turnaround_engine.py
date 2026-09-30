@@ -93,7 +93,7 @@ class TurnaroundEngineTests(unittest.TestCase):
     def test_prefers_net_income_and_cash_conversion_cycle(self) -> None:
         hist=build_turnaround_history(self._panel(),min_history=3)
         self.assertEqual(set(hist["earnings_growth_source"]),{"NET_INCOME_YOY"})
-        self.assertEqual(set(hist["working_capital_signal_source"].dropna()),{"CCC_RELIEF"})
+        self.assertEqual(set(hist["working_capital_signal_source"].dropna()),{"NO_PRIOR_PERIOD","CCC_RELIEF"})
         improver=hist[hist["ticker"]=="1111"].iloc[-1]
         self.assertGreater(improver["cashflow_momentum"],0)
         self.assertGreater(improver["inventory_relief"],0)
