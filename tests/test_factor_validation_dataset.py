@@ -16,14 +16,17 @@ class FactorValidationDatasetTests(unittest.TestCase):
         for sidx, stock in enumerate(("1111", "2222")):
             for i, date in enumerate(dates):
                 revenue = 100 + 10 * i + 5 * sidx
-                for kind, value in (("Revenue", revenue), ("GrossProfit", revenue * 0.4), ("CostOfGoodsSold", -revenue * 0.6), ("OperatingIncome", revenue * 0.2), ("IncomeAfterTaxes", revenue * 0.15), ("EPS", 1 + i * 0.1)):
+                for kind, value in (("Revenue", revenue), ("GrossProfit", revenue * 0.4), ("CostOfGoodsSold", -revenue * 0.6), ("OperatingExpenses", revenue * 0.2), ("OperatingIncome", revenue * 0.2), ("TotalNonoperatingIncomeAndExpense", revenue * 0.01), ("PreTaxIncome", revenue * 0.21), ("TAX", revenue * 0.04), ("IncomeAfterTaxes", revenue * 0.15), ("EPS", 1 + i * 0.1)):
                     fs.append({"stock_id": stock, "date": date, "type": kind, "value": value})
                 for kind, value in (("TotalAssets", 300 + i), ("TotalLiabilities", 100 + i), ("TotalEquity", 200 + i), ("Inventories", 30 + i), ("AccountsReceivableNet", 20 + i), ("AccountsPayable", 15 + i), ("PropertyPlantAndEquipment", 120 + i)):
                     bs.append({"stock_id": stock, "date": date, "type": kind, "value": value})
                 q=date.quarter
                 ytd_ocf=sum(25 + k for k in range(i-q+1, i+1))
                 ytd_capex=-sum(10 + k for k in range(i-q+1, i+1))
-                for kind, value in (("CashFlowsFromOperatingActivities", ytd_ocf), ("PropertyAndPlantAndEquipment", ytd_capex)):
+                ytd_dep=sum(6 + 0.2*k for k in range(i-q+1, i+1))
+                ytd_amort=sum(1 + 0.05*k for k in range(i-q+1, i+1))
+                ytd_interest=sum(2 + 0.1*k for k in range(i-q+1, i+1))
+                for kind, value in (("CashFlowsFromOperatingActivities", ytd_ocf), ("PropertyAndPlantAndEquipment", ytd_capex), ("Depreciation", ytd_dep), ("AmortizationExpense", ytd_amort), ("InterestExpense", ytd_interest)):
                     cf.append({"stock_id": stock, "date": date, "type": kind, "value": value})
                 for month in range(1, 4):
                     revenue_month = ((date.month - 3 + month - 1) % 12) + 1
@@ -84,6 +87,18 @@ class FactorValidationDatasetTests(unittest.TestCase):
         dataset = build_factor_validation_dataset(self.companies, *self.inputs)
         self.assertEqual(set(dataset["cycle"]), {"Unknown"})
         self.assertTrue(dataset["cycle_basis"].astype(str).str.startswith("DISABLED_INTERNAL_UNIVERSE_TOO_SMALL").all())
+
+    def test_depreciation_and_non_operating_bridges_exist(self):
+        dataset=build_factor_validation_dataset(self.companies,*self.inputs)
+        for col in (
+            "opex_to_revenue","non_operating_income_expense","non_operating_share_of_pretax",
+            "effective_tax_rate","depreciation","amortization","depreciation_to_revenue",
+            "capex_to_depreciation","asset_turnover_quarterly","interest_coverage_proxy"
+        ):
+            self.assertIn(col,dataset.columns)
+        alpha=dataset[dataset["stock_id"]=="1111"].reset_index(drop=True)
+        self.assertAlmostEqual(alpha.loc[1,"depreciation"],6.2)
+        self.assertTrue(pd.notna(alpha.loc[1,"effective_tax_rate"]))
 
 
 if __name__ == "__main__":
