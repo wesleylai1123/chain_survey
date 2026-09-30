@@ -25,7 +25,7 @@ DATASETS = {
     "balance_sheets": "TaiwanStockBalanceSheet",
     "cashflows": "TaiwanStockCashFlowsStatement",
     "monthly_revenue": "TaiwanStockMonthRevenue",
-    "prices": "TaiwanStockPriceAdj",
+    "adjusted_prices": "TaiwanStockPriceAdj",
     "valuation": "TaiwanStockPER",
 }
 
@@ -122,7 +122,7 @@ def fetch_universe_cached(
                 frame = fetch_finmind(dataset, stock_id, fetch_start, fetch_end, token)
                 if not frame.empty and "stock_id" not in frame.columns:
                     frame["stock_id"] = stock_id
-                if key == "prices":
+                if key == "adjusted_prices":
                     frame.attrs["dataset"]=dataset
                     frame = normalize_price(frame)
                 elif key == "valuation":
@@ -186,7 +186,7 @@ def main() -> None:
 
     filing_path = Path(args.filing_observations)
     filings = pd.read_csv(filing_path, dtype={"stock_id": str}) if filing_path.exists() else pd.DataFrame()
-    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], raw["prices"], raw["valuation"], filing_observations=filings)
+    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], raw["adjusted_prices"], raw["valuation"], filing_observations=filings)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     dataset.to_csv(output, index=False)
