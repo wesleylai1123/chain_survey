@@ -13,7 +13,7 @@ INCOME_ALIASES: Mapping[str, Sequence[str]] = {
     "revenue": ("Revenue", "OperatingRevenue", "OperatingRevenueNet"),
     "gross_profit": ("GrossProfit",),
     "operating_income": ("OperatingIncome", "OperatingIncomeLoss"),
-    "pre_tax_income": ("IncomeBeforeIncomeTax", "NetIncomeBeforeTax", "ProfitBeforeTax"),
+    "pre_tax_income": ("PreTaxIncome", "IncomeBeforeIncomeTax", "NetIncomeBeforeTax", "ProfitBeforeTax"),
     "net_income": ("IncomeAfterTaxes", "NetIncome"),
     "eps": ("EPS",),
     "cost_of_goods_sold": ("CostOfGoodsSold",),
