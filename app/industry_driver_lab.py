@@ -156,6 +156,7 @@ class IndustryDriverLab(tk.Tk):
         for _,row in mapped.iterrows():
             self.company_tree.insert("","end",values=(
                 row["company"],row["product"],f"{row['industry_score']:.1f}",f"{row['exposure_weight']:.2f}",
+                row.get("exposure_basis","CONFIGURED_ASSUMPTION"),row.get("exposure_source",""),
                 f"{row['exposure_adjusted_signal']:+.1f}",row["state"]
             ))
         self.status_var.set(
