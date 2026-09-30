@@ -123,7 +123,10 @@ def _availability_date(report_date: pd.Timestamp, policy: AvailabilityPolicy) ->
 
 def _quarterly_month_revenue(monthly: pd.DataFrame) -> pd.DataFrame:
     if monthly.empty:
-        return pd.DataFrame(columns=["stock_id", "report_date", "monthly_revenue_3m", "monthly_revenue_3m_yoy"])
+        return pd.DataFrame(columns=[
+            "stock_id","report_date","monthly_revenue_3m","monthly_revenue_3m_yoy",
+            "monthly_revenue_available_date","monthly_revenue_availability_method",
+        ])
     work = monthly.copy()
     work["revenue"] = pd.to_numeric(work["revenue"], errors="coerce")
     year = pd.to_numeric(work.get("revenue_year"), errors="coerce")
@@ -131,9 +134,21 @@ def _quarterly_month_revenue(monthly: pd.DataFrame) -> pd.DataFrame:
     if year.isna().all() or month.isna().all():
         source_date = pd.to_datetime(work["date"], errors="coerce") - pd.offsets.MonthBegin(1)
         year, month = source_date.dt.year, source_date.dt.month
-    work["report_date"] = pd.to_datetime(dict(year=year, month=month, day=1), errors="coerce") + pd.offsets.QuarterEnd(0)
-    q = work.groupby(["stock_id", "report_date"], as_index=False)["revenue"].sum(min_count=1)
-    q = q.rename(columns={"revenue": "monthly_revenue_3m"}).sort_values(["stock_id", "report_date"])
+    revenue_period_start=pd.to_datetime(dict(year=year,month=month,day=1),errors="coerce")
+    work["report_date"] = revenue_period_start + pd.offsets.QuarterEnd(0)
+    statutory=(revenue_period_start + pd.offsets.MonthBegin(1)).map(lambda d: pd.Timestamp(d.year,d.month,10) if pd.notna(d) else pd.NaT)
+    create=pd.to_datetime(work.get("create_time",pd.Series(pd.NaT,index=work.index)),errors="coerce")
+    work["monthly_revenue_row_available_date"]=create.combine_first(statutory)
+    work["monthly_revenue_row_method"]=np.where(create.notna(),"finmind_create_time","statutory_next_month_10d_proxy")
+
+    grouped=work.groupby(["stock_id","report_date"],as_index=False)
+    q=grouped["revenue"].sum(min_count=1).rename(columns={"revenue":"monthly_revenue_3m"})
+    avail=grouped["monthly_revenue_row_available_date"].max().rename(columns={"monthly_revenue_row_available_date":"monthly_revenue_available_date"})
+    q=q.merge(avail,on=["stock_id","report_date"],how="left")
+    methods=work.sort_values("monthly_revenue_row_available_date").groupby(["stock_id","report_date"],as_index=False).tail(1)[
+        ["stock_id","report_date","monthly_revenue_row_method"]
+    ].rename(columns={"monthly_revenue_row_method":"monthly_revenue_availability_method"})
+    q=q.merge(methods,on=["stock_id","report_date"],how="left").sort_values(["stock_id","report_date"])
     q["monthly_revenue_3m_yoy"] = q.groupby("stock_id")["monthly_revenue_3m"].pct_change(4, fill_method=None)
     return q
 
@@ -321,10 +336,12 @@ def build_factor_validation_dataset(
     panel["market_source"] = "FinMind: price series supplied to builder + TaiwanStockPER"
     panel["report_date"] = pd.to_datetime(panel["report_date"]).dt.date.astype(str)
     panel["available_date"] = pd.to_datetime(panel["available_date"]).dt.date.astype(str)
+    if "monthly_revenue_available_date" in panel:
+        panel["monthly_revenue_available_date"]=pd.to_datetime(panel["monthly_revenue_available_date"],errors="coerce").dt.date.astype("string")
 
     preferred = [
         "name", "ticker", "stock_id", "sector", "industry", "report_date", "available_date", "availability_method", "filing_published_at", "filing_source_url", "filing_document_name", "cycle",
-        "revenue", "revenue_yoy", "monthly_revenue_3m", "monthly_revenue_3m_yoy", "gross_margin", "gross_margin_qoq", "gross_margin_yoy_delta",
+        "revenue", "revenue_yoy", "monthly_revenue_3m", "monthly_revenue_3m_yoy", "monthly_revenue_available_date", "monthly_revenue_availability_method", "gross_margin", "gross_margin_qoq", "gross_margin_yoy_delta",
         "operating_margin", "net_margin", "eps", "eps_yoy", "earnings_growth_basis", "net_income", "net_income_yoy",
         "inventory", "inventory_yoy", "inventory_revenue_growth_gap", "accounts_receivable", "accounts_receivable_yoy", "ar_revenue_growth_gap", "accounts_payable", "accounts_payable_yoy",
         "dso_days", "dio_days", "dpo_days", "cash_conversion_cycle_days",
