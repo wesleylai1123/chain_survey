@@ -25,6 +25,8 @@ BALANCE_ALIASES: Mapping[str, Sequence[str]] = {
     "inventory": ("Inventories", "Inventory"),
     "cash": ("CashAndCashEquivalents", "CashAndCashEquivalentsCurrent"),
     "accounts_receivable": ("AccountsReceivableNet", "AccountsReceivable"),
+    "accounts_payable": ("AccountsPayable", "AccountsPayableTrade"),
+    "property_plant_equipment": ("PropertyPlantAndEquipment", "PropertyPlantAndEquipmentNet"),
 }
 CASHFLOW_ALIASES: Mapping[str, Sequence[str]] = {
     "operating_cash_flow": ("CashFlowsFromOperatingActivities",),
@@ -63,6 +65,46 @@ def _pivot_types(frame: pd.DataFrame, aliases: Mapping[str, Sequence[str]]) -> p
     return result
 
 
+def _deaccumulate_cashflow(cash: pd.DataFrame) -> pd.DataFrame:
+    """Convert IFRS YTD cash-flow statement values to standalone-quarter values.
+
+    Q1 is already standalone. Q2/Q3/Q4 require the immediately preceding YTD
+    observation in the same fiscal year; missing predecessors remain NaN rather
+    than silently treating a cumulative number as a quarterly flow.
+    """
+    if cash.empty:
+        return cash
+    result=cash.copy().sort_values(["stock_id","report_date"]).reset_index(drop=True)
+    result["report_date"]=pd.to_datetime(result["report_date"])
+    result["cashflow_basis"]="DEACCUMULATED_FROM_YTD"
+    for column in ("operating_cash_flow","capex"):
+        if column not in result:
+            continue
+        result[f"{column}_ytd"]=pd.to_numeric(result[column],errors="coerce")
+        quarterly=pd.Series(np.nan,index=result.index,dtype=float)
+        for _,idx in result.groupby("stock_id",sort=False).groups.items():
+            loc=list(idx)
+            previous_by_year: dict[int, tuple[int,float]]={}
+            for i in loc:
+                date=pd.Timestamp(result.at[i,"report_date"])
+                raw=pd.to_numeric(pd.Series([result.at[i,f"{column}_ytd"]]),errors="coerce").iloc[0]
+                if pd.isna(raw):
+                    continue
+                if date.quarter==1:
+                    quarterly.at[i]=float(raw)
+                else:
+                    prev=previous_by_year.get(date.year)
+                    if prev is not None and prev[0]==date.quarter-1:
+                        quarterly.at[i]=float(raw)-float(prev[1])
+                previous_by_year[date.year]=(date.quarter,float(raw))
+        result[column]=quarterly
+    return result
+
+
+def _rolling_ttm(grouped: pd.core.groupby.generic.SeriesGroupBy, periods: int=4) -> pd.Series:
+    return grouped.transform(lambda s: pd.to_numeric(s,errors="coerce").rolling(periods,min_periods=periods).sum())
+
+
 def _safe_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     result = pd.to_numeric(numerator, errors="coerce").div(pd.to_numeric(denominator, errors="coerce"))
     return result.replace([np.inf, -np.inf], np.nan)
@@ -99,6 +141,7 @@ def _quarterly_month_revenue(monthly: pd.DataFrame) -> pd.DataFrame:
 def _attach_market_targets(frame: pd.DataFrame, prices: pd.DataFrame, valuation: pd.DataFrame) -> pd.DataFrame:
     result = frame.copy()
     result["price_at_available"] = np.nan
+    result["return_basis"] = pd.NA
     for target in TARGET_COLUMNS:
         result[target] = np.nan
     result["pe"] = np.nan
@@ -127,6 +170,7 @@ def _attach_market_targets(frame: pd.DataFrame, prices: pd.DataFrame, valuation:
                     continue
                 start_price = closes[start_pos]
                 result.at[idx, "price_at_available"] = start_price
+                result.at[idx, "return_basis"] = str(p.iloc[start_pos].get("price_basis","RAW_CLOSE_UNADJUSTED"))
                 for column, months in horizons.items():
                     target_date = available + pd.DateOffset(months=months)
                     end_pos = int(np.searchsorted(dates, np.datetime64(target_date), side="left"))
@@ -147,9 +191,10 @@ def _attach_market_targets(frame: pd.DataFrame, prices: pd.DataFrame, valuation:
     return result
 
 
-def _assign_cycle(frame: pd.DataFrame) -> pd.DataFrame:
+def _assign_cycle(frame: pd.DataFrame, *, min_companies: int=20) -> pd.DataFrame:
     result = frame.copy()
     signal_column = "monthly_revenue_3m_yoy" if "monthly_revenue_3m_yoy" in result else "revenue_yoy"
+    company_count=int(result["stock_id"].astype(str).nunique()) if "stock_id" in result else 0
     market = result.groupby("report_date", as_index=False)[signal_column].median().rename(columns={signal_column: "universe_revenue_yoy"})
     market = market.sort_values("report_date")
     market["universe_revenue_yoy_delta"] = market["universe_revenue_yoy"].diff()
@@ -165,6 +210,11 @@ def _assign_cycle(frame: pd.DataFrame) -> pd.DataFrame:
             return "Contraction"
         return "Recovery"
     market["cycle"] = market.apply(classify, axis=1)
+    if company_count < min_companies:
+        market["cycle"]="Unknown"
+        market["cycle_basis"]=f"DISABLED_INTERNAL_UNIVERSE_TOO_SMALL_N{company_count}"
+    else:
+        market["cycle_basis"]=f"INTERNAL_CROSS_SECTION_MEDIAN_N{company_count}"
     return result.merge(market, on="report_date", how="left")
 
 
@@ -189,13 +239,13 @@ def build_factor_validation_dataset(
     """
     income = _pivot_types(financial_statements, INCOME_ALIASES)
     balance = _pivot_types(balance_sheets, BALANCE_ALIASES)
-    cash = _pivot_types(cashflows, CASHFLOW_ALIASES)
+    cash = _deaccumulate_cashflow(_pivot_types(cashflows, CASHFLOW_ALIASES))
     panel = income.merge(balance, on=["stock_id", "report_date"], how="outer")
     panel = panel.merge(cash, on=["stock_id", "report_date"], how="outer")
     panel = panel.merge(_quarterly_month_revenue(monthly_revenue), on=["stock_id", "report_date"], how="left")
     panel = panel.sort_values(["stock_id", "report_date"]).reset_index(drop=True)
 
-    for column in ("revenue", "gross_profit", "operating_income", "net_income", "eps", "inventory", "total_equity", "operating_cash_flow", "capex"):
+    for column in ("revenue", "gross_profit", "operating_income", "net_income", "eps", "inventory", "accounts_receivable", "accounts_payable", "total_equity", "operating_cash_flow", "capex", "property_plant_equipment"):
         _add_yoy(panel, column)
     if {"gross_profit", "revenue"}.issubset(panel.columns):
         panel["gross_margin"] = _safe_divide(panel["gross_profit"], panel["revenue"])
@@ -209,10 +259,37 @@ def build_factor_validation_dataset(
         panel["debt_to_equity"] = _safe_divide(panel["total_liabilities"], panel["total_equity"])
     if {"net_income", "total_equity"}.issubset(panel.columns):
         panel["roe_proxy"] = _safe_divide(panel["net_income"], panel["total_equity"])
+        panel["net_income_ttm"] = _rolling_ttm(panel.groupby("stock_id",sort=False)["net_income"])
+        prior_equity = panel.groupby("stock_id",sort=False)["total_equity"].shift(4)
+        panel["average_equity_ttm"] = (pd.to_numeric(panel["total_equity"],errors="coerce") + pd.to_numeric(prior_equity,errors="coerce")) / 2.0
+        panel["roe_ttm"] = _safe_divide(panel["net_income_ttm"], panel["average_equity_ttm"])
+        panel["roe_basis"] = "TTM_NET_INCOME_OVER_AVG_BEGIN_END_EQUITY"
     if {"operating_cash_flow", "revenue"}.issubset(panel.columns):
         panel["ocf_margin"] = _safe_divide(panel["operating_cash_flow"], panel["revenue"])
     if {"capex", "revenue"}.issubset(panel.columns):
         panel["capex_to_revenue"] = _safe_divide(panel["capex"].abs(), panel["revenue"])
+    if {"operating_cash_flow","capex","revenue"}.issubset(panel.columns):
+        panel["free_cash_flow"] = pd.to_numeric(panel["operating_cash_flow"],errors="coerce") - pd.to_numeric(panel["capex"],errors="coerce").abs()
+        panel["fcf_margin"] = _safe_divide(panel["free_cash_flow"], panel["revenue"])
+    if {"operating_cash_flow","net_income"}.issubset(panel.columns):
+        panel["cfo_to_net_income"] = _safe_divide(panel["operating_cash_flow"], panel["net_income"])
+    if {"net_income","operating_cash_flow","total_assets"}.issubset(panel.columns):
+        prior_assets=panel.groupby("stock_id",sort=False)["total_assets"].shift(1)
+        average_assets=(pd.to_numeric(panel["total_assets"],errors="coerce")+pd.to_numeric(prior_assets,errors="coerce"))/2.0
+        panel["accrual_ratio"]=_safe_divide(pd.to_numeric(panel["net_income"],errors="coerce")-pd.to_numeric(panel["operating_cash_flow"],errors="coerce"), average_assets)
+    if {"inventory","revenue_yoy","inventory_yoy"}.issubset(panel.columns):
+        panel["inventory_revenue_growth_gap"]=pd.to_numeric(panel["inventory_yoy"],errors="coerce")-pd.to_numeric(panel["revenue_yoy"],errors="coerce")
+    if {"accounts_receivable_yoy","revenue_yoy"}.issubset(panel.columns):
+        panel["ar_revenue_growth_gap"]=pd.to_numeric(panel["accounts_receivable_yoy"],errors="coerce")-pd.to_numeric(panel["revenue_yoy"],errors="coerce")
+    if {"accounts_receivable","revenue"}.issubset(panel.columns):
+        panel["dso_days"]=_safe_divide(panel["accounts_receivable"],panel["revenue"])*90.0
+    if {"inventory","cost_of_goods_sold"}.issubset(panel.columns):
+        panel["dio_days"]=_safe_divide(panel["inventory"],pd.to_numeric(panel["cost_of_goods_sold"],errors="coerce").abs())*90.0
+    if {"accounts_payable","cost_of_goods_sold"}.issubset(panel.columns):
+        panel["dpo_days"]=_safe_divide(panel["accounts_payable"],pd.to_numeric(panel["cost_of_goods_sold"],errors="coerce").abs())*90.0
+    if {"dso_days","dio_days","dpo_days"}.issubset(panel.columns):
+        panel["cash_conversion_cycle_days"]=panel["dso_days"]+panel["dio_days"]-panel["dpo_days"]
+    panel["earnings_growth_basis"]="NET_INCOME_YOY_PREFERRED__REPORTED_EPS_YOY_REFERENCE"
 
     panel["available_date"] = panel["report_date"].apply(lambda value: _availability_date(pd.Timestamp(value), availability_policy))
     panel["availability_method"] = panel["report_date"].dt.quarter.map(lambda q: "report_date+90d_proxy" if q == 4 else "report_date+60d_proxy")
@@ -241,15 +318,19 @@ def build_factor_validation_dataset(
     panel = _attach_market_targets(panel, prices, valuation if valuation is not None else pd.DataFrame())
     panel = _assign_cycle(panel)
     panel["fundamental_source"] = "FinMind: TaiwanStockFinancialStatements/BalanceSheet/CashFlows/MonthRevenue"
-    panel["market_source"] = "FinMind: TaiwanStockPriceAdj + TaiwanStockPER"
+    panel["market_source"] = "FinMind: price series supplied to builder + TaiwanStockPER"
     panel["report_date"] = pd.to_datetime(panel["report_date"]).dt.date.astype(str)
     panel["available_date"] = pd.to_datetime(panel["available_date"]).dt.date.astype(str)
 
     preferred = [
         "name", "ticker", "stock_id", "sector", "industry", "report_date", "available_date", "availability_method", "filing_published_at", "filing_source_url", "filing_document_name", "cycle",
         "revenue", "revenue_yoy", "monthly_revenue_3m", "monthly_revenue_3m_yoy", "gross_margin", "gross_margin_qoq", "gross_margin_yoy_delta",
-        "operating_margin", "net_margin", "eps", "eps_yoy", "inventory", "inventory_yoy", "roe_proxy", "debt_to_equity", "ocf_margin", "capex_to_revenue",
-        "pe", "pb", "dividend_yield", "price_at_available", *TARGET_COLUMNS, "universe_revenue_yoy", "universe_revenue_yoy_delta",
+        "operating_margin", "net_margin", "eps", "eps_yoy", "earnings_growth_basis", "net_income", "net_income_yoy",
+        "inventory", "inventory_yoy", "inventory_revenue_growth_gap", "accounts_receivable", "accounts_receivable_yoy", "ar_revenue_growth_gap", "accounts_payable", "accounts_payable_yoy",
+        "dso_days", "dio_days", "dpo_days", "cash_conversion_cycle_days",
+        "roe_proxy", "roe_ttm", "roe_basis", "debt_to_equity", "operating_cash_flow", "operating_cash_flow_ytd", "cashflow_basis", "ocf_margin",
+        "capex", "capex_ytd", "capex_to_revenue", "free_cash_flow", "fcf_margin", "cfo_to_net_income", "accrual_ratio", "property_plant_equipment", "property_plant_equipment_yoy",
+        "pe", "pb", "dividend_yield", "price_at_available", "return_basis", *TARGET_COLUMNS, "universe_revenue_yoy", "universe_revenue_yoy_delta", "cycle_basis",
         "fundamental_source", "market_source",
     ]
     ordered = [column for column in preferred if column in panel.columns]
