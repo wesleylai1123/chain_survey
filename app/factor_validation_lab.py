@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 from core.panel_correlation_engine import scan_panel_correlations
 
 DEFAULT_DATASET = ROOT / "artifacts" / "factor_validation_dataset.csv"
+FACTOR_CATALOG = ROOT / "data" / "fundamental_factor_catalog.csv"
 TARGETS = ("future_3m_return", "future_6m_return", "future_12m_return")
 
 
@@ -43,8 +44,8 @@ class FactorValidationLab(tk.Tk):
         ttk.Label(
             root,
             text=(
-                "Quarterly point-in-time panel for factor research. Financial factors are aligned to a conservative "
-                "availability-date proxy before future 3M/6M/12M returns are calculated."
+                "Quarterly point-in-time panel for factor research. Each factor keeps its accounting basis and source semantics; "
+                "monthly revenue retains its own earlier availability, quarterly financials use filing availability, and forward returns use adjusted prices."
             ),
             wraplength=1380,
         ).pack(anchor="w", pady=(0, 10))
@@ -71,13 +72,17 @@ class FactorValidationLab(tk.Tk):
         notebook.pack(fill="both", expand=True)
         data_tab = ttk.Frame(notebook, padding=8)
         scan_tab = ttk.Frame(notebook, padding=8)
+        semantics_tab = ttk.Frame(notebook, padding=8)
         notebook.add(data_tab, text="Dataset preview")
         notebook.add(scan_tab, text="Factor scanner")
+        notebook.add(semantics_tab, text="Factor Semantics / Data Basis")
 
         preview_columns = (
-            "ticker", "report_date", "available_date", "cycle", "revenue_yoy", "monthly_revenue_3m_yoy",
-            "gross_margin", "eps_yoy", "inventory_yoy", "roe_proxy", "capex_to_revenue",
-            "pe", "pb", "future_3m_return", "future_6m_return", "future_12m_return",
+            "ticker","report_date","available_date","monthly_revenue_available_date","cycle","cycle_basis",
+            "revenue_yoy","monthly_revenue_3m_yoy","gross_margin","net_income_yoy","eps_yoy",
+            "inventory_revenue_growth_gap","ar_revenue_growth_gap","cash_conversion_cycle_days",
+            "roe_ttm","fcf_margin","cfo_to_net_income","accrual_ratio","capex_to_revenue",
+            "return_basis","future_3m_return","future_6m_return","future_12m_return",
         )
         self.preview_tree = ttk.Treeview(data_tab, columns=preview_columns, show="headings")
         for col in preview_columns:
@@ -94,6 +99,29 @@ class FactorValidationLab(tk.Tk):
             self.scan_tree.column(col, width=115, anchor="center")
         self.scan_tree.column("feature", width=190, anchor="w")
         self.scan_tree.pack(fill="both", expand=True)
+
+        semantic_columns=("factor","category","source","acquisition","basis","pit","directness","status","notes")
+        self.semantic_tree=ttk.Treeview(semantics_tab,columns=semantic_columns,show="headings",height=22)
+        semantic_widths={"factor":190,"category":120,"source":250,"acquisition":220,"basis":360,"pit":300,"directness":150,"status":190,"notes":420}
+        for col in semantic_columns:
+            self.semantic_tree.heading(col,text=col.replace("_"," ").title())
+            self.semantic_tree.column(col,width=semantic_widths[col],anchor="w")
+        sy=ttk.Scrollbar(semantics_tab,orient="vertical",command=self.semantic_tree.yview)
+        sx=ttk.Scrollbar(semantics_tab,orient="horizontal",command=self.semantic_tree.xview)
+        self.semantic_tree.configure(yscrollcommand=sy.set,xscrollcommand=sx.set)
+        self.semantic_tree.grid(row=0,column=0,sticky="nsew")
+        sy.grid(row=0,column=1,sticky="ns")
+        sx.grid(row=1,column=0,sticky="ew")
+        semantics_tab.grid_rowconfigure(0,weight=1)
+        semantics_tab.grid_columnconfigure(0,weight=1)
+        if FACTOR_CATALOG.exists():
+            catalog=pd.read_csv(FACTOR_CATALOG).fillna("")
+            for _,r in catalog.iterrows():
+                self.semantic_tree.insert("","end",values=(
+                    r["factor"],r["category"],r["source"],r["acquisition"],r["basis"],r["pit_method"],
+                    r["directness"],r["model_status"],r["notes"],
+                ))
+
         ttk.Label(root, textvariable=self.status_var).pack(anchor="w", pady=(8, 0))
 
     def choose_dataset(self) -> None:
