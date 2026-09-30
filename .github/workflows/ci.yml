@@ -99,6 +99,7 @@ jobs:
           path: |
             artifacts/factor_cache
             artifacts/factor_cache_manifest.json
+            artifacts/fundamental_factor_validation.csv
           key: factor-cache-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             factor-cache-${{ github.ref_name }}-
@@ -135,6 +136,12 @@ jobs:
             --start 2020-01-01 --batch-size 4 --max-batches 1 --sleep-seconds 0 \
             "${TOKEN_ARGS[@]}" 2>&1 | tee full-universe-runner-results.txt
           grep -q "FULL_UNIVERSE_RUN_OK" full-universe-runner-results.txt
+      - name: Validate fundamental accounting factors out of sample
+        run: |
+          python scripts/run_fundamental_factor_validation.py \
+            --dataset artifacts/factor_validation_dataset.csv \
+            --output artifacts/fundamental_factor_validation.csv
+
       - name: Validate dataset and cache manifest
         run: |
           python - <<'PY'
