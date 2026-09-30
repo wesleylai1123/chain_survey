@@ -22,7 +22,8 @@ class FundamentalFactorSemanticsTests(unittest.TestCase):
         cat=pd.read_csv(Path("data/fundamental_factor_catalog.csv")).set_index("factor")
         self.assertEqual(cat.loc["eps_yoy","model_status"],"REFERENCE_ONLY")
         self.assertEqual(cat.loc["net_income_yoy","model_status"],"CALIBRATION_ELIGIBLE")
-        self.assertEqual(cat.loc["future_6m_return","acquisition"],"TaiwanStockPriceAdj")
+        self.assertIn("TaiwanStockPriceAdj preferred",cat.loc["future_6m_return","acquisition"])
+        self.assertIn("TaiwanStockPrice fallback",cat.loc["future_6m_return","acquisition"])
         self.assertIn("DEACCUMULATED",cat.loc["operating_cash_flow","basis"].upper())
 
     def test_cycle_contract_disables_small_universe(self):
