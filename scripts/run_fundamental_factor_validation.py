@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
+import sys
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,8 @@ from core.panel_correlation_engine import scan_panel_correlations
 from core.factor_validation_engine import validate_factor_oos
 
 ROOT=Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0,str(ROOT))
 DEFAULT_DATASET=ROOT/"artifacts"/"factor_validation_dataset.csv"
 DEFAULT_CATALOG=ROOT/"data"/"fundamental_factor_catalog.csv"
 DEFAULT_OUTPUT=ROOT/"artifacts"/"fundamental_factor_validation.csv"
