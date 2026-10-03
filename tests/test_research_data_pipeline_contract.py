@@ -65,6 +65,14 @@ class ResearchDataPipelineContractTests(unittest.TestCase):
             self.assertIn("pipeline_continuity.json",text)
             self.assertIn(".continuity.json",text)
 
+    def test_orchestrator_publishes_unified_health_summary(self):
+        text=self.read("research-data-pipeline.yml")
+        self.assertIn("build_research_data_pipeline_summary.py",text)
+        self.assertIn("research_data_pipeline_summary.json",text)
+        self.assertIn("research_data_pipeline_summary.csv",text)
+        self.assertIn("persistent/run_manifests/summary",text)
+        self.assertIn("HEALTH_OUTCOME",text)
+
 
 if __name__=="__main__":
     unittest.main()
