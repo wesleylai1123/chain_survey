@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,8 @@ def build_manifest(run_id: str, pipeline: str, inputs: list[Path], outputs: list
         "pipeline_run_id":run_id,
         "pipeline":pipeline,
         "status":classify_status(checks),
+        "code_revision":os.environ.get("GITHUB_SHA",""),
+        "run_attempt":os.environ.get("GITHUB_RUN_ATTEMPT",""),
         "generated_at":pd.Timestamp.now(tz="UTC").isoformat(),
         "inputs":[file_record(p) for p in inputs],
         "outputs":[file_record(p) for p in outputs],
@@ -57,9 +60,13 @@ def main() -> None:
     p.add_argument("--input",action="append",default=[])
     p.add_argument("--output",action="append",default=[])
     p.add_argument("--check-json",action="append",default=[])
+    p.add_argument("--validation-json",type=Path)
     args=p.parse_args()
 
     checks=[json.loads(x) for x in args.check_json]
+    if args.validation_json:
+        validation=json.loads(args.validation_json.read_text(encoding="utf-8"))
+        checks.extend(validation.get("checks",[]))
     manifest=build_manifest(
         args.run_id,args.pipeline,
         [ROOT/x for x in args.input],
