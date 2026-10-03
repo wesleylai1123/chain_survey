@@ -16,12 +16,12 @@ class ResearchPipelineReproducibilityTests(unittest.TestCase):
     def test_same_raw_payload_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
-            first,digest1,changed1=persist_if_changed(
+            first,digest1,changed1,canonical1=persist_if_changed(
                 persistent_root=root,source_id="src",payload=b"same bytes",
                 collected_at=pd.Timestamp("2026-10-03T00:00:00Z"),extension="bin",
                 source_url="https://official.example/data",
             )
-            second,digest2,changed2=persist_if_changed(
+            second,digest2,changed2,canonical2=persist_if_changed(
                 persistent_root=root,source_id="src",payload=b"same bytes",
                 collected_at=pd.Timestamp("2026-10-03T01:00:00Z"),extension="bin",
                 source_url="https://official.example/data",
@@ -30,17 +30,19 @@ class ResearchPipelineReproducibilityTests(unittest.TestCase):
             self.assertFalse(changed2)
             self.assertEqual(digest1,digest2)
             self.assertEqual(first,second)
+            self.assertEqual(canonical1,pd.Timestamp("2026-10-03T00:00:00Z"))
+            self.assertEqual(canonical2,canonical1)
             self.assertEqual(len(list((root/"raw"/"src").glob("*.bin"))),1)
 
     def test_changed_raw_payload_creates_new_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
-            first,d1,_=persist_if_changed(
+            first,d1,_,canonical1=persist_if_changed(
                 persistent_root=root,source_id="src",payload=b"v1",
                 collected_at=pd.Timestamp("2026-10-03T00:00:00Z"),extension="bin",
                 source_url="https://official.example/data",
             )
-            second,d2,changed=persist_if_changed(
+            second,d2,changed,canonical2=persist_if_changed(
                 persistent_root=root,source_id="src",payload=b"v2",
                 collected_at=pd.Timestamp("2026-10-03T01:00:00Z"),extension="bin",
                 source_url="https://official.example/data",
@@ -48,6 +50,8 @@ class ResearchPipelineReproducibilityTests(unittest.TestCase):
             self.assertTrue(changed)
             self.assertNotEqual(d1,d2)
             self.assertNotEqual(first,second)
+            self.assertEqual(canonical1,pd.Timestamp("2026-10-03T00:00:00Z"))
+            self.assertEqual(canonical2,pd.Timestamp("2026-10-03T01:00:00Z"))
 
     def test_abf_processing_is_deterministic_for_same_page_text(self):
         kwargs=dict(
