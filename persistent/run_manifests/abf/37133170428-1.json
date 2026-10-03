@@ -1,0 +1,93 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "37133170428-1",
+  "pipeline": "abf_source_discovery",
+  "status": "PASS",
+  "code_revision": "d0e41a57324891846dab62fa3bffe543fe330313",
+  "run_attempt": "1",
+  "generated_at": "2026-10-03T15:32:09.262860+00:00",
+  "inputs": [
+    {
+      "path": "data/abf_source_registry.csv",
+      "exists": true,
+      "bytes": 4051,
+      "sha256": "c4d460fbdd789d8e5e378981b4150b2529addbbe42d96947d4875a69c2cec160"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/abf_source_manifest.csv",
+      "exists": true,
+      "bytes": 118612,
+      "sha256": "fedb4c4b3864b380e78868250b0dd2da63071362a3b2beb5112081220a39ea19"
+    },
+    {
+      "path": "artifacts/abf_source_health.csv",
+      "exists": true,
+      "bytes": 4115,
+      "sha256": "034cef4b8c59520d46166f97f8818f0d4914c1b6534b3b1d150e665a626bf018"
+    },
+    {
+      "path": "artifacts/abf_operating_candidates.csv",
+      "exists": true,
+      "bytes": 59131,
+      "sha256": "e37f543e87b986807f7d4d30db279a5dd399ca114b8084689310f9bf6de03ce1"
+    },
+    {
+      "path": "artifacts/abf_document_extract_status.csv",
+      "exists": true,
+      "bytes": 23145,
+      "sha256": "0fe5caf88982bddd97e9971e17a683787bea91bb256cf69aa74543bb1e8925e7"
+    },
+    {
+      "path": "artifacts/abf_pipeline_validation.json",
+      "exists": true,
+      "bytes": 1062,
+      "sha256": "322a3afe03df61d9bab009e89b05728a706e5c617bfc8e1c2b42d3fc1c7d68ef"
+    }
+  ],
+  "checks": [
+    {
+      "name": "abf_each_company_has_healthy_source",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3037/3189/8046"
+    },
+    {
+      "name": "abf_documents_processed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "70"
+    },
+    {
+      "name": "abf_document_sha_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha required"
+    },
+    {
+      "name": "abf_candidate_review_gate",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "no auto-promotion"
+    },
+    {
+      "name": "abf_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "candidate raw sha required"
+    },
+    {
+      "name": "abf_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline run required"
+    },
+    {
+      "name": "abf_document_failure_rate",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "5/75"
+    }
+  ]
+}
