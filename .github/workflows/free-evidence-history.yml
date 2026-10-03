@@ -100,7 +100,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -C evidence-data
-          git add data/history
+          mkdir -p persistent/run_manifests/history
+          cp artifacts/history_pipeline_run_manifest.json "persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp artifacts/history_pipeline_validation.json "persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          git add data/history persistent/run_manifests/history
           if git diff --cached --quiet; then
             echo "No history changes to persist"
           else
