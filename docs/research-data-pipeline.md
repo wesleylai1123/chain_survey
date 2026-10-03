@@ -25,7 +25,7 @@ This is the only daily scheduler. It invokes:
 - ABF Source Health
 - Free Evidence History
 
-The child workflows remain independently callable on pull requests, pushes to `main`, and manual dispatch.
+The child workflows remain independently callable on pull requests and manual dispatch. Production push/schedule execution goes through the unified orchestrator so evidence-data writers run in a controlled sequence.
 
 ## Persistence model
 
@@ -122,3 +122,29 @@ For any suspicious metric:
 7. only then use the observation for correlation/sensitivity calibration.
 
 This is the required audit path for production research data.
+
+
+## Cross-run continuity
+
+After the first production bootstrap, every subsequent run compares current processed data with the last-known-good baseline stored under:
+
+- `persistent/baselines/live/`
+- `persistent/baselines/abf/`
+- `persistent/baselines/history/`
+
+Destructive regressions such as history-key deletion, latest-period regression, or severe row-count collapse fail closed. Non-destructive warnings such as source disappearance or candidate shrinkage are reported as `DEGRADED`.
+
+## Unified health report
+
+The orchestrator summary job reads the three permanent run records for the same pipeline run ID and produces:
+
+- `research_data_pipeline_summary.json`
+- `research_data_pipeline_summary.csv`
+
+The JSON contains the full validation / continuity payloads for live, ABF and history. The CSV provides a compact status table with manifest status, validation status, continuity status, failed/degraded check counts and code revision.
+
+Successful production summaries are also persisted to:
+
+`persistent/run_manifests/summary/<run_id>.{json,csv}`
+
+A production research-data run is considered complete only when all three child workflows succeed and the unified health report is not `FAIL`.
