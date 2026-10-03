@@ -3,40 +3,55 @@ name: Free Evidence History
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "0 4 * * *"
+  workflow_call:
 
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.workflow, github.run_id) || 'evidence-data-writer' }}
+  cancel-in-progress: false
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout application code
+        uses: actions/checkout@v4
         with:
+          path: code
           fetch-depth: 0
+
+      - name: Checkout persistent evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: evidence-data
+          path: evidence-data
+          fetch-depth: 1
+
+      - name: Restore persisted history
+        shell: bash
+        run: |
+          mkdir -p code/data/history code/artifacts
+          if [ -d evidence-data/data/history ]; then
+            cp -a evidence-data/data/history/. code/data/history/
+          fi
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
+        working-directory: code
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore persisted history
-        shell: bash
-        run: |
-          git fetch origin evidence-data || true
-          git checkout origin/evidence-data -- data/history 2>/dev/null || true
-          mkdir -p data/history artifacts
-
       - name: Run history parser tests
+        working-directory: code
         shell: bash
         run: |
           set -o pipefail
@@ -46,69 +61,80 @@ jobs:
           python -m unittest discover -s tests -p 'test_free_evidence_history_panel.py' -v | tee history-panel-test-results.txt
 
       - name: Backfill MOPS-derived ABF monthly history
+        working-directory: code
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
         run: |
           python scripts/backfill_mops_abf_history.py --from-month 2024-01 --to-month "$(date -d '1 month ago' +%Y-%m)" --transport finmind --delay 0
 
       - name: Backfill TPCA public industry history
+        working-directory: code
         run: |
           python scripts/backfill_tpca_history.py --min-year 2024 --max-pages 40 --workers 4 --delay 0
 
       - name: Append TrendForce public price snapshot
+        working-directory: code
         run: |
           python scripts/collect_trendforce_public_history.py
 
       - name: Build correlation-ready history panel
+        working-directory: code
         run: |
           python scripts/build_free_evidence_history_panel.py
           python scripts/render_free_evidence_history_coverage.py
 
-      - name: Validate historical coverage
+      - name: Validate historical evidence pipeline
+        working-directory: code
         run: |
-          python - <<'PY'
-          import pandas as pd
-          panel=pd.read_csv('data/history/free_industry_history_panel.csv')
-          coverage=pd.read_csv('data/history/free_industry_history_coverage.csv')
-          assert panel['source_id'].nunique() >= 3, panel['source_id'].unique()
-          mops=panel[panel['source_id']=='mops_abf_monthly_revenue']
-          assert mops['entity'].nunique() == 3, mops['entity'].unique()
-          assert mops['period'].nunique() >= 18, mops['period'].nunique()
-          tpca=panel[panel['source_id']=='tpca_public_industry']
-          assert tpca['period'].nunique() >= 6, tpca['period'].nunique()
-          tf=panel[panel['source_id']=='trendforce_public_dram']
-          assert len(tf) >= 1
-          published=pd.to_datetime(panel['published_at'], utc=True)
-          periods=pd.to_datetime(panel['period_date'], utc=True)
-          assert (published >= periods).all()
-          print('FREE_EVIDENCE_HISTORY_VALID',len(panel),coverage.shape[0],panel['period'].nunique())
-          PY
+          python scripts/validate_research_pipeline.py --pipeline history --output artifacts/history_pipeline_validation.json
+
+      - name: Build historical pipeline run manifest
+        working-directory: code
+        run: |
+          python scripts/build_pipeline_run_manifest.py \
+            --run-id "$RESEARCH_PIPELINE_RUN_ID" \
+            --pipeline free_evidence_history \
+            --output data/history/mops_abf_monthly_revenue_history.csv \
+            --output data/history/tpca_industry_history.csv \
+            --output data/history/trendforce_public_price_history.csv \
+            --output data/history/free_industry_history_panel.csv \
+            --output data/history/free_industry_history_coverage.csv \
+            --output artifacts/history_pipeline_validation.json \
+            --validation-json artifacts/history_pipeline_validation.json \
+            --output-manifest artifacts/history_pipeline_run_manifest.json
 
       - name: Upload free evidence history artifact
         uses: actions/upload-artifact@v4
         with:
           name: free-evidence-history
           path: |
-            data/history/mops_abf_monthly_revenue_history.csv
-            data/history/tpca_industry_history.csv
-            data/history/trendforce_public_price_history.csv
-            data/history/free_industry_history_panel.csv
-            data/history/free_industry_history_coverage.csv
-            artifacts/free-industry-history-coverage.png
-            *history-test-results.txt
+            code/data/history/mops_abf_monthly_revenue_history.csv
+            code/data/history/tpca_industry_history.csv
+            code/data/history/trendforce_public_price_history.csv
+            code/data/history/free_industry_history_panel.csv
+            code/data/history/free_industry_history_coverage.csv
+            code/artifacts/free-industry-history-coverage.png
+            code/artifacts/history_pipeline_validation.json
+            code/artifacts/history_pipeline_run_manifest.json
+            code/*history-test-results.txt
           if-no-files-found: error
 
-      - name: Persist history to evidence-data branch
+      - name: Persist validated history and audit manifests to evidence-data
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
+          rm -rf evidence-data/data/history
+          mkdir -p evidence-data/data/history evidence-data/persistent/run_manifests/history
+          cp -a code/data/history/. evidence-data/data/history/
+          cp code/artifacts/history_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/history_pipeline_validation.json "evidence-data/persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -C evidence-data
-          git add data/history
+          git add data/history persistent/run_manifests/history
           if git diff --cached --quiet; then
             echo "No history changes to persist"
           else
-            git commit -m "data: refresh free industry evidence history"
-            git push origin evidence-data --force-with-lease
+            git commit -m "data: refresh validated free industry evidence history"
+            git push origin evidence-data
           fi

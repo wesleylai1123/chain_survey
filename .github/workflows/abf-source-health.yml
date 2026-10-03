@@ -4,50 +4,101 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "20 1 * * *"
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.workflow, github.run_id) || 'evidence-data-writer' }}
+  cancel-in-progress: false
 
 jobs:
   discover:
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout application code
+        uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Checkout persistent evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: evidence-data
+          path: evidence-data
+          fetch-depth: 1
+
+      - name: Restore persisted ABF source documents
+        shell: bash
+        run: |
+          mkdir -p code/persistent/abf_documents
+          if [ -d evidence-data/persistent/abf_documents ]; then
+            cp -a evidence-data/persistent/abf_documents/. code/persistent/abf_documents/
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install dependencies
+        working-directory: code
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Validate source registry and parser contract
+        working-directory: code
         run: |
           python -m unittest discover -s tests -p 'test_abf_source_registry.py' -v
           python -m unittest discover -s tests -p 'test_abf_source_manifest.py' -v
       - name: Discover primary-source documents
+        working-directory: code
         run: |
           python scripts/collect_abf_source_manifest.py --timeout 20 --retries 2
       - name: Extract ABF operating candidates
+        working-directory: code
         run: |
           python scripts/extract_abf_operating_candidates.py --max-documents 120
 
-      - name: Summarize source health
+      - name: Validate ABF research pipeline
+        working-directory: code
         run: |
-          python - <<'PY'
-          import pandas as pd
-          h=pd.read_csv("artifacts/abf_source_health.csv")
-          print(h[["source_id","stock_id","healthy","status","error"]].to_string(index=False))
-          primary=h[h.get("fallback_for",pd.Series(index=h.index,dtype=object)).isna()]
-          for stock in ("3037","3189","8046"):
-              assert h[(h.stock_id.astype(str)==stock) & h.healthy.fillna(False)].shape[0] >= 1, stock
-          print("ABF_SOURCE_HEALTH_OK")
-          PY
+          python scripts/validate_research_pipeline.py --pipeline abf --output artifacts/abf_pipeline_validation.json
+
+      - name: Build ABF pipeline run manifest
+        working-directory: code
+        run: |
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline abf_source_discovery             --input data/abf_source_registry.csv             --output artifacts/abf_source_manifest.csv             --output artifacts/abf_source_health.csv             --output artifacts/abf_operating_candidates.csv             --output artifacts/abf_document_extract_status.csv             --output artifacts/abf_pipeline_validation.json             --validation-json artifacts/abf_pipeline_validation.json             --output-manifest artifacts/abf_pipeline_run_manifest.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: abf-source-health
           path: |
-            artifacts/abf_source_manifest.csv
-            artifacts/abf_source_health.csv
-            artifacts/abf_operating_candidates.csv
-            artifacts/abf_document_extract_status.csv
+            code/artifacts/abf_source_manifest.csv
+            code/artifacts/abf_source_health.csv
+            code/artifacts/abf_operating_candidates.csv
+            code/artifacts/abf_document_extract_status.csv
+            code/artifacts/abf_pipeline_validation.json
+            code/artifacts/abf_pipeline_run_manifest.json
           if-no-files-found: warn
+
+      - name: Persist changed ABF raw documents to evidence-data
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          rm -rf evidence-data/persistent/abf_documents
+          mkdir -p evidence-data/persistent
+          cp -a code/persistent/abf_documents evidence-data/persistent/abf_documents
+          mkdir -p evidence-data/persistent/run_manifests/abf
+          cp code/artifacts/abf_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/abf_pipeline_validation.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cd evidence-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persistent/abf_documents persistent/run_manifests/abf
+          if git diff --cached --quiet; then
+            echo "No new ABF raw documents"
+          else
+            git commit -m "data: update ABF source documents"
+            git push origin evidence-data
+          fi

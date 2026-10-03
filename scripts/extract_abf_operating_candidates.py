@@ -6,7 +6,10 @@ from urllib.request import Request, urlopen
 from urllib.parse import quote, urlsplit, urlunsplit
 import argparse
 import hashlib
+import json
+import os
 import re
+import time
 
 import pandas as pd
 from pypdf import PdfReader
@@ -51,13 +54,26 @@ def _safe_url(url: str) -> str:
     return urlunsplit((parts.scheme,parts.netloc,quote(parts.path),parts.query,parts.fragment))
 
 
-def fetch_pdf(url: str, timeout: int=25) -> bytes:
-    req=Request(_safe_url(url),headers={
-        "User-Agent":"Mozilla/5.0 chain_survey/1.0 research collector",
-        "Accept":"application/pdf,*/*;q=0.8",
-    })
-    with urlopen(req,timeout=timeout) as resp:
-        return resp.read()
+def fetch_pdf(url: str, timeout: int=25, retries: int=3, backoff_seconds: float=1.0) -> bytes:
+    last_error=None
+    for attempt in range(retries):
+        req=Request(_safe_url(url),headers={
+            "User-Agent":"Mozilla/5.0 chain_survey/2.0 research collector",
+            "Accept":"application/pdf,*/*;q=0.8",
+            "Connection":"close",
+        })
+        try:
+            with urlopen(req,timeout=timeout) as resp:
+                body=resp.read()
+                if not body:
+                    raise ValueError("empty PDF payload")
+                return body
+        except Exception as exc:
+            last_error=exc
+            if attempt+1>=retries:
+                break
+            time.sleep(backoff_seconds*(attempt+1))
+    raise RuntimeError(f"PDF fetch failed after {retries} attempts: {url}: {last_error}")
 
 
 def pdf_pages(pdf_bytes: bytes) -> list[str]:
@@ -125,7 +141,16 @@ def extract_candidates_from_pages(
     ).reset_index(drop=True)
 
 
-def extract_manifest(manifest: pd.DataFrame, *, timeout: int=25, max_documents: int=120, best_effort: bool=True) -> tuple[pd.DataFrame,pd.DataFrame]:
+def extract_manifest(
+    manifest: pd.DataFrame,
+    *,
+    timeout: int=25,
+    retries: int=3,
+    max_documents: int=120,
+    best_effort: bool=True,
+    raw_root: Path | None=None,
+    pipeline_run_id: str="",
+) -> tuple[pd.DataFrame,pd.DataFrame]:
     candidates=[]; status=[]
     docs=manifest.copy()
     if "document_kind" in docs:
@@ -134,22 +159,34 @@ def extract_manifest(manifest: pd.DataFrame, *, timeout: int=25, max_documents: 
     for _,row in docs.iterrows():
         url=str(row["document_url"])
         try:
-            body=fetch_pdf(url,timeout=timeout)
+            body=fetch_pdf(url,timeout=timeout,retries=retries)
             digest=hashlib.sha256(body).hexdigest()
+            raw_path=""
+            if raw_root is not None:
+                out=raw_root/str(row["stock_id"])/f"{digest}.pdf"
+                out.parent.mkdir(parents=True,exist_ok=True)
+                if not out.exists():
+                    out.write_bytes(body)
+                raw_path=str(out.relative_to(ROOT))
             pages=pdf_pages(body)
             found=extract_candidates_from_pages(
                 str(row["stock_id"]),str(row["company"]),str(row["source_id"]),url,pages,digest,str(row.get("use_for",""))
             )
             if not found.empty:
+                found["raw_sha256"]=digest
+                found["raw_snapshot_path"]=raw_path
+                found["pipeline_run_id"]=pipeline_run_id
                 candidates.append(found)
             status.append({
                 "source_id":row["source_id"],"stock_id":row["stock_id"],"document_url":url,
-                "status":"OK","pages":len(pages),"candidate_count":len(found),"sha256":digest,"error":"",
+                "status":"OK","pages":len(pages),"candidate_count":len(found),"sha256":digest,
+                "raw_snapshot_path":raw_path,"pipeline_run_id":pipeline_run_id,"error":"",
             })
         except Exception as exc:
             status.append({
                 "source_id":row.get("source_id",""),"stock_id":row.get("stock_id",""),"document_url":url,
-                "status":"ERROR","pages":0,"candidate_count":0,"sha256":"","error":str(exc),
+                "status":"ERROR","pages":0,"candidate_count":0,"sha256":"","raw_snapshot_path":"",
+                "pipeline_run_id":pipeline_run_id,"error":str(exc),
             })
             if not best_effort:
                 raise
@@ -163,13 +200,17 @@ def main() -> None:
     p.add_argument("--output",type=Path,default=OUTPUT)
     p.add_argument("--status-output",type=Path,default=ROOT/"artifacts"/"abf_document_extract_status.csv")
     p.add_argument("--timeout",type=int,default=25)
+    p.add_argument("--retries",type=int,default=3)
+    p.add_argument("--raw-root",type=Path,default=ROOT/"persistent"/"abf_documents")
     p.add_argument("--max-documents",type=int,default=120)
     p.add_argument("--strict",action="store_true")
     args=p.parse_args()
 
+    run_id=os.environ.get("RESEARCH_PIPELINE_RUN_ID") or os.environ.get("GITHUB_RUN_ID") or pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%SZ")
     manifest=pd.read_csv(args.manifest,dtype={"stock_id":str})
     candidates,status=extract_manifest(
-        manifest,timeout=args.timeout,max_documents=args.max_documents,best_effort=not args.strict
+        manifest,timeout=args.timeout,retries=args.retries,max_documents=args.max_documents,
+        best_effort=not args.strict,raw_root=args.raw_root,pipeline_run_id=run_id
     )
     args.output.parent.mkdir(parents=True,exist_ok=True)
     candidates.to_csv(args.output,index=False)
