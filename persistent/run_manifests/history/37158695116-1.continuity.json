@@ -1,0 +1,14 @@
+{
+  "schema_version": "PipelineContinuityV1",
+  "pipeline": "history",
+  "validated_at": "2026-10-03T22:38:28.134912+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "history_continuity_baseline",
+      "passed": true,
+      "severity": "INFO",
+      "detail": "no prior validated history baseline; bootstrap run"
+    }
+  ]
+}
