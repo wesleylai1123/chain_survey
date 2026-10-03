@@ -275,7 +275,7 @@ def collect_all(
                 )
                 parsed = parse_monthly_revenue_json(
                     fetched.payload, source_id=sid, market=source["market"],
-                    collected_at=fetched.collected_at, source_url=fetched.url,
+                    collected_at=canonical_collected_at, source_url=fetched.url,
                 )
                 derived=revenue_snapshot_to_evidence(parsed, relationships, companies)
                 if not derived.empty:
@@ -288,7 +288,7 @@ def collect_all(
                 metadata_fetch = fetch_bytes(DATA_GOV_METADATA.format(dataset_id=source["dataset_id"]))
                 resource_url = extract_data_gov_resource_url(json.loads(metadata_fetch.payload.decode("utf-8")))
                 fetched = fetch_bytes(resource_url)
-                raw_path,digest,changed=persist_if_changed(
+                raw_path,digest,changed,canonical_collected_at=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="csv", source_url=fetched.url,
                 )
@@ -305,7 +305,7 @@ def collect_all(
                 rows = len(parsed)
             elif kind == "tpca_public_listing":
                 fetched = fetch_bytes(source["url"])
-                raw_path,digest,changed=persist_if_changed(
+                raw_path,digest,changed,canonical_collected_at=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="html", source_url=fetched.url,
                 )
