@@ -31,12 +31,15 @@ jobs:
           path: evidence-data
           fetch-depth: 1
 
-      - name: Restore persisted ABF source documents
+      - name: Restore persisted ABF source documents and continuity baseline
         shell: bash
         run: |
-          mkdir -p code/persistent/abf_documents
+          mkdir -p code/persistent/abf_documents code/baseline/abf
           if [ -d evidence-data/persistent/abf_documents ]; then
             cp -a evidence-data/persistent/abf_documents/. code/persistent/abf_documents/
+          fi
+          if [ -d evidence-data/persistent/baselines/abf ]; then
+            cp -a evidence-data/persistent/baselines/abf/. code/baseline/abf/
           fi
       - uses: actions/setup-python@v5
         with:
@@ -65,10 +68,15 @@ jobs:
         run: |
           python scripts/validate_research_pipeline.py --pipeline abf --output artifacts/abf_pipeline_validation.json
 
+      - name: Validate ABF continuity against last-known-good baseline
+        working-directory: code
+        run: |
+          python scripts/validate_pipeline_continuity.py             --pipeline abf             --baseline-dir baseline/abf             --output artifacts/abf_pipeline_continuity.json
+
       - name: Build ABF pipeline run manifest
         working-directory: code
         run: |
-          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline abf_source_discovery             --input data/abf_source_registry.csv             --output artifacts/abf_source_manifest.csv             --output artifacts/abf_source_health.csv             --output artifacts/abf_operating_candidates.csv             --output artifacts/abf_document_extract_status.csv             --output artifacts/abf_pipeline_validation.json             --validation-json artifacts/abf_pipeline_validation.json             --output-manifest artifacts/abf_pipeline_run_manifest.json
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline abf_source_discovery             --input data/abf_source_registry.csv             --output artifacts/abf_source_manifest.csv             --output artifacts/abf_source_health.csv             --output artifacts/abf_operating_candidates.csv             --output artifacts/abf_document_extract_status.csv             --output artifacts/abf_pipeline_validation.json             --output artifacts/abf_pipeline_continuity.json             --validation-json artifacts/abf_pipeline_validation.json             --validation-json artifacts/abf_pipeline_continuity.json             --output-manifest artifacts/abf_pipeline_run_manifest.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -79,6 +87,7 @@ jobs:
             code/artifacts/abf_operating_candidates.csv
             code/artifacts/abf_document_extract_status.csv
             code/artifacts/abf_pipeline_validation.json
+            code/artifacts/abf_pipeline_continuity.json
             code/artifacts/abf_pipeline_run_manifest.json
           if-no-files-found: warn
 
@@ -89,13 +98,17 @@ jobs:
           rm -rf evidence-data/persistent/abf_documents
           mkdir -p evidence-data/persistent
           cp -a code/persistent/abf_documents evidence-data/persistent/abf_documents
-          mkdir -p evidence-data/persistent/run_manifests/abf
+          mkdir -p evidence-data/persistent/run_manifests/abf evidence-data/persistent/baselines/abf
           cp code/artifacts/abf_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.json"
           cp code/artifacts/abf_pipeline_validation.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cp code/artifacts/abf_pipeline_continuity.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.continuity.json"
+          cp code/artifacts/abf_source_health.csv evidence-data/persistent/baselines/abf/abf_source_health.csv
+          cp code/artifacts/abf_document_extract_status.csv evidence-data/persistent/baselines/abf/abf_document_extract_status.csv
+          cp code/artifacts/abf_operating_candidates.csv evidence-data/persistent/baselines/abf/abf_operating_candidates.csv
           cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add persistent/abf_documents persistent/run_manifests/abf
+          git add persistent/abf_documents persistent/run_manifests/abf persistent/baselines/abf
           if git diff --cached --quiet; then
             echo "No new ABF raw documents"
           else
