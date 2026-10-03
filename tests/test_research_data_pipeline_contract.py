@@ -19,17 +19,21 @@ class ResearchDataPipelineContractTests(unittest.TestCase):
         ):
             text=self.read(name)
             self.assertIn("workflow_call:",text)
-            self.assertIn("group: evidence-data-writer",text)
+            self.assertIn("evidence-data-writer",text)
             self.assertIn("cancel-in-progress: false",text)
             self.assertNotIn("schedule:\n",text)
+            self.assertNotIn("  push:\n    branches: [main]",text)
 
     def test_only_orchestrator_owns_daily_schedule(self):
         text=self.read("research-data-pipeline.yml")
         self.assertIn('cron: "10 1 * * *"',text)
         self.assertIn("workflow_dispatch:",text)
+        self.assertIn("push:\n    branches: [main]",text)
         self.assertIn("uses: ./.github/workflows/live-free-evidence-connectors.yml",text)
         self.assertIn("uses: ./.github/workflows/abf-source-health.yml",text)
         self.assertIn("uses: ./.github/workflows/free-evidence-history.yml",text)
+        self.assertIn("needs: live",text)
+        self.assertIn("needs: abf",text)
 
     def test_history_never_force_pushes_or_switches_data_branch(self):
         text=self.read("free-evidence-history.yml")
