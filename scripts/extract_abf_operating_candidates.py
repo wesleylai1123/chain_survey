@@ -53,7 +53,7 @@ PATTERNS=[
 
 def _safe_url(url: str) -> str:
     parts=urlsplit(url)
-    return urlunsplit((parts.scheme,parts.netloc,quote(parts.path),parts.query,parts.fragment))
+    return urlunsplit((parts.scheme,parts.netloc,quote(parts.path,safe="/%"),parts.query,parts.fragment))
 
 
 @dataclass
@@ -73,9 +73,13 @@ def _raw_manifest_path(raw_root: Path) -> Path:
 
 def _load_raw_manifest(raw_root: Path) -> dict:
     path=_raw_manifest_path(raw_root)
-    if not path.exists():
-        return {"schema_version":"AbfDocumentCacheV1","documents":{}}
-    payload=json.loads(path.read_text(encoding="utf-8"))
+    empty={"schema_version":"AbfDocumentCacheV1","documents":{}}
+    try:
+        payload=json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError,json.JSONDecodeError,UnicodeDecodeError):
+        return empty
+    if not isinstance(payload,dict) or not isinstance(payload.get("documents",{}),dict):
+        return empty
     payload.setdefault("schema_version","AbfDocumentCacheV1")
     payload.setdefault("documents",{})
     return payload
@@ -83,9 +87,13 @@ def _load_raw_manifest(raw_root: Path) -> dict:
 
 def _save_raw_manifest(raw_root: Path, manifest: dict) -> None:
     raw_root.mkdir(parents=True,exist_ok=True)
-    _raw_manifest_path(raw_root).write_text(
-        json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"
-    )
+    path=_raw_manifest_path(raw_root)
+    temporary=path.with_suffix(".json.tmp")
+    try:
+        temporary.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def _display_path(path: Path) -> str:
@@ -108,9 +116,14 @@ def fetch_pdf_conditional(
     manifest=_load_raw_manifest(raw_root)
     cache_key=f"{stock_id}|{url}"
     entry=manifest["documents"].get(cache_key,{})
-    cached_rel=str(entry.get("relative_path","")).strip()
+    cached_rel=str(entry.get("relative_path","")).strip().replace("\\","/")
     cached_path=(raw_root/cached_rel) if cached_rel else None
-    cache_valid=bool(cached_path and cached_path.exists())
+    cache_valid=False
+    if cached_path is not None and cached_path.is_file():
+        try:
+            cache_valid=hashlib.sha256(cached_path.read_bytes()).hexdigest()==entry.get("sha256")
+        except OSError:
+            pass
 
     headers={
         "User-Agent":"Mozilla/5.0 chain_survey/2.0 research collector",
@@ -133,14 +146,14 @@ def fetch_pdf_conditional(
                 digest=hashlib.sha256(body).hexdigest()
                 out=raw_root/str(stock_id)/f"{digest}.pdf"
                 out.parent.mkdir(parents=True,exist_ok=True)
-                if not out.exists():
+                if not out.exists() or hashlib.sha256(out.read_bytes()).hexdigest()!=digest:
                     out.write_bytes(body)
                 etag=str(resp.headers.get("ETag","") or "")
                 last_modified=str(resp.headers.get("Last-Modified","") or "")
                 changed=digest != str(entry.get("sha256",""))
                 manifest["documents"][cache_key]={
                     "sha256":digest,
-                    "relative_path":str(out.relative_to(raw_root)),
+                    "relative_path":out.relative_to(raw_root).as_posix(),
                     "etag":etag,
                     "last_modified":last_modified,
                     "last_checked_at":pd.Timestamp.now(tz="UTC").isoformat(),
@@ -151,6 +164,7 @@ def fetch_pdf_conditional(
                     fetch_mode="FULL_GET",changed=changed,etag=etag,last_modified=last_modified,
                 )
         except HTTPError as exc:
+            exc.close()
             if exc.code==304 and cache_valid and cached_path is not None:
                 body=cached_path.read_bytes()
                 digest=hashlib.sha256(body).hexdigest()

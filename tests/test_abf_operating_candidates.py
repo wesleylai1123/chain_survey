@@ -1,15 +1,102 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from unittest.mock import patch
 
-from scripts.extract_abf_operating_candidates import extract_candidates_from_pages, fetch_pdf_conditional
+from scripts.extract_abf_operating_candidates import _safe_url, extract_candidates_from_pages, fetch_pdf_conditional
 
 
 class AbfOperatingCandidateTests(unittest.TestCase):
+    def test_encoded_document_url_is_not_encoded_twice(self):
+        url="https://www.kinsus.com.tw/upload/media/ir/Investor/1150310%E6%B3%95%E8%AA%AA%E6%9C%83.pdf"
+        self.assertEqual(_safe_url(url),url)
+
+    def test_document_url_encodes_unicode_and_preserves_existing_escapes(self):
+        self.assertEqual(
+            _safe_url("https://example.com/法說 report%2Fv1%25.pdf?download=1#page=2"),
+            "https://example.com/%E6%B3%95%E8%AA%AA%20report%2Fv1%25.pdf?download=1#page=2",
+        )
+
+    def test_corrupted_cache_is_refetched_and_repaired(self):
+        class Response:
+            headers={"ETag":"\"abc\""}
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return b"%PDF-stable"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            url="https://example.com/report.pdf"
+            with patch("scripts.extract_abf_operating_candidates.urlopen",return_value=Response()):
+                first=fetch_pdf_conditional(url,stock_id="8046",raw_root=root,retries=1)
+            cached_path=Path(first.raw_path)
+            cached_path.write_bytes(b"corrupted")
+            calls=[]
+            def fake_urlopen(req,timeout=25):
+                headers={k.lower():v for k,v in req.header_items()}
+                calls.append(headers)
+                if "if-none-match" in headers:
+                    raise HTTPError(req.full_url,304,"Not Modified",hdrs={},fp=None)
+                return Response()
+            with patch("scripts.extract_abf_operating_candidates.urlopen",side_effect=fake_urlopen):
+                repaired=fetch_pdf_conditional(url,stock_id="8046",raw_root=root,retries=1)
+            self.assertEqual(repaired.fetch_mode,"FULL_GET")
+            self.assertFalse(repaired.changed)
+            self.assertEqual(repaired.sha256,first.sha256)
+            self.assertEqual(cached_path.read_bytes(),b"%PDF-stable")
+            self.assertNotIn("if-none-match",calls[0])
+
+    def test_cache_manifest_uses_portable_relative_paths(self):
+        class Response:
+            headers={}
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return b"%PDF-stable"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            url="https://example.com/report.pdf"
+            with patch("scripts.extract_abf_operating_candidates.urlopen",return_value=Response()):
+                fetched=fetch_pdf_conditional(url,stock_id="8046",raw_root=root,retries=1)
+            manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["documents"][f"8046|{url}"]["relative_path"],f"8046/{fetched.sha256}.pdf")
+
+    def test_malformed_cache_manifest_is_rebuilt_after_fresh_download(self):
+        class Response:
+            headers={"ETag":"\"abc\""}
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return b"%PDF-stable"
+
+        for payload in ('{"documents":', '[]', '{"documents":[]}', '{"documents":null}'):
+            with self.subTest(payload=payload), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp)
+                (root/"manifest.json").write_text(payload,encoding="utf-8")
+                url="https://example.com/report.pdf"
+                with patch("scripts.extract_abf_operating_candidates.urlopen",return_value=Response()) as request:
+                    fetched=fetch_pdf_conditional(url,stock_id="8046",raw_root=root,retries=1)
+                self.assertEqual(fetched.fetch_mode,"FULL_GET")
+                headers={k.lower():v for k,v in request.call_args.args[0].header_items()}
+                self.assertNotIn("if-none-match",headers)
+                manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+                self.assertEqual(manifest["documents"][f"8046|{url}"]["sha256"],fetched.sha256)
+
+    def test_failed_manifest_replace_preserves_previous_cache_index(self):
+        from scripts.extract_abf_operating_candidates import _save_raw_manifest
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            previous={"schema_version":"AbfDocumentCacheV1","documents":{}}
+            _save_raw_manifest(root,previous)
+            with patch.object(Path,"replace",side_effect=OSError("interrupted")):
+                with self.assertRaises(OSError):
+                    _save_raw_manifest(root,{"schema_version":"AbfDocumentCacheV1","documents":{"new":{}}})
+            self.assertEqual(json.loads((root/"manifest.json").read_text(encoding="utf-8")),previous)
+
     def test_extracts_utilization_range_product_mix_and_downside(self):
         pages=[
             "ABF utilization rate was 75-80%. ABF product mix was 68%. "

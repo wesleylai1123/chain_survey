@@ -29,17 +29,80 @@ jobs:
     if: always()
     needs: [live, abf, history]
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
+      - name: Checkout application code
+        uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Checkout persistent evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: evidence-data
+          path: evidence-data
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install summary dependencies
+        working-directory: code
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+
+      - name: Build unified pipeline health report
+        id: health
+        continue-on-error: true
+        working-directory: code
+        run: |
+          mkdir -p artifacts
+          python scripts/build_research_data_pipeline_summary.py             --evidence-root ../evidence-data             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --json-output artifacts/research_data_pipeline_summary.json             --csv-output artifacts/research_data_pipeline_summary.csv
+
+      - name: Upload unified pipeline health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-data-pipeline-summary
+          path: |
+            code/artifacts/research_data_pipeline_summary.json
+            code/artifacts/research_data_pipeline_summary.csv
+          if-no-files-found: warn
+
+      - name: Persist unified pipeline health report
+        if: steps.health.outcome == 'success'
+        shell: bash
+        run: |
+          mkdir -p evidence-data/persistent/run_manifests/summary
+          cp code/artifacts/research_data_pipeline_summary.json "evidence-data/persistent/run_manifests/summary/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/research_data_pipeline_summary.csv "evidence-data/persistent/run_manifests/summary/$RESEARCH_PIPELINE_RUN_ID.csv"
+          cd evidence-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persistent/run_manifests/summary
+          if git diff --cached --quiet; then
+            echo "No pipeline summary changes"
+          else
+            git commit -m "data: persist research data pipeline summary"
+            git push origin evidence-data
+          fi
+
       - name: Verify all research data pipelines completed successfully
         env:
           LIVE_RESULT: ${{ needs.live.result }}
           ABF_RESULT: ${{ needs.abf.result }}
           HISTORY_RESULT: ${{ needs.history.result }}
+          HEALTH_OUTCOME: ${{ steps.health.outcome }}
         run: |
           echo "live=$LIVE_RESULT"
           echo "abf=$ABF_RESULT"
           echo "history=$HISTORY_RESULT"
+          echo "health=$HEALTH_OUTCOME"
           test "$LIVE_RESULT" = "success"
           test "$ABF_RESULT" = "success"
           test "$HISTORY_RESULT" = "success"
+          test "$HEALTH_OUTCOME" = "success"
           echo "RESEARCH_DATA_PIPELINE_OK"
