@@ -1,0 +1,105 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "37158695116-1",
+  "pipeline": "abf_source_discovery",
+  "status": "PASS",
+  "code_revision": "f41df3922e4ea31d3837e40cc169f4a46163ec9a",
+  "run_attempt": "1",
+  "generated_at": "2026-10-03T22:37:15.522733+00:00",
+  "inputs": [
+    {
+      "path": "data/abf_source_registry.csv",
+      "exists": true,
+      "bytes": 4051,
+      "sha256": "c4d460fbdd789d8e5e378981b4150b2529addbbe42d96947d4875a69c2cec160"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/abf_source_manifest.csv",
+      "exists": true,
+      "bytes": 118612,
+      "sha256": "11da112965943fde012bbfa04d9e0268ecdfb039beb8dae00ab957701fe170e9"
+    },
+    {
+      "path": "artifacts/abf_source_health.csv",
+      "exists": true,
+      "bytes": 4115,
+      "sha256": "f1987c2d220ed8c6af31da3164a1452577971792e9c9fb16d3af44510cf0ab7a"
+    },
+    {
+      "path": "artifacts/abf_operating_candidates.csv",
+      "exists": true,
+      "bytes": 59131,
+      "sha256": "1ef67ffbe3c32857ed2c7b6ec36b12448a897c57c551f57f65e636fcc33a9132"
+    },
+    {
+      "path": "artifacts/abf_document_extract_status.csv",
+      "exists": true,
+      "bytes": 23145,
+      "sha256": "ef26d6ff26fbcbc7d073af381a35480056de39349900cb021cda823d757fb779"
+    },
+    {
+      "path": "artifacts/abf_pipeline_validation.json",
+      "exists": true,
+      "bytes": 1062,
+      "sha256": "4adc7fe7c2a10da2a9e9210cbddc8813b484629ba1cf291ac67f5e333b82d194"
+    },
+    {
+      "path": "artifacts/abf_pipeline_continuity.json",
+      "exists": true,
+      "bytes": 327,
+      "sha256": "c0a05fd989570919d9234af21e582e1b09bcc05a0506e09a05e3642537e88dcc"
+    }
+  ],
+  "checks": [
+    {
+      "name": "abf_each_company_has_healthy_source",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3037/3189/8046"
+    },
+    {
+      "name": "abf_documents_processed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "70"
+    },
+    {
+      "name": "abf_document_sha_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha required"
+    },
+    {
+      "name": "abf_candidate_review_gate",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "no auto-promotion"
+    },
+    {
+      "name": "abf_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "candidate raw sha required"
+    },
+    {
+      "name": "abf_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline run required"
+    },
+    {
+      "name": "abf_document_failure_rate",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "5/75"
+    },
+    {
+      "name": "abf_continuity_baseline",
+      "passed": true,
+      "severity": "INFO",
+      "detail": "no prior validated ABF baseline; bootstrap run"
+    }
+  ]
+}
