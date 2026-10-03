@@ -224,7 +224,7 @@ def persist_if_changed(
     collected_at: pd.Timestamp,
     extension: str,
     source_url: str,
-) -> tuple[Path | None, str, bool]:
+) -> tuple[Path | None, str, bool, pd.Timestamp]:
     manifest_path = persistent_root / "manifest.json"
     manifest = _manifest(manifest_path)
     digest = hashlib.sha256(payload).hexdigest()
@@ -232,7 +232,8 @@ def persist_if_changed(
     if current.get("sha256") == digest:
         latest=current.get("latest_snapshot")
         existing=(persistent_root/latest) if latest else None
-        return existing, digest, False
+        canonical=pd.to_datetime(current.get("collected_at"),utc=True)
+        return existing, digest, False, canonical
     stamp = collected_at.tz_convert("UTC").strftime("%Y%m%dT%H%M%SZ")
     out = persistent_root / "raw" / source_id / f"{stamp}.{extension}"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -245,7 +246,7 @@ def persist_if_changed(
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return out, digest, True
+    return out, digest, True, collected_at
 
 
 def collect_all(
@@ -268,7 +269,7 @@ def collect_all(
         try:
             if kind == "monthly_revenue_json":
                 fetched = fetch_bytes(source["url"])
-                raw_path,digest,changed=persist_if_changed(
+                raw_path,digest,changed,canonical_collected_at=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="json", source_url=fetched.url,
                 )
@@ -293,7 +294,7 @@ def collect_all(
                 )
                 parsed = parse_moea_export_orders_csv(
                     fetched.payload, source_id=sid, chain=source["chain"], dimension=source["dimension"],
-                    collected_at=fetched.collected_at, source_url=fetched.url,
+                    collected_at=canonical_collected_at, source_url=fetched.url,
                 )
                 derived=moea_snapshot_to_evidence(parsed)
                 if not derived.empty:
@@ -308,7 +309,7 @@ def collect_all(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="html", source_url=fetched.url,
                 )
-                parsed = parse_tpca_listing(fetched.payload, collected_at=fetched.collected_at, source_url=fetched.url)
+                parsed = parse_tpca_listing(fetched.payload, collected_at=canonical_collected_at, source_url=fetched.url)
                 derived=tpca_snapshot_to_evidence(parsed)
                 if not derived.empty:
                     derived["raw_sha256"]=digest
@@ -320,7 +321,9 @@ def collect_all(
                 raise ValueError(f"Unsupported connector kind: {kind}")
             status.append({
                 "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"ok","rows":rows,
-                "collected_at":fetched.collected_at.isoformat(),"source_url":fetched.url,
+                "fetch_collected_at":fetched.collected_at.isoformat(),
+                "canonical_available_at":canonical_collected_at.isoformat(),
+                "source_url":fetched.url,
                 "sha256":digest,"payload_bytes":len(fetched.payload),"changed":bool(changed),
                 "persistent_path":str(raw_path.relative_to(ROOT)) if raw_path else "",
             })
