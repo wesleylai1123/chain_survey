@@ -71,7 +71,7 @@ class ResearchPipelineReproducibilityTests(unittest.TestCase):
         self.assertEqual(classify_status([{"severity":"FAIL","passed":True}]),"PASS")
 
     def test_manifest_hashes_inputs_and_outputs(self):
-        with tempfile.TemporaryDirectory(dir=Path("artifacts")) as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/"sample.txt"
             p.write_text("stable",encoding="utf-8")
             manifest=build_manifest(
