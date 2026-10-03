@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from unittest.mock import patch
 
-from scripts.extract_abf_operating_candidates import extract_candidates_from_pages
+from scripts.extract_abf_operating_candidates import extract_candidates_from_pages, fetch_pdf_conditional
 
 
 class AbfOperatingCandidateTests(unittest.TestCase):
@@ -59,6 +63,53 @@ class AbfOperatingCandidateTests(unittest.TestCase):
             use_for="guidance;utilization;product_mix;capacity;downside",
         )
         self.assertTrue(out.empty)
+
+    def test_conditional_fetch_reuses_cache_only_after_http_304(self):
+        class Response:
+            def __init__(self,body,headers):
+                self._body=body
+                self.headers=headers
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return self._body
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            calls=[]
+            def fake_urlopen(req,timeout=25):
+                calls.append(dict(req.header_items()))
+                if len(calls)==1:
+                    return Response(b"%PDF-stable",{"ETag":"\"abc\"","Last-Modified":"Wed, 01 Oct 2026 00:00:00 GMT"})
+                raise HTTPError(req.full_url,304,"Not Modified",hdrs={},fp=None)
+
+            with patch("scripts.extract_abf_operating_candidates.urlopen",side_effect=fake_urlopen):
+                first=fetch_pdf_conditional("https://example.com/report.pdf",stock_id="8046",raw_root=root,retries=1)
+                second=fetch_pdf_conditional("https://example.com/report.pdf",stock_id="8046",raw_root=root,retries=1)
+
+            self.assertEqual(first.fetch_mode,"FULL_GET")
+            self.assertTrue(first.changed)
+            self.assertEqual(second.fetch_mode,"HTTP_304_CACHE")
+            self.assertFalse(second.changed)
+            self.assertEqual(first.sha256,second.sha256)
+            second_headers={k.lower():v for k,v in calls[1].items()}
+            self.assertEqual(second_headers.get("if-none-match"),"\"abc\"")
+            self.assertIn("if-modified-since",second_headers)
+            self.assertTrue((root/"manifest.json").exists())
+
+    def test_network_error_never_silently_reuses_cached_pdf(self):
+        class Response:
+            headers={"ETag":"\"abc\""}
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return b"%PDF-stable"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            with patch("scripts.extract_abf_operating_candidates.urlopen",return_value=Response()):
+                fetch_pdf_conditional("https://example.com/report.pdf",stock_id="8046",raw_root=root,retries=1)
+            with patch("scripts.extract_abf_operating_candidates.urlopen",side_effect=URLError("offline")):
+                with self.assertRaises(RuntimeError):
+                    fetch_pdf_conditional("https://example.com/report.pdf",stock_id="8046",raw_root=root,retries=1)
 
 
 if __name__=="__main__":
