@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: evidence-data-writer
+  cancel-in-progress: false
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
