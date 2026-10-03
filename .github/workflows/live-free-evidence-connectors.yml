@@ -15,6 +15,8 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout application code
         uses: actions/checkout@v4
@@ -61,25 +63,15 @@ jobs:
           set -o pipefail
           python scripts/collect_free_evidence.py | tee live-free-evidence-collection.txt
 
-      - name: Validate PIT and assumption contract
+      - name: Validate live research pipeline
         working-directory: code
         run: |
-          python - <<'PY'
-          import json
-          import pandas as pd
+          python scripts/validate_research_pipeline.py --pipeline live --output artifacts/live_pipeline_validation.json
 
-          status=json.load(open('artifacts/free_evidence_collection_status.json',encoding='utf-8'))
-          evidence=pd.read_csv('artifacts/free_evidence_latest.csv')
-          assert status['sources_ok'] >= 2, status
-          assert len(evidence) >= 1, status
-          assert set(evidence['availability_policy']) == {'collection_time_conservative'}
-          assert set(evidence['provenance']) == {'LIVE_FREE_POINT_IN_TIME'}
-          assert set(evidence['reliability_basis']) == {'SOURCE_CLASS_PRIOR'}
-          configured=evidence[evidence['exposure_weight'].notna()]
-          if not configured.empty:
-              assert set(configured['exposure_basis']) == {'CONFIGURED_ASSUMPTION'}
-          print('LIVE_FREE_EVIDENCE_CONTRACT_OK',status['sources_ok'],len(evidence))
-          PY
+      - name: Build live pipeline run manifest
+        working-directory: code
+        run: |
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline live_free_evidence             --input data/free_evidence_sources.json             --input data/company_product_relationships.csv             --input data/company_master.csv             --output artifacts/free_evidence_latest.csv             --output artifacts/free_evidence_collection_status.json             --output artifacts/live_pipeline_validation.json             --validation-json artifacts/live_pipeline_validation.json             --output-manifest artifacts/live_pipeline_run_manifest.json
 
       - name: Install virtual display tools
         run: |
@@ -103,6 +95,8 @@ jobs:
             code/artifacts/free-evidence-dashboard.png
             code/artifacts/free_evidence_latest.csv
             code/artifacts/free_evidence_collection_status.json
+            code/artifacts/live_pipeline_validation.json
+            code/artifacts/live_pipeline_run_manifest.json
             code/live-free-evidence-tests.txt
             code/live-free-evidence-registry-tests.txt
             code/live-free-evidence-collection.txt
