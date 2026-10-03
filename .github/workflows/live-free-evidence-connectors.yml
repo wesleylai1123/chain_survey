@@ -113,10 +113,13 @@ jobs:
           rm -rf evidence-data/persistent/free_evidence
           mkdir -p evidence-data/persistent
           cp -a code/persistent/free_evidence evidence-data/persistent/free_evidence
+          mkdir -p evidence-data/persistent/run_manifests/live
+          cp code/artifacts/live_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/live_pipeline_validation.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.validation.json"
           cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add persistent/free_evidence
+          git add persistent/free_evidence persistent/run_manifests/live
           if git diff --cached --quiet; then
             echo "No new live snapshot"
           else
