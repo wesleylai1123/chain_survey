@@ -91,10 +91,13 @@ jobs:
           rm -rf evidence-data/persistent/abf_documents
           mkdir -p evidence-data/persistent
           cp -a code/persistent/abf_documents evidence-data/persistent/abf_documents
+          mkdir -p evidence-data/persistent/run_manifests/abf
+          cp code/artifacts/abf_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/abf_pipeline_validation.json "evidence-data/persistent/run_manifests/abf/$RESEARCH_PIPELINE_RUN_ID.validation.json"
           cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add persistent/abf_documents
+          git add persistent/abf_documents persistent/run_manifests/abf
           if git diff --cached --quiet; then
             echo "No new ABF raw documents"
           else
