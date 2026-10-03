@@ -280,6 +280,15 @@ def load_persisted_snapshot(
     return payload,path,digest,canonical,last_verified,str(current.get("source",""))
 
 
+def _display_path(path: Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def _decorate_retrieval(
     derived: pd.DataFrame,
     *,
@@ -296,7 +305,7 @@ def _decorate_retrieval(
         return derived
     out=derived.copy()
     out["raw_sha256"]=digest
-    out["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
+    out["raw_snapshot_path"]=_display_path(raw_path)
     out["pipeline_run_id"]=run_id
     out["retrieval_status"]=retrieval_status
     out["retrieval_attempted_at"]=retrieval_attempted_at.isoformat()
@@ -416,7 +425,7 @@ def collect_all(
                 "stale_age_hours":0.0,
                 "source_url":fetched.url,
                 "sha256":digest,"payload_bytes":len(fetched.payload),"changed":bool(changed),
-                "persistent_path":str(raw_path.relative_to(ROOT)) if raw_path else "",
+                "persistent_path":_display_path(raw_path),
             })
         except Exception as exc:
             attempted_at=pd.Timestamp.now(tz="UTC")
@@ -455,7 +464,7 @@ def collect_all(
                             "max_stale_hours":max_stale_hours,
                             "source_url":stored_url or str(source.get("url","")),
                             "sha256":digest,"payload_bytes":len(payload),"changed":False,
-                            "persistent_path":str(raw_path.relative_to(ROOT)),
+                            "persistent_path":_display_path(raw_path),
                             "error":str(exc),
                         })
                         continue
