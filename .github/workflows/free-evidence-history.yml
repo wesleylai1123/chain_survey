@@ -6,8 +6,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "0 4 * * *"
+  workflow_call:
 
 permissions:
   contents: write
@@ -15,6 +14,8 @@ permissions:
 jobs:
   backfill:
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,25 +65,13 @@ jobs:
           python scripts/build_free_evidence_history_panel.py
           python scripts/render_free_evidence_history_coverage.py
 
-      - name: Validate historical coverage
+      - name: Validate historical evidence pipeline
         run: |
-          python - <<'PY'
-          import pandas as pd
-          panel=pd.read_csv('data/history/free_industry_history_panel.csv')
-          coverage=pd.read_csv('data/history/free_industry_history_coverage.csv')
-          assert panel['source_id'].nunique() >= 3, panel['source_id'].unique()
-          mops=panel[panel['source_id']=='mops_abf_monthly_revenue']
-          assert mops['entity'].nunique() == 3, mops['entity'].unique()
-          assert mops['period'].nunique() >= 18, mops['period'].nunique()
-          tpca=panel[panel['source_id']=='tpca_public_industry']
-          assert tpca['period'].nunique() >= 6, tpca['period'].nunique()
-          tf=panel[panel['source_id']=='trendforce_public_dram']
-          assert len(tf) >= 1
-          published=pd.to_datetime(panel['published_at'], utc=True)
-          periods=pd.to_datetime(panel['period_date'], utc=True)
-          assert (published >= periods).all()
-          print('FREE_EVIDENCE_HISTORY_VALID',len(panel),coverage.shape[0],panel['period'].nunique())
-          PY
+          python scripts/validate_research_pipeline.py --pipeline history --output artifacts/history_pipeline_validation.json
+
+      - name: Build historical pipeline run manifest
+        run: |
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline free_evidence_history             --output data/history/mops_abf_monthly_revenue_history.csv             --output data/history/tpca_industry_history.csv             --output data/history/trendforce_public_price_history.csv             --output data/history/free_industry_history_panel.csv             --output data/history/free_industry_history_coverage.csv             --output artifacts/history_pipeline_validation.json             --validation-json artifacts/history_pipeline_validation.json             --output-manifest artifacts/history_pipeline_run_manifest.json
 
       - name: Upload free evidence history artifact
         uses: actions/upload-artifact@v4
@@ -95,6 +84,8 @@ jobs:
             data/history/free_industry_history_panel.csv
             data/history/free_industry_history_coverage.csv
             artifacts/free-industry-history-coverage.png
+            artifacts/history_pipeline_validation.json
+            artifacts/history_pipeline_run_manifest.json
             *history-test-results.txt
           if-no-files-found: error
 
