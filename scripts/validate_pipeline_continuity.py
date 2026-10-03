@@ -32,7 +32,7 @@ def validate_live(baseline: Path, current_root: Path) -> list[dict[str,Any]]:
     new_status_path=current_root/"artifacts"/"free_evidence_collection_status.json"
     new_evidence_path=current_root/"artifacts"/"free_evidence_latest.csv"
     if not old_status_path.exists() or not old_evidence_path.exists():
-        return [_check("live_continuity_baseline","bootstrap", "INFO", "no prior validated live baseline; bootstrap run")]
+        return [_check("live_continuity_baseline",True,"INFO","no prior validated live baseline; bootstrap run")]
 
     old_status=json.loads(old_status_path.read_text(encoding="utf-8"))
     new_status=json.loads(new_status_path.read_text(encoding="utf-8"))
