@@ -34,6 +34,7 @@ TPCA_PATTERNS = [
     ("pcb_material_revenue_yoy", "CCL", "financial_confirmation", re.compile(r"PCB原物料營收.*?YoY\s*([+-]?\d+(?:\.\d+)?)%", re.I)),
     ("rigid_pcb_export_yoy", "Networking", "physical_throughput", re.compile(r"硬板出口.*?YoY\s*([+-]?\d+(?:\.\d+)?)%", re.I)),
     ("ccl_import_yoy", "CCL", "physical_throughput", re.compile(r"CCL\s*進口.*?YoY\s*([+-]?\d+(?:\.\d+)?)%", re.I)),
+    ("ccl_export_yoy", "CCL", "physical_throughput", re.compile(r"CCL\s*出口.*?YoY\s*([+-]?\d+(?:\.\d+)?)%", re.I)),
 ]
 
 
