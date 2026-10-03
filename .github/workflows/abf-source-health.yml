@@ -6,8 +6,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "20 1 * * *"
+  workflow_call:
 
 permissions:
   contents: write
