@@ -47,12 +47,32 @@ def validate_abf() -> list[dict]:
     return checks
 
 
+
+def validate_history() -> list[dict]:
+    panel=pd.read_csv(ROOT/"data/history/free_industry_history_panel.csv")
+    coverage=pd.read_csv(ROOT/"data/history/free_industry_history_coverage.csv")
+    published=pd.to_datetime(panel["published_at"],utc=True,errors="coerce")
+    periods=pd.to_datetime(panel["period_date"],utc=True,errors="coerce")
+    mops=panel[panel["source_id"]=="mops_abf_monthly_revenue"]
+    tpca=panel[panel["source_id"]=="tpca_public_industry"]
+    tf=panel[panel["source_id"]=="trendforce_public_dram"]
+    return [
+        {"name":"history_multiple_sources","passed":panel["source_id"].nunique()>=3,"severity":"FAIL","detail":str(panel["source_id"].nunique())},
+        {"name":"history_abf_three_companies","passed":mops["entity"].nunique()==3,"severity":"FAIL","detail":str(mops["entity"].nunique())},
+        {"name":"history_abf_min_periods","passed":mops["period"].nunique()>=18,"severity":"FAIL","detail":str(mops["period"].nunique())},
+        {"name":"history_tpca_min_periods","passed":tpca["period"].nunique()>=6,"severity":"FAIL","detail":str(tpca["period"].nunique())},
+        {"name":"history_trendforce_nonempty","passed":len(tf)>=1,"severity":"DEGRADED","detail":str(len(tf))},
+        {"name":"history_no_future_leakage","passed":published.notna().all() and periods.notna().all() and (published>=periods).all(),"severity":"FAIL","detail":"published_at >= period_date"},
+        {"name":"history_coverage_nonempty","passed":len(coverage)>=1,"severity":"FAIL","detail":str(len(coverage))},
+    ]
+
+
 def main() -> None:
     p=argparse.ArgumentParser()
-    p.add_argument("--pipeline",choices=["live","abf"],required=True)
+    p.add_argument("--pipeline",choices=["live","abf","history"],required=True)
     p.add_argument("--output",type=Path,required=True)
     args=p.parse_args()
-    checks=validate_live_evidence() if args.pipeline=="live" else validate_abf()
+    checks=validate_live_evidence() if args.pipeline=="live" else (validate_abf() if args.pipeline=="abf" else validate_history())
     payload={
         "pipeline":args.pipeline,
         "validated_at":pd.Timestamp.now(tz="UTC").isoformat(),
