@@ -21,11 +21,17 @@ def sha256_file(path: Path) -> str:
 
 
 def file_record(path: Path) -> dict[str,Any]:
+    resolved=path if path.is_absolute() else ROOT/path
+    resolved=resolved.resolve()
+    try:
+        display=str(resolved.relative_to(ROOT.resolve()))
+    except ValueError:
+        display=str(resolved)
     return {
-        "path":str(path.relative_to(ROOT)),
-        "exists":path.exists(),
-        "bytes":path.stat().st_size if path.exists() else 0,
-        "sha256":sha256_file(path) if path.exists() else "",
+        "path":display,
+        "exists":resolved.exists(),
+        "bytes":resolved.stat().st_size if resolved.exists() else 0,
+        "sha256":sha256_file(resolved) if resolved.exists() else "",
     }
 
 
