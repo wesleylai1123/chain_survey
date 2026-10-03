@@ -25,9 +25,9 @@
       "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv"
     },
     "tpca_monthly_industry": {
-      "sha256": "90de815ed5cbd0ff5cdcaf89ad83612a81f2b8d651f9ca3f570987a82bb020c2",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261003T223126Z.html",
-      "collected_at": "2026-10-03T22:31:26.152452+00:00",
+      "sha256": "7a7c80300ec70700cffb0aa8f7a92670a9286573e1d6251eb06040787a12bf65",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261003T232306Z.html",
+      "collected_at": "2026-10-03T23:23:06.243817+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
