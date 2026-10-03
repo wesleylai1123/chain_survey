@@ -36,6 +36,8 @@ def validate_abf() -> list[dict]:
         {"name":"abf_candidate_review_gate","passed":c.empty or set(c["review_status"])=={"CANDIDATE"},"severity":"FAIL","detail":"no auto-promotion"},
         {"name":"abf_raw_trace","passed":c.empty or c["raw_sha256"].astype(str).str.len().eq(64).all(),"severity":"FAIL","detail":"candidate raw sha required"},
         {"name":"abf_run_trace","passed":c.empty or c["pipeline_run_id"].astype(str).str.len().gt(0).all(),"severity":"FAIL","detail":"pipeline run required"},
+        {"name":"abf_fetch_mode_explicit","passed":ok_docs.empty or ok_docs["fetch_mode"].isin(["FULL_GET","HTTP_304_CACHE"]).all(),"severity":"FAIL","detail":"successful docs require explicit fetch mode"},
+        {"name":"abf_cache_reuse_requires_unchanged_raw","passed":ok_docs.empty or ok_docs.loc[ok_docs["fetch_mode"].eq("HTTP_304_CACHE"),"raw_changed"].astype(str).str.lower().isin(["false","0"]).all(),"severity":"FAIL","detail":"304 cache reuse must not claim raw changed"},
     ]
     failed_docs=s[s["status"]!="OK"]
     checks.append({

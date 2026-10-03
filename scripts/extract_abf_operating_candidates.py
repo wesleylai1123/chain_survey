@@ -3,6 +3,7 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from urllib.parse import quote, urlsplit, urlunsplit
 import argparse
 import hashlib
@@ -10,6 +11,7 @@ import json
 import os
 import re
 import time
+from dataclasses import dataclass
 
 import pandas as pd
 from pypdf import PdfReader
@@ -51,7 +53,139 @@ PATTERNS=[
 
 def _safe_url(url: str) -> str:
     parts=urlsplit(url)
-    return urlunsplit((parts.scheme,parts.netloc,quote(parts.path),parts.query,parts.fragment))
+    return urlunsplit((parts.scheme,parts.netloc,quote(parts.path,safe="/%"),parts.query,parts.fragment))
+
+
+@dataclass
+class PdfFetchResult:
+    body: bytes
+    sha256: str
+    raw_path: str
+    fetch_mode: str
+    changed: bool
+    etag: str
+    last_modified: str
+
+
+def _raw_manifest_path(raw_root: Path) -> Path:
+    return raw_root/"manifest.json"
+
+
+def _load_raw_manifest(raw_root: Path) -> dict:
+    path=_raw_manifest_path(raw_root)
+    empty={"schema_version":"AbfDocumentCacheV1","documents":{}}
+    try:
+        payload=json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError,json.JSONDecodeError,UnicodeDecodeError):
+        return empty
+    if not isinstance(payload,dict) or not isinstance(payload.get("documents",{}),dict):
+        return empty
+    payload.setdefault("schema_version","AbfDocumentCacheV1")
+    payload.setdefault("documents",{})
+    return payload
+
+
+def _save_raw_manifest(raw_root: Path, manifest: dict) -> None:
+    raw_root.mkdir(parents=True,exist_ok=True)
+    path=_raw_manifest_path(raw_root)
+    temporary=path.with_suffix(".json.tmp")
+    try:
+        temporary.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return str(path.resolve())
+
+
+def fetch_pdf_conditional(
+    url: str,
+    *,
+    stock_id: str,
+    raw_root: Path,
+    timeout: int=25,
+    retries: int=3,
+    backoff_seconds: float=1.0,
+) -> PdfFetchResult:
+    raw_root.mkdir(parents=True,exist_ok=True)
+    manifest=_load_raw_manifest(raw_root)
+    cache_key=f"{stock_id}|{url}"
+    entry=manifest["documents"].get(cache_key,{})
+    cached_rel=str(entry.get("relative_path","")).strip().replace("\\","/")
+    cached_path=(raw_root/cached_rel) if cached_rel else None
+    cache_valid=False
+    if cached_path is not None and cached_path.is_file():
+        try:
+            cache_valid=hashlib.sha256(cached_path.read_bytes()).hexdigest()==entry.get("sha256")
+        except OSError:
+            pass
+
+    headers={
+        "User-Agent":"Mozilla/5.0 chain_survey/2.0 research collector",
+        "Accept":"application/pdf,*/*;q=0.8",
+        "Connection":"close",
+    }
+    if cache_valid and entry.get("etag"):
+        headers["If-None-Match"]=str(entry["etag"])
+    if cache_valid and entry.get("last_modified"):
+        headers["If-Modified-Since"]=str(entry["last_modified"])
+
+    last_error=None
+    for attempt in range(retries):
+        req=Request(_safe_url(url),headers=headers)
+        try:
+            with urlopen(req,timeout=timeout) as resp:
+                body=resp.read()
+                if not body:
+                    raise ValueError("empty PDF payload")
+                digest=hashlib.sha256(body).hexdigest()
+                out=raw_root/str(stock_id)/f"{digest}.pdf"
+                out.parent.mkdir(parents=True,exist_ok=True)
+                if not out.exists() or hashlib.sha256(out.read_bytes()).hexdigest()!=digest:
+                    out.write_bytes(body)
+                etag=str(resp.headers.get("ETag","") or "")
+                last_modified=str(resp.headers.get("Last-Modified","") or "")
+                changed=digest != str(entry.get("sha256",""))
+                manifest["documents"][cache_key]={
+                    "sha256":digest,
+                    "relative_path":out.relative_to(raw_root).as_posix(),
+                    "etag":etag,
+                    "last_modified":last_modified,
+                    "last_checked_at":pd.Timestamp.now(tz="UTC").isoformat(),
+                }
+                _save_raw_manifest(raw_root,manifest)
+                return PdfFetchResult(
+                    body=body,sha256=digest,raw_path=_display_path(out),
+                    fetch_mode="FULL_GET",changed=changed,etag=etag,last_modified=last_modified,
+                )
+        except HTTPError as exc:
+            exc.close()
+            if exc.code==304 and cache_valid and cached_path is not None:
+                body=cached_path.read_bytes()
+                digest=hashlib.sha256(body).hexdigest()
+                expected=str(entry.get("sha256",""))
+                if expected and digest!=expected:
+                    raise RuntimeError(f"cached PDF SHA mismatch for {url}: {digest} != {expected}")
+                entry["last_checked_at"]=pd.Timestamp.now(tz="UTC").isoformat()
+                manifest["documents"][cache_key]=entry
+                _save_raw_manifest(raw_root,manifest)
+                return PdfFetchResult(
+                    body=body,sha256=digest,raw_path=_display_path(cached_path),
+                    fetch_mode="HTTP_304_CACHE",changed=False,
+                    etag=str(entry.get("etag","") or ""),
+                    last_modified=str(entry.get("last_modified","") or ""),
+                )
+            last_error=exc
+        except Exception as exc:
+            last_error=exc
+        if attempt+1<retries:
+            time.sleep(backoff_seconds*(attempt+1))
+    raise RuntimeError(f"PDF fetch failed after {retries} attempts: {url}: {last_error}")
 
 
 def fetch_pdf(url: str, timeout: int=25, retries: int=3, backoff_seconds: float=1.0) -> bytes:
@@ -159,15 +293,26 @@ def extract_manifest(
     for _,row in docs.iterrows():
         url=str(row["document_url"])
         try:
-            body=fetch_pdf(url,timeout=timeout,retries=retries)
-            digest=hashlib.sha256(body).hexdigest()
-            raw_path=""
+            fetch_mode="FULL_GET"
+            raw_changed=True
+            etag=""
+            last_modified=""
             if raw_root is not None:
-                out=raw_root/str(row["stock_id"])/f"{digest}.pdf"
-                out.parent.mkdir(parents=True,exist_ok=True)
-                if not out.exists():
-                    out.write_bytes(body)
-                raw_path=str(out.relative_to(ROOT))
+                fetched=fetch_pdf_conditional(
+                    url,stock_id=str(row["stock_id"]),raw_root=raw_root,
+                    timeout=timeout,retries=retries,
+                )
+                body=fetched.body
+                digest=fetched.sha256
+                raw_path=fetched.raw_path
+                fetch_mode=fetched.fetch_mode
+                raw_changed=fetched.changed
+                etag=fetched.etag
+                last_modified=fetched.last_modified
+            else:
+                body=fetch_pdf(url,timeout=timeout,retries=retries)
+                digest=hashlib.sha256(body).hexdigest()
+                raw_path=""
             pages=pdf_pages(body)
             found=extract_candidates_from_pages(
                 str(row["stock_id"]),str(row["company"]),str(row["source_id"]),url,pages,digest,str(row.get("use_for",""))
@@ -180,13 +325,16 @@ def extract_manifest(
             status.append({
                 "source_id":row["source_id"],"stock_id":row["stock_id"],"document_url":url,
                 "status":"OK","pages":len(pages),"candidate_count":len(found),"sha256":digest,
-                "raw_snapshot_path":raw_path,"pipeline_run_id":pipeline_run_id,"error":"",
+                "raw_snapshot_path":raw_path,"pipeline_run_id":pipeline_run_id,
+                "fetch_mode":fetch_mode,"raw_changed":raw_changed,
+                "etag":etag,"last_modified":last_modified,"error":"",
             })
         except Exception as exc:
             status.append({
                 "source_id":row.get("source_id",""),"stock_id":row.get("stock_id",""),"document_url":url,
                 "status":"ERROR","pages":0,"candidate_count":0,"sha256":"","raw_snapshot_path":"",
-                "pipeline_run_id":pipeline_run_id,"error":str(exc),
+                "pipeline_run_id":pipeline_run_id,"fetch_mode":"ERROR","raw_changed":False,
+                "etag":"","last_modified":"","error":str(exc),
             })
             if not best_effort:
                 raise
