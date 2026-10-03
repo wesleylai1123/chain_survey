@@ -1,6 +1,8 @@
 name: Research Data Pipeline
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "10 1 * * *"
@@ -14,10 +16,12 @@ jobs:
     secrets: inherit
 
   abf:
+    needs: live
     uses: ./.github/workflows/abf-source-health.yml
     secrets: inherit
 
   history:
+    needs: abf
     uses: ./.github/workflows/free-evidence-history.yml
     secrets: inherit
 
