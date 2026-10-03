@@ -3,8 +3,6 @@ name: Live Free Evidence Connectors
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
   workflow_call:
 
@@ -12,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: evidence-data-writer
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.workflow, github.run_id) || 'evidence-data-writer' }}
   cancel-in-progress: false
 
 jobs:
