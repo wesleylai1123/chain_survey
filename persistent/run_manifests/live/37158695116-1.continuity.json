@@ -1,0 +1,14 @@
+{
+  "schema_version": "PipelineContinuityV1",
+  "pipeline": "live",
+  "validated_at": "2026-10-03T22:31:26.843262+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "live_continuity_baseline",
+      "passed": true,
+      "severity": "INFO",
+      "detail": "no prior validated live baseline; bootstrap run"
+    }
+  ]
+}

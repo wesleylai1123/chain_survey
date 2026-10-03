@@ -1,0 +1,99 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "37158695116-1",
+  "pipeline": "live_free_evidence",
+  "status": "PASS",
+  "code_revision": "f41df3922e4ea31d3837e40cc169f4a46163ec9a",
+  "run_attempt": "1",
+  "generated_at": "2026-10-03T22:31:27.178615+00:00",
+  "inputs": [
+    {
+      "path": "data/free_evidence_sources.json",
+      "exists": true,
+      "bytes": 1539,
+      "sha256": "1c4c95aafd2b2d189cd19756dc74f7cd3e14109c52c65d2d8974004c2e8899e8"
+    },
+    {
+      "path": "data/company_product_relationships.csv",
+      "exists": true,
+      "bytes": 463,
+      "sha256": "6b950e19057a7a594ac6d77b982279c83f3c648239d602d857ebae11f9945803"
+    },
+    {
+      "path": "data/company_master.csv",
+      "exists": true,
+      "bytes": 1688,
+      "sha256": "78c75e12f6f3211d4866da068e98470bdd32cbcd0cac4f793a8bec95bf23a39d"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/free_evidence_latest.csv",
+      "exists": true,
+      "bytes": 9218,
+      "sha256": "855285afacefb94260bfbc9df302655f08fea6f8b6310dbc70583eb2b257d523"
+    },
+    {
+      "path": "artifacts/free_evidence_collection_status.json",
+      "exists": true,
+      "bytes": 3716,
+      "sha256": "ad22286c8db27810b514cffe4002b76b94d730c118de9b3a44de37046d78ca61"
+    },
+    {
+      "path": "artifacts/live_pipeline_validation.json",
+      "exists": true,
+      "bytes": 898,
+      "sha256": "462a88fee89886ee8576a27a1a45ec570bee9927bfb64ced82fda0819a4d205b"
+    },
+    {
+      "path": "artifacts/live_pipeline_continuity.json",
+      "exists": true,
+      "bytes": 330,
+      "sha256": "4a5820b91a0cd4192eae97348ec9912bda8d2669e3c752337952d5059328d692"
+    }
+  ],
+  "checks": [
+    {
+      "name": "live_sources_minimum",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "5/5"
+    },
+    {
+      "name": "live_evidence_nonempty",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "10"
+    },
+    {
+      "name": "live_pit_policy",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "collection_time_conservative"
+    },
+    {
+      "name": "live_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha256 required"
+    },
+    {
+      "name": "live_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline_run_id required"
+    },
+    {
+      "name": "live_reliability_prior",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "prior only"
+    },
+    {
+      "name": "live_continuity_baseline",
+      "passed": true,
+      "severity": "INFO",
+      "detail": "no prior validated live baseline; bootstrap run"
+    }
+  ]
+}
