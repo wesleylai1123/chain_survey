@@ -34,8 +34,9 @@ class FreeEvidenceDashboard(tk.Tk):
         ttk.Label(
             root,
             text=(
-                "Latest public snapshots from TWSE/TPEx, MOEA and TPCA. If exact publication time is unavailable, "
-                "collection time is the earliest allowed knowledge time. Reliability values are source-class priors, "
+                "Latest public snapshots from TWSE/TPEx, MOEA and TPCA. Fresh retrieval is always attempted first. "
+                "A bounded STALE_FALLBACK may be used only when explicitly configured; it preserves the original PIT and shows stale age. "
+                "Reliability values are source-class priors, "
                 "not empirical probabilities; configured product exposure is not observed product mix."
             ),
             wraplength=1600,
@@ -43,7 +44,8 @@ class FreeEvidenceDashboard(tk.Tk):
 
         cards=ttk.Frame(root); cards.pack(fill="x",pady=(0,10))
         values=[
-            ("Sources OK",f"{self.status.get('sources_ok',0)} / {self.status.get('sources_total',0)}"),
+            ("Fresh Sources",f"{self.status.get('sources_ok',0)} / {self.status.get('sources_total',0)}"),
+            ("Stale Fallback",str(self.status.get("sources_stale",0))),
             ("Errors",str(self.status.get("sources_error",0))),
             ("Evidence rows",str(self.status.get("evidence_rows",len(self.evidence)))),
             ("Collected at",str(self.status.get("collected_at","-"))[:19]),
@@ -57,9 +59,9 @@ class FreeEvidenceDashboard(tk.Tk):
         source_tab=ttk.Frame(notebook,padding=8); evidence_tab=ttk.Frame(notebook,padding=8)
         notebook.add(source_tab,text="Connector health"); notebook.add(evidence_tab,text="Latest evidence")
 
-        scols=("source_id","provider","status","rows","error")
+        scols=("source_id","provider","status","rows","retrieval_status","stale_age_hours","last_verified_at","error")
         st=ttk.Treeview(source_tab,columns=scols,show="headings",height=12)
-        sw={"source_id":280,"provider":100,"status":90,"rows":70,"error":760}
+        sw={"source_id":250,"provider":90,"status":110,"rows":65,"retrieval_status":145,"stale_age_hours":110,"last_verified_at":180,"error":560}
         for col in scols:
             st.heading(col,text=col.replace("_"," ").title()); st.column(col,width=sw[col],anchor="w")
         st.pack(fill="x")
@@ -67,12 +69,14 @@ class FreeEvidenceDashboard(tk.Tk):
             st.insert("","end",values=tuple(row.get(c,"") for c in scols))
 
         ecols=(
-            "available","source_id","chain","dimension","indicator","yoy","signal",
+            "available","source_id","retrieval_status","stale_age_hours","last_verified_at",
+            "chain","dimension","indicator","yoy","signal",
             "reliability","reliability_basis","exposure","exposure_basis","availability_policy","provenance","source"
         )
         tree=ttk.Treeview(evidence_tab,columns=ecols,show="headings",height=25)
         widths={
-            "available":115,"source_id":210,"chain":100,"dimension":160,"indicator":280,"yoy":75,"signal":70,
+            "available":115,"source_id":190,"retrieval_status":145,"stale_age_hours":105,"last_verified_at":175,
+            "chain":100,"dimension":160,"indicator":280,"yoy":75,"signal":70,
             "reliability":80,"reliability_basis":170,"exposure":80,"exposure_basis":190,
             "availability_policy":210,"provenance":190,"source":360
         }
@@ -89,8 +93,9 @@ class FreeEvidenceDashboard(tk.Tk):
                 def fmt(v,digits=2):
                     return "-" if pd.isna(v) else f"{float(v):+.{digits}f}"
                 tree.insert("","end",values=(
-                    str(row.get("published_at",""))[:19],row.get("source_id",""),row.get("chain",""),
-                    row.get("dimension",""),row.get("indicator",""),fmt(row.get("yoy_pct"),1),fmt(row.get("signal")),
+                    str(row.get("published_at",""))[:19],row.get("source_id",""),
+                    row.get("retrieval_status",""),fmt(row.get("stale_age_hours"),1),str(row.get("last_verified_at",""))[:19],
+                    row.get("chain",""),row.get("dimension",""),row.get("indicator",""),fmt(row.get("yoy_pct"),1),fmt(row.get("signal")),
                     fmt(row.get("reliability"),2),row.get("reliability_basis",""),fmt(row.get("exposure_weight"),2),
                     row.get("exposure_basis",""),row.get("availability_policy",""),row.get("provenance",""),row.get("source",""),
                 ))
