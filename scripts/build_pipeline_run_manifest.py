@@ -66,12 +66,12 @@ def main() -> None:
     p.add_argument("--input",action="append",default=[])
     p.add_argument("--output",action="append",default=[])
     p.add_argument("--check-json",action="append",default=[])
-    p.add_argument("--validation-json",type=Path)
+    p.add_argument("--validation-json",type=Path,action="append",default=[])
     args=p.parse_args()
 
     checks=[json.loads(x) for x in args.check_json]
-    if args.validation_json:
-        validation=json.loads(args.validation_json.read_text(encoding="utf-8"))
+    for validation_path in args.validation_json:
+        validation=json.loads(validation_path.read_text(encoding="utf-8"))
         checks.extend(validation.get("checks",[]))
     manifest=build_manifest(
         args.run_id,args.pipeline,

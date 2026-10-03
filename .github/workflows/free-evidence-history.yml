@@ -32,12 +32,15 @@ jobs:
           path: evidence-data
           fetch-depth: 1
 
-      - name: Restore persisted history
+      - name: Restore persisted history and continuity baseline
         shell: bash
         run: |
-          mkdir -p code/data/history code/artifacts
+          mkdir -p code/data/history code/artifacts code/baseline/history
           if [ -d evidence-data/data/history ]; then
             cp -a evidence-data/data/history/. code/data/history/
+          fi
+          if [ -d evidence-data/persistent/baselines/history ]; then
+            cp -a evidence-data/persistent/baselines/history/. code/baseline/history/
           fi
 
       - uses: actions/setup-python@v5
@@ -88,6 +91,11 @@ jobs:
         run: |
           python scripts/validate_research_pipeline.py --pipeline history --output artifacts/history_pipeline_validation.json
 
+      - name: Validate history continuity against last-known-good baseline
+        working-directory: code
+        run: |
+          python scripts/validate_pipeline_continuity.py             --pipeline history             --baseline-dir baseline/history             --output artifacts/history_pipeline_continuity.json
+
       - name: Build historical pipeline run manifest
         working-directory: code
         run: |
@@ -115,6 +123,7 @@ jobs:
             code/data/history/free_industry_history_coverage.csv
             code/artifacts/free-industry-history-coverage.png
             code/artifacts/history_pipeline_validation.json
+            code/artifacts/history_pipeline_continuity.json
             code/artifacts/history_pipeline_run_manifest.json
             code/*history-test-results.txt
           if-no-files-found: error
@@ -124,14 +133,16 @@ jobs:
         shell: bash
         run: |
           rm -rf evidence-data/data/history
-          mkdir -p evidence-data/data/history evidence-data/persistent/run_manifests/history
+          mkdir -p evidence-data/data/history evidence-data/persistent/run_manifests/history evidence-data/persistent/baselines/history
           cp -a code/data/history/. evidence-data/data/history/
           cp code/artifacts/history_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.json"
           cp code/artifacts/history_pipeline_validation.json "evidence-data/persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cp code/artifacts/history_pipeline_continuity.json "evidence-data/persistent/run_manifests/history/$RESEARCH_PIPELINE_RUN_ID.continuity.json"
+          cp code/data/history/free_industry_history_panel.csv evidence-data/persistent/baselines/history/free_industry_history_panel.csv
           cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/history persistent/run_manifests/history
+          git add data/history persistent/run_manifests/history persistent/baselines/history
           if git diff --cached --quiet; then
             echo "No history changes to persist"
           else

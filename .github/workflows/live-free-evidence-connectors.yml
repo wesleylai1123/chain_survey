@@ -31,12 +31,15 @@ jobs:
           path: evidence-data
           fetch-depth: 1
 
-      - name: Restore persisted live snapshots
+      - name: Restore persisted live snapshots and continuity baseline
         shell: bash
         run: |
-          mkdir -p code/persistent/free_evidence
+          mkdir -p code/persistent/free_evidence code/baseline/live
           if [ -d evidence-data/persistent/free_evidence ]; then
             cp -a evidence-data/persistent/free_evidence/. code/persistent/free_evidence/
+          fi
+          if [ -d evidence-data/persistent/baselines/live ]; then
+            cp -a evidence-data/persistent/baselines/live/. code/baseline/live/
           fi
 
       - uses: actions/setup-python@v5
@@ -69,10 +72,15 @@ jobs:
         run: |
           python scripts/validate_research_pipeline.py --pipeline live --output artifacts/live_pipeline_validation.json
 
+      - name: Validate live continuity against last-known-good baseline
+        working-directory: code
+        run: |
+          python scripts/validate_pipeline_continuity.py             --pipeline live             --baseline-dir baseline/live             --output artifacts/live_pipeline_continuity.json
+
       - name: Build live pipeline run manifest
         working-directory: code
         run: |
-          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline live_free_evidence             --input data/free_evidence_sources.json             --input data/company_product_relationships.csv             --input data/company_master.csv             --output artifacts/free_evidence_latest.csv             --output artifacts/free_evidence_collection_status.json             --output artifacts/live_pipeline_validation.json             --validation-json artifacts/live_pipeline_validation.json             --output-manifest artifacts/live_pipeline_run_manifest.json
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline live_free_evidence             --input data/free_evidence_sources.json             --input data/company_product_relationships.csv             --input data/company_master.csv             --output artifacts/free_evidence_latest.csv             --output artifacts/free_evidence_collection_status.json             --output artifacts/live_pipeline_validation.json             --output artifacts/live_pipeline_continuity.json             --validation-json artifacts/live_pipeline_validation.json             --validation-json artifacts/live_pipeline_continuity.json             --output-manifest artifacts/live_pipeline_run_manifest.json
 
       - name: Install virtual display tools
         run: |
@@ -97,6 +105,7 @@ jobs:
             code/artifacts/free_evidence_latest.csv
             code/artifacts/free_evidence_collection_status.json
             code/artifacts/live_pipeline_validation.json
+            code/artifacts/live_pipeline_continuity.json
             code/artifacts/live_pipeline_run_manifest.json
             code/live-free-evidence-tests.txt
             code/live-free-evidence-registry-tests.txt
@@ -111,13 +120,16 @@ jobs:
           rm -rf evidence-data/persistent/free_evidence
           mkdir -p evidence-data/persistent
           cp -a code/persistent/free_evidence evidence-data/persistent/free_evidence
-          mkdir -p evidence-data/persistent/run_manifests/live
+          mkdir -p evidence-data/persistent/run_manifests/live evidence-data/persistent/baselines/live
           cp code/artifacts/live_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.json"
           cp code/artifacts/live_pipeline_validation.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cp code/artifacts/live_pipeline_continuity.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.continuity.json"
+          cp code/artifacts/free_evidence_latest.csv evidence-data/persistent/baselines/live/free_evidence_latest.csv
+          cp code/artifacts/free_evidence_collection_status.json evidence-data/persistent/baselines/live/free_evidence_collection_status.json
           cd evidence-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add persistent/free_evidence persistent/run_manifests/live
+          git add persistent/free_evidence persistent/run_manifests/live persistent/baselines/live
           if git diff --cached --quiet; then
             echo "No new live snapshot"
           else
