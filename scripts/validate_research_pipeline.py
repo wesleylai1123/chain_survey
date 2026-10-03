@@ -67,12 +67,24 @@ def validate_history() -> list[dict]:
     ]
 
 
+def _normalize_checks(checks: list[dict]) -> list[dict]:
+    normalized=[]
+    for check in checks:
+        item=dict(check)
+        item["passed"]=bool(item.get("passed",False))
+        item["severity"]=str(item.get("severity","FAIL"))
+        item["name"]=str(item.get("name",""))
+        item["detail"]=str(item.get("detail",""))
+        normalized.append(item)
+    return normalized
+
+
 def main() -> None:
     p=argparse.ArgumentParser()
     p.add_argument("--pipeline",choices=["live","abf","history"],required=True)
     p.add_argument("--output",type=Path,required=True)
     args=p.parse_args()
-    checks=validate_live_evidence() if args.pipeline=="live" else (validate_abf() if args.pipeline=="abf" else validate_history())
+    checks=_normalize_checks(validate_live_evidence() if args.pipeline=="live" else (validate_abf() if args.pipeline=="abf" else validate_history()))
     payload={
         "pipeline":args.pipeline,
         "validated_at":pd.Timestamp.now(tz="UTC").isoformat(),
