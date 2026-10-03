@@ -106,7 +106,8 @@ def fetch_pdf_conditional(
 ) -> PdfFetchResult:
     raw_root.mkdir(parents=True,exist_ok=True)
     manifest=_load_raw_manifest(raw_root)
-    entry=manifest["documents"].get(url,{})
+    cache_key=f"{stock_id}|{url}"
+    entry=manifest["documents"].get(cache_key,{})
     cached_rel=str(entry.get("relative_path","")).strip()
     cached_path=(raw_root/cached_rel) if cached_rel else None
     cache_valid=bool(cached_path and cached_path.exists())
@@ -137,7 +138,7 @@ def fetch_pdf_conditional(
                 etag=str(resp.headers.get("ETag","") or "")
                 last_modified=str(resp.headers.get("Last-Modified","") or "")
                 changed=digest != str(entry.get("sha256",""))
-                manifest["documents"][url]={
+                manifest["documents"][cache_key]={
                     "sha256":digest,
                     "relative_path":str(out.relative_to(raw_root)),
                     "etag":etag,
@@ -157,7 +158,7 @@ def fetch_pdf_conditional(
                 if expected and digest!=expected:
                     raise RuntimeError(f"cached PDF SHA mismatch for {url}: {digest} != {expected}")
                 entry["last_checked_at"]=pd.Timestamp.now(tz="UTC").isoformat()
-                manifest["documents"][url]=entry
+                manifest["documents"][cache_key]=entry
                 _save_raw_manifest(raw_root,manifest)
                 return PdfFetchResult(
                     body=body,sha256=digest,raw_path=_display_path(cached_path),
