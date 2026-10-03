@@ -1,0 +1,34 @@
+{
+  "sources": {
+    "twse_monthly_revenue": {
+      "sha256": "83480ff80b337e936821b45e2cef1c2a48ba92f112fb3e31027501810e8bccf5",
+      "latest_snapshot": "raw/twse_monthly_revenue/20261003T152539Z.json",
+      "collected_at": "2026-10-03T15:25:39.960961+00:00",
+      "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L"
+    },
+    "tpex_monthly_revenue": {
+      "sha256": "f00e3fdd7060db0db943b79dc53d732df940d038ef208a1b075363e06660bd92",
+      "latest_snapshot": "raw/tpex_monthly_revenue/20261003T152543Z.json",
+      "collected_at": "2026-10-03T15:25:43.539982+00:00",
+      "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
+    },
+    "moea_export_orders_info_comm": {
+      "sha256": "e689dc9ac9d8ce5adec7c8d69280bc4333681bac14e606133dbf2f72a8d5b10a",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261003T152544Z.csv",
+      "collected_at": "2026-10-03T15:25:44.514767+00:00",
+      "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E8%B3%87%E8%A8%8A%E9%80%9A%E8%A8%8A%E7%94%A2%E5%93%81.csv"
+    },
+    "moea_export_orders_electronics": {
+      "sha256": "bf9dd408799dc677a37e512d22cec1100d43ae1c028d89af308c26da221af60d",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261003T152544Z.csv",
+      "collected_at": "2026-10-03T15:25:44.911933+00:00",
+      "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv"
+    },
+    "tpca_monthly_industry": {
+      "sha256": "f3548adc7c8875840c5a563e8cbcf7f8f2f494d25e345edfb2dd423fa078f763",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261003T152549Z.html",
+      "collected_at": "2026-10-03T15:25:49.332061+00:00",
+      "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
+    }
+  }
+}
