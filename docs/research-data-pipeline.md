@@ -148,3 +148,25 @@ Successful production summaries are also persisted to:
 `persistent/run_manifests/summary/<run_id>.{json,csv}`
 
 A production research-data run is considered complete only when all three child workflows succeed and the unified health report is not `FAIL`.
+
+
+## Live source resilience
+
+Live connectors always attempt a fresh download first. A source may use a last-known-good raw snapshot only when its source registry explicitly sets:
+
+- `allow_stale_fallback: true`
+- `max_stale_hours: <bounded value>`
+
+Current policy enables this only for the TPEx monthly-revenue endpoint, with a 72-hour maximum.
+
+A stale fallback never receives a new point-in-time timestamp. The processed row keeps the raw snapshot's original `canonical_available_at` and SHA-256. The run separately records:
+
+- `retrieval_status = STALE_FALLBACK`
+- `retrieval_attempted_at`
+- `last_verified_at`
+- `stale_age_hours`
+- the fresh-fetch error
+
+If the last-known-good snapshot is older than the configured limit, it is rejected and the source remains an error.
+
+Continuity treats a bounded stale fallback as still available, but marks the run `DEGRADED`. It is therefore impossible for stale fallback data to masquerade as a fresh source.
