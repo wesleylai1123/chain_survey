@@ -52,6 +52,19 @@ class ResearchDataPipelineContractTests(unittest.TestCase):
             self.assertIn("pipeline_run_manifest.json",text)
             self.assertIn("pipeline_validation.json",text)
 
+    def test_cross_run_continuity_is_required(self):
+        for name,pipeline in (
+            ("live-free-evidence-connectors.yml","live"),
+            ("abf-source-health.yml","abf"),
+            ("free-evidence-history.yml","history"),
+        ):
+            text=self.read(name)
+            self.assertIn("persistent/baselines/",text)
+            self.assertIn("validate_pipeline_continuity.py",text)
+            self.assertIn(f"--pipeline {pipeline}",text)
+            self.assertIn("pipeline_continuity.json",text)
+            self.assertIn(".continuity.json",text)
+
 
 if __name__=="__main__":
     unittest.main()
