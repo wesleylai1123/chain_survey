@@ -1,0 +1,41 @@
+name: Research Data Pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 1 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  live:
+    uses: ./.github/workflows/live-free-evidence-connectors.yml
+    secrets: inherit
+
+  abf:
+    uses: ./.github/workflows/abf-source-health.yml
+    secrets: inherit
+
+  history:
+    uses: ./.github/workflows/free-evidence-history.yml
+    secrets: inherit
+
+  summary:
+    if: always()
+    needs: [live, abf, history]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all research data pipelines completed successfully
+        env:
+          LIVE_RESULT: ${{ needs.live.result }}
+          ABF_RESULT: ${{ needs.abf.result }}
+          HISTORY_RESULT: ${{ needs.history.result }}
+        run: |
+          echo "live=$LIVE_RESULT"
+          echo "abf=$ABF_RESULT"
+          echo "history=$HISTORY_RESULT"
+          test "$LIVE_RESULT" = "success"
+          test "$ABF_RESULT" = "success"
+          test "$HISTORY_RESULT" = "success"
+          echo "RESEARCH_DATA_PIPELINE_OK"
