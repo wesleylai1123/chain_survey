@@ -6,6 +6,8 @@ import json
 import re
 import urllib.parse
 import urllib.request
+import http.client
+import time
 from dataclasses import dataclass
 from html import unescape
 from pathlib import Path
@@ -46,14 +48,30 @@ def utc_now() -> pd.Timestamp:
     return pd.Timestamp.now(tz="UTC")
 
 
-def fetch_bytes(url: str, timeout: int = 30) -> FetchResult:
+def fetch_bytes(url: str, timeout: int = 30, retries: int = 3, backoff_seconds: float = 1.0) -> FetchResult:
     safe_url = urllib.parse.quote(url, safe=":/?&=%#")
-    req = urllib.request.Request(
-        safe_url,
-        headers={"User-Agent": "chain-survey/2.0 (+public-research; forward point-in-time evidence)"},
-    )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return FetchResult(resp.geturl(), utc_now(), resp.read())
+    last_error: Exception | None = None
+    for attempt in range(retries):
+        req = urllib.request.Request(
+            safe_url,
+            headers={
+                "User-Agent": "chain-survey/2.0 (+public-research; forward point-in-time evidence)",
+                "Accept": "application/json,text/csv,text/html,*/*",
+                "Connection": "close",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                payload = resp.read()
+                if not payload:
+                    raise ValueError("empty response payload")
+                return FetchResult(resp.geturl(), utc_now(), payload)
+        except (http.client.IncompleteRead, urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+            last_error = exc
+            if attempt + 1 >= retries:
+                break
+            time.sleep(backoff_seconds * (attempt + 1))
+    raise RuntimeError(f"fetch failed after {retries} attempts: {url}: {last_error}")
 
 
 def _first(row: dict[str, Any], aliases: Iterable[str]) -> Any:
