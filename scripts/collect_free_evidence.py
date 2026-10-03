@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -223,12 +224,15 @@ def persist_if_changed(
     collected_at: pd.Timestamp,
     extension: str,
     source_url: str,
-) -> tuple[Path | None, str]:
+) -> tuple[Path | None, str, bool]:
     manifest_path = persistent_root / "manifest.json"
     manifest = _manifest(manifest_path)
     digest = hashlib.sha256(payload).hexdigest()
-    if manifest["sources"].get(source_id, {}).get("sha256") == digest:
-        return None, digest
+    current=manifest["sources"].get(source_id,{})
+    if current.get("sha256") == digest:
+        latest=current.get("latest_snapshot")
+        existing=(persistent_root/latest) if latest else None
+        return existing, digest, False
     stamp = collected_at.tz_convert("UTC").strftime("%Y%m%dT%H%M%SZ")
     out = persistent_root / "raw" / source_id / f"{stamp}.{extension}"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -241,7 +245,7 @@ def persist_if_changed(
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return out, digest
+    return out, digest, True
 
 
 def collect_all(
@@ -251,6 +255,7 @@ def collect_all(
     artifacts_dir: Path = DEFAULT_ARTIFACTS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     cfg = load_source_config(config_path or ROOT / "data" / "free_evidence_sources.json")
+    run_id=os.environ.get("RESEARCH_PIPELINE_RUN_ID") or os.environ.get("GITHUB_RUN_ID") or pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%SZ")
     relationships = pd.read_csv(DEFAULT_RELATIONS)
     companies = pd.read_csv(DEFAULT_COMPANIES)
     evidence_frames: list[pd.DataFrame] = []
@@ -263,7 +268,7 @@ def collect_all(
         try:
             if kind == "monthly_revenue_json":
                 fetched = fetch_bytes(source["url"])
-                persist_if_changed(
+                raw_path,digest,changed=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="json", source_url=fetched.url,
                 )
@@ -271,13 +276,18 @@ def collect_all(
                     fetched.payload, source_id=sid, market=source["market"],
                     collected_at=fetched.collected_at, source_url=fetched.url,
                 )
-                evidence_frames.append(revenue_snapshot_to_evidence(parsed, relationships, companies))
+                derived=revenue_snapshot_to_evidence(parsed, relationships, companies)
+                if not derived.empty:
+                    derived["raw_sha256"]=digest
+                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
+                    derived["pipeline_run_id"]=run_id
+                evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "data_gov_dataset_csv":
                 metadata_fetch = fetch_bytes(DATA_GOV_METADATA.format(dataset_id=source["dataset_id"]))
                 resource_url = extract_data_gov_resource_url(json.loads(metadata_fetch.payload.decode("utf-8")))
                 fetched = fetch_bytes(resource_url)
-                persist_if_changed(
+                raw_path,digest,changed=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="csv", source_url=fetched.url,
                 )
@@ -285,22 +295,40 @@ def collect_all(
                     fetched.payload, source_id=sid, chain=source["chain"], dimension=source["dimension"],
                     collected_at=fetched.collected_at, source_url=fetched.url,
                 )
-                evidence_frames.append(moea_snapshot_to_evidence(parsed))
+                derived=moea_snapshot_to_evidence(parsed)
+                if not derived.empty:
+                    derived["raw_sha256"]=digest
+                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
+                    derived["pipeline_run_id"]=run_id
+                evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "tpca_public_listing":
                 fetched = fetch_bytes(source["url"])
-                persist_if_changed(
+                raw_path,digest,changed=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
                     collected_at=fetched.collected_at, extension="html", source_url=fetched.url,
                 )
                 parsed = parse_tpca_listing(fetched.payload, collected_at=fetched.collected_at, source_url=fetched.url)
-                evidence_frames.append(tpca_snapshot_to_evidence(parsed))
+                derived=tpca_snapshot_to_evidence(parsed)
+                if not derived.empty:
+                    derived["raw_sha256"]=digest
+                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
+                    derived["pipeline_run_id"]=run_id
+                evidence_frames.append(derived)
                 rows = len(parsed)
             else:
                 raise ValueError(f"Unsupported connector kind: {kind}")
-            status.append({"source_id": sid, "provider": source.get("provider",""), "status": "ok", "rows": rows})
+            status.append({
+                "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"ok","rows":rows,
+                "collected_at":fetched.collected_at.isoformat(),"source_url":fetched.url,
+                "sha256":digest,"payload_bytes":len(fetched.payload),"changed":bool(changed),
+                "persistent_path":str(raw_path.relative_to(ROOT)) if raw_path else "",
+            })
         except Exception as exc:
-            status.append({"source_id": sid, "provider": source.get("provider",""), "status": "error", "rows": 0, "error": str(exc)})
+            status.append({
+                "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"error","rows":0,
+                "error":str(exc),"collected_at":pd.Timestamp.now(tz="UTC").isoformat(),
+            })
 
     frames = [f for f in evidence_frames if not f.empty]
     evidence = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
@@ -310,6 +338,7 @@ def collect_all(
     evidence.to_csv(artifacts_dir / "free_evidence_latest.csv", index=False)
 
     summary = {
+        "pipeline_run_id":run_id,
         "collected_at": pd.Timestamp.now(tz="UTC").isoformat(),
         "policy": cfg.get("policy",""),
         "sources_total": len(status),
