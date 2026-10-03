@@ -103,15 +103,27 @@ def evaluate_industry_model(
         row["empirical_best_lag_months"] = relations[0]["expected_lag_months"] if len(relations) == 1 else pd.NA
         row["empirical_spearman"] = relations[0]["validation"]["spearman"] if len(relations) == 1 else pd.NA
         row["empirical_fdr_q"] = relations[0]["validation"]["fdr_q"] if len(relations) == 1 else pd.NA
+        row["weight_basis"] = "CONFIGURED_ASSUMPTION"
+        row["use_in_score"] = bool(driver.get("use_in_score", True))
+        if relations:
+            row["model_assessment"] = "EMPIRICALLY_LINKED"
+            row["assessment_note"] = "Driver has a registered validated relation; configured weight is still not a calibrated financial sensitivity."
+        elif model_id=="ic_substrate_abf_bt" and str(driver["driver_id"])=="cost_risk":
+            row["model_assessment"] = "NEEDS_REFINEMENT"
+            row["assessment_note"] = "Current bucket can mix substrate tightness with raw-material cost pressure; keep structural only until sources are separated."
+        else:
+            row["model_assessment"] = "STRUCTURAL_HYPOTHESIS"
+            row["assessment_note"] = "Economic mechanism is configured, but no validated empirical relation is registered for this driver."
         driver_rows.append(row)
     drivers = pd.DataFrame(driver_rows)
 
-    usable = drivers[drivers["evidence_groups"] > 0].copy()
+    usable = drivers[(drivers["evidence_groups"] > 0) & drivers["use_in_score"]].copy()
     if usable.empty:
         overall_signal = 0.0
         coverage = 0.0
     else:
-        total_configured_weight = float(drivers["weight"].sum())
+        score_drivers=drivers[drivers["use_in_score"]].copy()
+        total_configured_weight = float(score_drivers["weight"].sum())
         used_weight = float(usable["weight"].sum())
         overall_signal = float((usable["signal"] * usable["weight"]).sum() / used_weight) if used_weight else 0.0
         coverage = used_weight / total_configured_weight if total_configured_weight else 0.0
@@ -226,6 +238,10 @@ def map_models_to_companies(
                     "model_name": model_row["model_name"],
                     "industry_score": float(model_row["score"]),
                     "exposure_weight": exposure,
+                    "exposure_basis": str(match.get("exposure_basis","CONFIGURED_ASSUMPTION")),
+                    "exposure_source": str(match.get("source","")),
+                    "exposure_effective_period": str(match.get("effective_period","")),
+                    "exposure_confidence": pd.to_numeric(match.get("confidence"),errors="coerce"),
                     "exposure_adjusted_signal": round((float(model_row["score"]) - 50.0) * exposure, 2),
                     "state": model_row["state"],
                     "confidence": float(model_row["confidence"]),
@@ -234,6 +250,7 @@ def map_models_to_companies(
     if not rows:
         return pd.DataFrame(columns=[
             "company", "product", "model_id", "model_name", "industry_score",
-            "exposure_weight", "exposure_adjusted_signal", "state", "confidence"
+            "exposure_weight", "exposure_basis", "exposure_source", "exposure_effective_period",
+            "exposure_confidence", "exposure_adjusted_signal", "state", "confidence"
         ])
     return pd.DataFrame(rows).sort_values("exposure_adjusted_signal", ascending=False).reset_index(drop=True)

@@ -28,6 +28,7 @@ DATASETS = {
     "prices": "TaiwanStockPrice",
     "valuation": "TaiwanStockPER",
 }
+ADJUSTED_PRICE_DATASET="TaiwanStockPriceAdj"
 
 
 def fetch_finmind(dataset: str, stock_id: str, start_date: str, end_date: str, token: str | None = None) -> pd.DataFrame:
@@ -51,13 +52,18 @@ def normalize_price(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
     result = frame.copy()
-    for candidate in ("close", "close_price"):
+    aliases=("adj_close","adjusted_close","close","close_price")
+    selected=None
+    for candidate in aliases:
         if candidate in result.columns:
-            if candidate != "close":
-                result = result.rename(columns={candidate: "close"})
+            selected=candidate
             break
-    if "close" not in result.columns:
-        raise ValueError(f"Price dataset missing close column; columns={list(result.columns)}")
+    if selected is None:
+        raise ValueError(f"Adjusted price dataset missing close column; columns={list(result.columns)}")
+    if selected!="close":
+        result=result.rename(columns={selected:"close"})
+    dataset=str(frame.attrs.get("dataset",""))
+    result["price_basis"]="ADJUSTED_CLOSE" if selected in {"adj_close","adjusted_close"} or "PriceAdj" in dataset else "RAW_CLOSE_UNADJUSTED"
     return result
 
 
@@ -74,6 +80,43 @@ def normalize_valuation(frame: pd.DataFrame) -> pd.DataFrame:
                 result = result.rename(columns={candidate: output})
                 break
     return result
+
+
+def fetch_optional_adjusted_prices(
+    stocks: tuple[str,...],
+    start_date: str,
+    end_date: str,
+    *,
+    token: str | None=None,
+    sleep_seconds: float=0.0,
+) -> pd.DataFrame:
+    if not token:
+        print("ADJUSTED_PRICE_SKIPPED reason=no_token")
+        return pd.DataFrame()
+    frames=[]
+    for stock_id in stocks:
+        try:
+            frame=fetch_finmind(ADJUSTED_PRICE_DATASET,stock_id,start_date,end_date,token)
+            if frame.empty:
+                continue
+            if "stock_id" not in frame.columns:
+                frame["stock_id"]=stock_id
+            frame.attrs["dataset"]=ADJUSTED_PRICE_DATASET
+            frames.append(normalize_price(frame))
+            print(f"ADJUSTED_PRICE_OK stock={stock_id} rows={len(frame)}")
+        except Exception as exc:
+            print(f"ADJUSTED_PRICE_UNAVAILABLE stock={stock_id} error={exc}")
+        time.sleep(sleep_seconds)
+    return pd.concat(frames,ignore_index=True) if frames else pd.DataFrame()
+
+
+def choose_validation_prices(raw_prices: pd.DataFrame, adjusted: pd.DataFrame) -> pd.DataFrame:
+    raw=raw_prices.copy()
+    if adjusted.empty:
+        return raw
+    adjusted_ids=set(adjusted["stock_id"].astype(str))
+    raw=raw[~raw["stock_id"].astype(str).isin(adjusted_ids)]
+    return pd.concat([adjusted,raw],ignore_index=True)
 
 
 def load_universe(stocks_arg: str, universe_file: str | None, batch_size: int | None, batch_index: int) -> tuple[tuple[str, ...], pd.DataFrame]:
@@ -119,6 +162,7 @@ def fetch_universe_cached(
                 if not frame.empty and "stock_id" not in frame.columns:
                     frame["stock_id"] = stock_id
                 if key == "prices":
+                    frame.attrs["dataset"]=dataset
                     frame = normalize_price(frame)
                 elif key == "valuation":
                     frame = normalize_valuation(frame)
@@ -154,6 +198,7 @@ def main() -> None:
     parser.add_argument("--retry-failed-only", action="store_true")
     parser.add_argument("--output", default=str(ROOT / "artifacts" / "factor_validation_dataset.csv"))
     parser.add_argument("--raw-dir", default=str(ROOT / "artifacts" / "factor_validation_raw"))
+    parser.add_argument("--filing-observations", default=str(ROOT / "data" / "abf_filing_observations.csv"))
     args = parser.parse_args()
 
     stocks, companies = load_universe(args.stocks, args.universe_file, args.batch_size, args.batch_index)
@@ -163,6 +208,11 @@ def main() -> None:
         stocks, args.start, args.end, cache_dir=args.cache_dir, manifest=manifest, token=args.token,
         sleep_seconds=args.sleep_seconds, retry_failed_only=args.retry_failed_only,
     )
+
+    adjusted=fetch_optional_adjusted_prices(
+        stocks,args.start,args.end,token=args.token,sleep_seconds=args.sleep_seconds
+    )
+    validation_prices=choose_validation_prices(raw["prices"],adjusted)
 
     raw_dir = Path(args.raw_dir)
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -178,7 +228,9 @@ def main() -> None:
     if "industry" not in companies.columns:
         companies["industry"] = companies["sector"]
 
-    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], raw["prices"], raw["valuation"])
+    filing_path = Path(args.filing_observations)
+    filings = pd.read_csv(filing_path, dtype={"stock_id": str}) if filing_path.exists() else pd.DataFrame()
+    dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], validation_prices, raw["valuation"], filing_observations=filings)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     dataset.to_csv(output, index=False)

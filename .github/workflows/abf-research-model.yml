@@ -47,6 +47,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_scenario_evidence_validation.py' -v | tee scenario-evidence-validation-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_sensitivity_engine.py' -v | tee abf-sensitivity-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_data_coverage.py' -v | tee abf-data-coverage-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_data_provenance.py' -v | tee abf-data-provenance-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_model_audit.py' -v | tee abf-model-audit-test-results.txt
+          python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
 
       - name: Build real ABF research snapshot
@@ -87,7 +90,9 @@ jobs:
           assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
-          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='PROXY'
+          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
+          assert coverage.loc[coverage.data_id=='ic_substrate_revenue_mix_history','status'].iloc[0]=='INSUFFICIENT_HISTORY'
+          assert coverage.loc[coverage.data_id=='abf_product_mix_history','status'].iloc[0]=='MISSING'
           assert not margin.empty
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
@@ -106,7 +111,7 @@ jobs:
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
 
           print('ABF_RESEARCH_OUTPUTS_OK')
-          assert set(sens['direction_status'])=={'VALIDATED'}
+          assert set(sens['direction_status'])=={'SUPPORTED_BY_VALIDATED_DRIVER'}
           print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','oos_directional_corr','sensitivity_status','impact_per_10ppt_driver']].to_string(index=False))
           PY
 
@@ -131,6 +136,8 @@ jobs:
             artifacts/abf_revenue_sensitivity.csv
             artifacts/abf_research_snapshot.json
             artifacts/abf_data_coverage.csv
+            artifacts/abf_data_provenance.csv
+            artifacts/abf_model_audit.csv
             artifacts/abf_revenue_to_margin_scan.csv
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
@@ -145,6 +152,9 @@ jobs:
             scenario-evidence-validation-test-results.txt
             abf-sensitivity-test-results.txt
             abf-data-coverage-test-results.txt
+            abf-data-provenance-test-results.txt
+            abf-model-audit-test-results.txt
+            filing-availability-test-results.txt
             abf-margin-transmission-test-results.txt
             abf-factor-refresh-results.txt
             abf-research-results.txt

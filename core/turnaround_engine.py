@@ -97,9 +97,9 @@ def _driver_summary(row: pd.Series) -> str:
         ("Revenue accel", row.get("revenue_acceleration")),
         ("GM Δ", row.get("gross_margin_momentum")),
         ("Op margin Δ", row.get("operating_margin_momentum")),
-        ("EPS accel", row.get("eps_acceleration")),
-        ("OCF margin Δ", row.get("cashflow_momentum")),
-        ("Inventory relief", row.get("inventory_relief")),
+        ("Earnings accel", row.get("eps_acceleration")),
+        ("FCF/OCF margin Δ", row.get("cashflow_momentum")),
+        ("Working-capital relief", row.get("inventory_relief")),
     ]
     positive = [(name, value) for name, value in candidates if pd.notna(value) and float(value) > 0]
     positive.sort(key=lambda item: abs(float(item[1])), reverse=True)
@@ -146,14 +146,36 @@ def build_turnaround_history(
     frame["operating_margin_level"] = _numeric(frame, "operating_margin")
     frame["operating_margin_momentum"] = frame["operating_margin_level"] - group["operating_margin_level"].shift(1)
 
-    frame["eps_growth"] = _numeric(frame, "eps_yoy")
+    net_income_growth=_numeric(frame,"net_income_yoy")
+    reported_eps_growth=_numeric(frame,"eps_yoy")
+    frame["eps_growth"]=_combine(net_income_growth,reported_eps_growth)
+    frame["earnings_growth_source"]=pd.Series(
+        np.where(net_income_growth.notna(),"NET_INCOME_YOY","REPORTED_EPS_YOY_FALLBACK"),
+        index=frame.index,
+    )
     frame["eps_acceleration"] = frame["eps_growth"] - group["eps_growth"].shift(1)
 
-    frame["ocf_margin_level"] = _numeric(frame, "ocf_margin")
+    frame["ocf_margin_level"] = _numeric(frame, "fcf_margin")
+    fallback_ocf=_numeric(frame,"ocf_margin")
+    frame["ocf_margin_level"]=_combine(frame["ocf_margin_level"],fallback_ocf)
     frame["cashflow_momentum"] = frame["ocf_margin_level"] - group["ocf_margin_level"].shift(1)
 
-    frame["inventory_growth"] = _numeric(frame, "inventory_yoy")
-    frame["inventory_relief"] = group["inventory_growth"].shift(1) - frame["inventory_growth"]
+    inventory_gap=_numeric(frame,"inventory_revenue_growth_gap")
+    raw_inventory_growth=_numeric(frame,"inventory_yoy")
+    ccc=_numeric(frame,"cash_conversion_cycle_days")
+    ccc_relief=group["cash_conversion_cycle_days"].shift(1)-ccc if "cash_conversion_cycle_days" in frame else pd.Series(np.nan,index=frame.index)
+    inventory_gap_relief=group["inventory_revenue_growth_gap"].shift(1)-inventory_gap if "inventory_revenue_growth_gap" in frame else pd.Series(np.nan,index=frame.index)
+    raw_inventory_relief=group["inventory_yoy"].shift(1)-raw_inventory_growth if "inventory_yoy" in frame else pd.Series(np.nan,index=frame.index)
+    frame["inventory_growth"] = raw_inventory_growth
+    frame["inventory_relief"] = _combine(ccc_relief,_combine(inventory_gap_relief,raw_inventory_relief))
+    frame["working_capital_signal_source"]=pd.Series(
+        np.select(
+            [ccc_relief.notna(),inventory_gap_relief.notna()],
+            ["CCC_RELIEF","INVENTORY_REVENUE_GAP_RELIEF"],
+            default="NO_PRIOR_PERIOD",
+        ),
+        index=frame.index,
+    )
 
     previous_revenue_growth = group["revenue_growth"].shift(1)
     previous_eps_growth = group["eps_growth"].shift(1)

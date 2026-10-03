@@ -47,8 +47,8 @@ class DemandEvidenceLab(tk.Tk):
         ttk.Label(
             root,
             text=(
-                "Demand is inferred from evidence, not declared from headlines. Each observation is discounted by source "
-                "reliability and freshness, repeated reports of the same causal event are deduplicated, and independent "
+                "Demand is inferred from evidence, not declared from headlines. Reliability numbers are configured priors, not empirical probabilities; "
+                "each observation is discounted by the prior and freshness, repeated reports of the same causal event are deduplicated, and independent "
                 "supply-chain confirmations raise confidence. The bundled dataset is illustrative demo data only."
             ),
             wraplength=1460,
@@ -121,11 +121,11 @@ class DemandEvidenceLab(tk.Tk):
             self.evidence_tree.column(col, width=widths[col], anchor="w" if col in {"chain", "dimension", "group", "indicator", "sources"} else "center")
         self.evidence_tree.pack(fill="both", expand=True)
 
-        raw_columns = ("id", "date", "chain", "indicator", "signal", "reliability", "freshness", "effective", "source_type")
+        raw_columns = ("id", "date", "chain", "indicator", "signal", "reliability", "reliability_basis", "freshness", "effective", "source_type")
         self.raw_tree = ttk.Treeview(raw_tab, columns=raw_columns, show="headings", height=22)
         for col in raw_columns:
             self.raw_tree.heading(col, text=col.replace("_", " ").title())
-            self.raw_tree.column(col, width=145 if col in {"indicator", "source_type"} else 105, anchor="center")
+            self.raw_tree.column(col, width=185 if col in {"indicator", "source_type", "reliability_basis"} else 105, anchor="center")
         self.raw_tree.column("indicator", width=300, anchor="w")
         self.raw_tree.pack(fill="both", expand=True)
 
@@ -199,7 +199,7 @@ class DemandEvidenceLab(tk.Tk):
         for _, row in scored.sort_values("effective_signal", ascending=False).iterrows():
             self.raw_tree.insert("", "end", values=(
                 row["evidence_id"], row["as_of_date"].date().isoformat(), row["chain"], row["indicator"],
-                f"{float(row['signal']):+.2f}", f"{float(row['reliability_used']):.2f}",
+                f"{float(row['signal']):+.2f}", f"{float(row['reliability_used']):.2f}", row.get("reliability_basis",""),
                 f"{float(row['freshness']):.2f}", f"{float(row['effective_signal']):+.3f}", row["source_type"],
             ))
         self.status_var.set(

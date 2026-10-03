@@ -109,7 +109,7 @@ def estimate_revenue_sensitivity(
         "oos_rmse":oos["rmse"],
         "oos_r2":oos["r2"],
         "oos_directional_corr":oos["directional_corr"],
-        "direction_status":"VALIDATED",
+        "direction_status":"SUPPORTED_BY_VALIDATED_DRIVER",
         "sensitivity_status":sensitivity_status,
         "magnitude_validation_pass":magnitude_validated,
         "interpretation":f"A +10ppt change in {feature} historically maps to about {beta*10:+.2f}ppt in {target} at +{config.lag_months}M.",

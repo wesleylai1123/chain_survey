@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from core.factor_validation_engine import scan_oos_factors
 
 DEFAULT_DATASET = Path(os.environ.get("FACTOR_VALIDATION_DATASET", ROOT / "artifacts" / "factor_validation_dataset.csv"))
+FACTOR_CATALOG = ROOT / "data" / "fundamental_factor_catalog.csv"
 TARGETS = ("future_3m_return", "future_6m_return", "future_12m_return")
 
 
@@ -29,6 +30,7 @@ class FactorRobustnessLab(tk.Tk):
         self.neutral_var = tk.BooleanVar(value=True)
         self.train_var = tk.DoubleVar(value=0.70)
         self.status_var = tk.StringVar(value="No dataset loaded")
+        self.catalog = pd.read_csv(FACTOR_CATALOG).fillna("") if FACTOR_CATALOG.exists() else pd.DataFrame()
         self._build()
         if self.path.exists():
             self.load(self.path)
@@ -51,13 +53,16 @@ class FactorRobustnessLab(tk.Tk):
         ttk.Spinbox(controls, from_=0.5, to=0.9, increment=0.05, textvariable=self.train_var, width=7).pack(side="left")
         ttk.Button(controls, text="Run robustness scan", command=self.run_scan).pack(side="left", padx=(16,0))
 
-        cols = ("feature","split","in_r","out_r","direction","degradation","in_n","out_n","score")
+        cols = ("feature","category","factor_status","basis","split","in_r","out_r","direction","degradation","in_n","out_n","score")
         self.tree = ttk.Treeview(root, columns=cols, show="headings")
-        headings = {"feature":"Factor","split":"OOS starts","in_r":"In-sample r","out_r":"Out-of-sample r","direction":"Same direction","degradation":"|r| degradation","in_n":"Train N","out_n":"Test N","score":"Robust score"}
+        headings = {"feature":"Factor","category":"Category","factor_status":"Factor Status","basis":"Accounting Basis","split":"OOS starts","in_r":"In-sample r","out_r":"Out-of-sample r","direction":"Same direction","degradation":"|r| degradation","in_n":"Train N","out_n":"Test N","score":"Robust score"}
         for col in cols:
             self.tree.heading(col, text=headings[col])
             self.tree.column(col, width=135, anchor="center")
         self.tree.column("feature", width=220, anchor="w")
+        self.tree.column("basis", width=360, anchor="w")
+        self.tree.column("category", width=130, anchor="w")
+        self.tree.column("factor_status", width=190, anchor="w")
         self.tree.pack(fill="both", expand=True)
         ttk.Label(root, textvariable=self.status_var).pack(anchor="w", pady=(8,0))
 
@@ -80,14 +85,15 @@ class FactorRobustnessLab(tk.Tk):
             messagebox.showerror("Factor Robustness Lab", str(exc))
 
     def _factors(self) -> list[str]:
-        excluded = {"stock_id",*TARGETS,"price_at_available","universe_revenue_yoy","universe_revenue_yoy_delta"}
-        factors=[]
-        for col in self.data.columns:
-            if col in excluded:
-                continue
-            if pd.to_numeric(self.data[col], errors="coerce").notna().sum() >= 18:
-                factors.append(col)
-        return factors
+        if not self.catalog.empty:
+            allowed=set(self.catalog[self.catalog["model_status"].isin({"CALIBRATION_ELIGIBLE","CALIBRATION_CANDIDATE"})]["factor"].astype(str))
+        else:
+            allowed=set(self.data.columns)
+        excluded={"stock_id",*TARGETS,"price_at_available","universe_revenue_yoy","universe_revenue_yoy_delta"}
+        return [
+            col for col in self.data.columns
+            if col in allowed and col not in excluded and pd.to_numeric(self.data[col],errors="coerce").notna().sum()>=18
+        ]
 
     def run_scan(self) -> None:
         if self.data.empty:
@@ -99,8 +105,12 @@ class FactorRobustnessLab(tk.Tk):
             return
         self.tree.delete(*self.tree.get_children())
         for _, row in result.head(100).iterrows():
+            meta=self.catalog[self.catalog["factor"]==row["feature"]].iloc[0] if not self.catalog.empty and (self.catalog["factor"]==row["feature"]).any() else {}
             self.tree.insert("", "end", values=(
-                row["feature"], row["split_date"], f"{row['in_sample_r']:+.3f}", f"{row['out_of_sample_r']:+.3f}",
+                row["feature"], meta.get("category","") if hasattr(meta,"get") else "",
+                meta.get("model_status","") if hasattr(meta,"get") else "",
+                meta.get("basis","") if hasattr(meta,"get") else "",
+                row["split_date"], f"{row['in_sample_r']:+.3f}", f"{row['out_of_sample_r']:+.3f}",
                 "YES" if row["direction_consistent"] else "NO", f"{row['degradation']:+.3f}", int(row["in_sample_samples"]), int(row["out_of_sample_samples"]), f"{row['robust_score']:.3f}"
             ))
         self.status_var.set(f"{len(self.data)} rows | {self.data['ticker'].nunique()} companies | {len(result)} factors validated | industry-neutral={self.neutral_var.get()}")

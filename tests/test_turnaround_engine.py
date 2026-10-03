@@ -27,9 +27,13 @@ class TurnaroundEngineTests(unittest.TestCase):
                     "gross_margin": 0.18 + idx * 0.012,
                     "gross_margin_qoq": 0.012,
                     "operating_margin": 0.07 + idx * 0.010,
-                    "eps_yoy": -0.40 + idx * 0.14,
+                    "eps_yoy": -0.10 + idx * 0.02,
+                    "net_income_yoy": -0.40 + idx * 0.14,
                     "inventory_yoy": 0.35 - idx * 0.06,
+                    "inventory_revenue_growth_gap": 0.25 - idx * 0.05,
+                    "cash_conversion_cycle_days": 95 - idx * 4,
                     "ocf_margin": 0.05 + idx * 0.012,
+                    "fcf_margin": 0.02 + idx * 0.015,
                     "future_3m_return": 0.10 + idx * 0.01,
                     "future_6m_return": 0.18 + idx * 0.01,
                     "future_12m_return": 0.25 + idx * 0.01,
@@ -49,9 +53,13 @@ class TurnaroundEngineTests(unittest.TestCase):
                     "gross_margin": 0.32 - idx * 0.012,
                     "gross_margin_qoq": -0.012,
                     "operating_margin": 0.18 - idx * 0.010,
-                    "eps_yoy": 0.60 - idx * 0.14,
+                    "eps_yoy": 0.10 - idx * 0.02,
+                    "net_income_yoy": 0.60 - idx * 0.14,
                     "inventory_yoy": -0.05 + idx * 0.06,
+                    "inventory_revenue_growth_gap": -0.10 + idx * 0.05,
+                    "cash_conversion_cycle_days": 45 + idx * 4,
                     "ocf_margin": 0.18 - idx * 0.012,
+                    "fcf_margin": 0.16 - idx * 0.015,
                     "future_3m_return": -0.08 - idx * 0.005,
                     "future_6m_return": -0.14 - idx * 0.005,
                     "future_12m_return": -0.20 - idx * 0.005,
@@ -81,6 +89,14 @@ class TurnaroundEngineTests(unittest.TestCase):
         self.assertGreater(validation["samples"], 5)
         self.assertGreater(validation["spearman_ic"], 0.5)
         self.assertGreater(validation["top_bottom_spread"], 0.0)
+
+    def test_prefers_net_income_and_cash_conversion_cycle(self) -> None:
+        hist=build_turnaround_history(self._panel(),min_history=3)
+        self.assertEqual(set(hist["earnings_growth_source"]),{"NET_INCOME_YOY"})
+        self.assertEqual(set(hist["working_capital_signal_source"].dropna()),{"NO_PRIOR_PERIOD","CCC_RELIEF"})
+        improver=hist[hist["ticker"]=="1111"].iloc[-1]
+        self.assertGreater(improver["cashflow_momentum"],0)
+        self.assertGreater(improver["inventory_relief"],0)
 
 
 if __name__ == "__main__":

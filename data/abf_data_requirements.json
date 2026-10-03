@@ -11,6 +11,7 @@
     {"data_id":"company_inventory_history","layer":"downside_confirmation","label":"Company Inventory history","kind":"factor_columns","columns":["inventory","inventory_yoy"],"minimum_rows_per_company":8,"importance":"SUPPORTING"},
     {"data_id":"quarterly_exact_filing_time","layer":"point_in_time","label":"Exact quarterly filing timestamps","kind":"factor_availability_exact","importance":"CORE"},
     {"data_id":"abf_product_mix_history","layer":"product_bridge","label":"Historical ABF product revenue mix by company","kind":"missing_external","importance":"CORE"},
+    {"data_id":"ic_substrate_revenue_mix_history","layer":"product_bridge","label":"IC substrate revenue mix (ABF + BT proxy)","kind":"missing_external","minimum_observations":8,"importance":"SUPPORTING","proxy_for":"abf_product_mix_history"},
     {"data_id":"abf_asp_history","layer":"pricing","label":"ABF ASP history","kind":"missing_external","importance":"CORE"},
     {"data_id":"abf_volume_history","layer":"volume","label":"ABF shipment / volume history","kind":"missing_external","importance":"CORE"},
     {"data_id":"abf_utilization_history","layer":"margin_driver","label":"ABF capacity utilization history","kind":"missing_external","importance":"CORE"},

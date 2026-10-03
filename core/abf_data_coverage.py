@@ -6,6 +6,8 @@ from typing import Any
 
 import pandas as pd
 
+from core.abf_operating_observations import verified_operating_observations
+
 ROOT=Path(__file__).resolve().parents[1]
 DEFAULT_REQUIREMENTS=ROOT/"data"/"abf_data_requirements.json"
 ABF_STOCK_IDS=("3037","3189","8046")
@@ -43,14 +45,37 @@ def _factor_status(panel: pd.DataFrame, columns: list[str], min_rows: int) -> tu
     return "AVAILABLE","usable rows per company: "+", ".join(f"{k}={v}" for k,v in counts.items())
 
 
+def _operating_history_detail(subset: pd.DataFrame, req: dict[str,Any]) -> str:
+    if subset.empty:
+        return "No primary-source historical dataset currently connected"
+    n=len(subset)
+    companies=subset["stock_id"].astype(str).nunique()
+    start=pd.to_datetime(subset["period_end"],errors="coerce").min()
+    end=pd.to_datetime(subset["period_end"],errors="coerce").max()
+    minimum=int(req.get("minimum_observations",1))
+    company_min=int(req.get("minimum_companies",1))
+    span = f"{start.date()}..{end.date()}" if pd.notna(start) and pd.notna(end) else "unknown"
+    hosts=",".join(sorted(set(subset.get("source_host",pd.Series(dtype=str)).astype(str))))
+    return (
+        f"{n} primary observations; companies={companies}; span={span}; "
+        f"minimum_observations={minimum}; minimum_companies={company_min}; hosts={hosts}; "
+        "historical/cross-company validation still required"
+    )
+
+
 def audit_abf_data_coverage(
     history: pd.DataFrame,
     factor_panel: pd.DataFrame | None=None,
     *,
     requirements_path: str | Path=DEFAULT_REQUIREMENTS,
+    operating_observations: pd.DataFrame | None=None,
 ) -> pd.DataFrame:
     spec=load_requirements(requirements_path)
     factor=pd.DataFrame() if factor_panel is None else factor_panel.copy()
+    external_ids={r["data_id"] for r in spec["requirements"] if r["kind"]=="missing_external"}
+    observed=verified_operating_observations(
+        pd.DataFrame() if operating_observations is None else operating_observations, external_ids,
+    )
     rows=[]
 
     metric_counts={}
@@ -89,21 +114,26 @@ def audit_abf_data_coverage(
                 status="NOT_CONNECTED"
                 detail="factor-data not connected"
             else:
-                methods=sorted(set(factor["availability_method"].dropna().astype(str)))
-                if methods and any("proxy" in m.lower() for m in methods):
+                abf=factor[factor.get("stock_id",factor.get("ticker",pd.Series(index=factor.index,dtype=str))).astype(str).str.contains(r"3037|3189|8046")]
+                methods=sorted(set(abf["availability_method"].dropna().astype(str)))
+                exact=abf["availability_method"].eq("official_filing_timestamp_next_day")
+                sourced=(abf["filing_source_url"].notna() & abf["filing_published_at"].notna()) if {"filing_source_url","filing_published_at"} <= set(abf.columns) else pd.Series(False,index=abf.index)
+                if methods and (not exact.all() or not sourced.all()):
                     status="PROXY"
-                    detail="; ".join(methods)
-                elif methods:
+                    detail=f"verified={int((exact & sourced).sum())}/{len(abf)} rows; " + "; ".join(methods)
+                elif methods and len(abf):
                     status="AVAILABLE"
-                    detail="; ".join(methods)
+                    detail=f"verified={len(abf)}/{len(abf)} rows; " + "; ".join(methods)
                 else:
                     status="MISSING"
                     detail="no availability method"
             source="factor-data"
         elif kind=="missing_external":
-            status="MISSING"
-            detail="No historical dataset currently connected"
-            source="not connected"
+            subset=observed[observed["data_id"]==req["data_id"]] if not observed.empty else observed
+            n=len(subset)
+            status="INSUFFICIENT_HISTORY" if n else "MISSING"
+            detail=_operating_history_detail(subset,req)
+            source="ABF operating observations / primary sources only" if n else "not connected"
         else:
             raise ValueError(f"Unsupported requirement kind: {kind}")
 

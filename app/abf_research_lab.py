@@ -17,9 +17,12 @@ from core.directional_indicator_engine import scenario_transmission
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_data_provenance import build_abf_data_provenance
+from core.abf_model_audit import build_abf_model_audit
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
+OPERATING = ROOT / "data" / "abf_operating_observations.csv"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -52,8 +55,11 @@ class AbfResearchLab(tk.Tk):
         self.scenarios = self._load_scenarios()
         self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
-        self.coverage = audit_abf_data_coverage(history, self.factor)
+        operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
+        self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
+        self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
+        self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios)
         self._configure_style()
         self._build()
 
@@ -159,21 +165,27 @@ class AbfResearchLab(tk.Tk):
         timing = tk.Frame(self.book, bg=BG)
         scenarios = tk.Frame(self.book, bg=BG)
         coverage = tk.Frame(self.book, bg=BG)
+        provenance = tk.Frame(self.book, bg=BG)
         margin = tk.Frame(self.book, bg=BG)
         sensitivity = tk.Frame(self.book, bg=BG)
+        audit = tk.Frame(self.book, bg=BG)
         flow = tk.Frame(self.book, bg=BG)
         self.book.add(timing, text="Indicator Timing")
         self.book.add(scenarios, text="Scenario Evidence")
         self.book.add(coverage, text="Data Coverage")
+        self.book.add(provenance, text="Source & Lineage")
         self.book.add(margin, text="Revenue → GM")
         self.book.add(sensitivity, text="Revenue Sensitivity")
+        self.book.add(audit, text="Model Audit")
         self.book.add(flow, text="Driver → Sensitivity → Model")
 
         self._build_timing_tab(timing)
         self._build_scenario_tab(scenarios)
         self._build_coverage_tab(coverage)
+        self._build_provenance_tab(provenance)
         self._build_margin_tab(margin)
         self._build_sensitivity_tab(sensitivity)
+        self._build_model_audit_tab(audit)
         self._build_flow_tab(flow)
 
     def _build_header(self, parent) -> None:
@@ -416,13 +428,72 @@ class AbfResearchLab(tk.Tk):
         for _,r in data.iterrows():
             tree.insert("", "end", values=(r["layer"],r["label"],r["importance"],r["status"],r["detail"],r["source"]))
 
+    def _build_provenance_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Can this data be trusted and reproduced?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text=(
+                "Source class, directness, point-in-time method, observed span and continuity are shown separately. "
+                "Official does not automatically mean model-eligible: proxies remain SUPPORT_ONLY and event data remain EVENT_STUDY_ONLY."
+            ),
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=(
+            "data_id","need_level","status","source_class","directness","model_eligibility",
+            "observation_count","first_period","last_period","gap_count","continuity",
+            "knowledge_time_method","actual_source_hosts","best_source","acquisition_method"
+        )
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={
+            "data_id":190,"need_level":85,"status":145,"source_class":155,"directness":135,
+            "model_eligibility":175,"observation_count":90,"first_period":100,"last_period":100,
+            "gap_count":75,"continuity":145,"knowledge_time_method":220,"actual_source_hosts":210,
+            "best_source":280,"acquisition_method":360
+        }
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        vs=ttk.Scrollbar(frame,orient="vertical",command=tree.yview)
+        hs=ttk.Scrollbar(frame,orient="horizontal",command=tree.xview)
+        tree.configure(yscrollcommand=vs.set,xscrollcommand=hs.set)
+        tree.grid(row=0,column=0,sticky="nsew")
+        vs.grid(row=0,column=1,sticky="ns")
+        hs.grid(row=1,column=0,sticky="ew")
+        frame.grid_rowconfigure(0,weight=1)
+        frame.grid_columnconfigure(0,weight=1)
+
+        order={"PAID_SOURCE_REQUIRED":0,"NOT_YET_ELIGIBLE":1,"SUPPORT_ONLY":2,"EVENT_STUDY_ONLY":3,"VALIDATE_BEFORE_USE":4,"CALIBRATION_ELIGIBLE":5}
+        data=self.provenance.copy()
+        data["_order"]=data["model_eligibility"].map(order).fillna(9)
+        data=data.sort_values(["_order","need_level","data_id"])
+        for _,r in data.iterrows():
+            tree.insert("", "end", values=tuple(r.get(col,"") for col in cols))
+
+        note=self._card(parent,bg=SLATE_SOFT)
+        note.pack(fill="x",padx=18,pady=(0,18))
+        body=self._inner(note)
+        tk.Label(body,text="Verification rule",bg=SLATE_SOFT,fg=TEXT,font=("Segoe UI",10,"bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "To verify a metric: compare Actual Source Hosts / URLs with Best Source, inspect the PIT method, "
+                "then check first/last period and gap count. A proxy can support a thesis but cannot silently replace a direct series."
+            ),
+            bg=SLATE_SOFT,fg=MUTED,font=("Segoe UI",9),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
     def _build_margin_tab(self, parent) -> None:
         intro=tk.Frame(parent,bg=BG)
         intro.pack(fill="x",padx=18,pady=(18,12))
         tk.Label(intro,text="Does revenue lead gross-margin improvement?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
         tk.Label(
             intro,
-            text="This scan reuses point-in-time factor-data. Filing availability is still a conservative +60/+90 day proxy, not exact filing timestamps.",
+            text="This scan uses point-in-time factor-data. For ABF company quarters with verified filings, exact official filing timestamps are used; any remaining proxy method is shown in the result metadata.",
             bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
         ).pack(anchor="w",pady=(4,0))
 
@@ -548,6 +619,60 @@ class AbfResearchLab(tk.Tk):
             bg=RED_SOFT, fg=TEXT, font=("Segoe UI", 10), wraplength=1450, justify="left"
         ).pack(anchor="w", pady=(5, 0))
 
+    def _build_model_audit_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Driver / correlation / sensitivity rationality audit",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text=(
+                "Configured driver weights, empirical correlation and financial sensitivities are different claims. "
+                "This table states what each component is allowed to mean and whether it can be used in the model today."
+            ),
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("type","component","feature","target","lag","metric","assessment","model_use","weight_beta","evidence","why")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={
+            "type":95,"component":220,"feature":210,"target":220,"lag":65,"metric":250,
+            "assessment":190,"model_use":220,"weight_beta":110,"evidence":260,"why":520
+        }
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        vs=ttk.Scrollbar(frame,orient="vertical",command=tree.yview)
+        hs=ttk.Scrollbar(frame,orient="horizontal",command=tree.xview)
+        tree.configure(yscrollcommand=vs.set,xscrollcommand=hs.set)
+        tree.grid(row=0,column=0,sticky="nsew")
+        vs.grid(row=0,column=1,sticky="ns")
+        hs.grid(row=1,column=0,sticky="ew")
+        frame.grid_rowconfigure(0,weight=1)
+        frame.grid_columnconfigure(0,weight=1)
+
+        for _,r in self.model_audit.iterrows():
+            tree.insert("", "end", values=(
+                r["component_type"],r["component"],r["input_or_feature"],r["target"],r["lag"],r["metric"],
+                r["assessment"],r["model_use"],r["weight_or_beta"],r["empirical_evidence"],r["why"]
+            ))
+
+        note=self._card(parent,bg=AMBER_SOFT)
+        note.pack(fill="x",padx=18,pady=(0,18))
+        body=self._inner(note)
+        tk.Label(body,text="Current ABF interpretation",bg=AMBER_SOFT,fg=AMBER,font=("Segoe UI",10,"bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "Validated driver: TPCA PCB Revenue YoY → ABF revenue basket at +1M. "
+                "Revenue betas are magnitude candidates because current OOS R² is negative. "
+                "Revenue → GM relations are research candidates, not causal or calibrated margin betas. "
+                "Driver weights remain configured assumptions. Cost / supply pressure needs refinement before calibration."
+            ),
+            bg=AMBER_SOFT,fg=TEXT,font=("Segoe UI",9),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
     def _flow_card(self, parent, step: str, title: str, detail: str, status: str, accent: str, soft: str) -> tk.Frame:
         card = self._card(parent)
         body = self._inner(card)
@@ -599,8 +724,7 @@ class AbfResearchLab(tk.Tk):
         ladder = [
             ("Upside leading case", "Own evidence subset / OOS / bootstrap / permutation", up_state, GREEN if up_state=="VALIDATED" else AMBER, GREEN_SOFT if up_state=="VALIDATED" else AMBER_SOFT),
             ("Downside leading case", "Independently validated; may use different sources", down_state, GREEN if down_state=="VALIDATED" else AMBER, GREEN_SOFT if down_state=="VALIDATED" else AMBER_SOFT),
-            ("Revenue magnitude", "Exact beta / impact size", "CANDIDATE", AMBER, AMBER_SOFT),
-            ("Revenue magnitude", "Exact beta / impact size", "CANDIDATE", AMBER, AMBER_SOFT),
+            ("Revenue magnitude", "Exact beta / impact size; current OOS R² is below zero", "CANDIDATE", AMBER, AMBER_SOFT),
             ("Revenue → GM", "Does monthly revenue lead gross-margin expansion?", "NOT CALIBRATED", MUTED, SLATE_SOFT),
             ("GM → EPS", "How margin improvement propagates to earnings", "NOT CALIBRATED", MUTED, SLATE_SOFT),
         ]

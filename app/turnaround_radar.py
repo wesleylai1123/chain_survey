@@ -48,7 +48,7 @@ class TurnaroundRadar(tk.Tk):
             root,
             text=(
                 "Ranks companies by fundamental inflection, not absolute quality. The score combines revenue acceleration, "
-                "margin momentum, EPS acceleration, cash-flow improvement, inventory relief and recovery-cycle context. "
+                "margin momentum, net-income-first earnings acceleration, cash-flow improvement, working-capital relief and recovery-cycle context. "
                 "Future returns are used only for validation, never as score inputs."
             ),
             wraplength=1450,
@@ -89,7 +89,8 @@ class TurnaroundRadar(tk.Tk):
 
         radar_columns = (
             "rank", "ticker", "name", "industry", "period", "stage", "score", "confidence",
-            "revenue_growth", "revenue_accel", "gm_momentum", "eps_accel", "signals", "drivers",
+            "revenue_growth", "revenue_accel", "gm_momentum", "earnings_accel","earnings_basis",
+            "cashflow_momentum","working_capital","wc_basis","signals", "drivers",
         )
         self.radar_tree = ttk.Treeview(radar_tab, columns=radar_columns, show="headings", height=24)
         headings = {
@@ -104,18 +105,23 @@ class TurnaroundRadar(tk.Tk):
             "revenue_growth": "Revenue YoY",
             "revenue_accel": "Revenue Accel",
             "gm_momentum": "GM Δ",
-            "eps_accel": "EPS Accel",
+            "earnings_accel": "Earnings Accel",
+            "earnings_basis": "Earnings Basis",
+            "cashflow_momentum": "FCF/OCF Δ",
+            "working_capital": "WC Relief",
+            "wc_basis": "WC Basis",
             "signals": "+ Signals",
             "drivers": "Top Drivers",
         }
         widths = {
             "rank": 55, "ticker": 80, "name": 110, "industry": 130, "period": 95, "stage": 110,
             "score": 75, "confidence": 90, "revenue_growth": 95, "revenue_accel": 100, "gm_momentum": 80,
-            "eps_accel": 90, "signals": 70, "drivers": 360,
+            "earnings_accel": 105, "earnings_basis": 190, "cashflow_momentum": 95,
+            "working_capital": 95, "wc_basis": 205, "signals": 70, "drivers": 360,
         }
         for column in radar_columns:
             self.radar_tree.heading(column, text=headings[column])
-            self.radar_tree.column(column, width=widths[column], anchor="w" if column in {"name", "industry", "stage", "drivers"} else "center")
+            self.radar_tree.column(column, width=widths[column], anchor="w" if column in {"name", "industry", "stage", "drivers","earnings_basis","wc_basis"} else "center")
         self.radar_tree.pack(fill="both", expand=True)
 
         validation_columns = ("target", "samples", "spearman_ic", "top_quintile", "bottom_quintile", "spread")
@@ -201,6 +207,10 @@ class TurnaroundRadar(tk.Tk):
                     self._pct(row.get("revenue_acceleration")),
                     self._pct(row.get("gross_margin_momentum")),
                     self._pct(row.get("eps_acceleration")),
+                    row.get("earnings_growth_source",""),
+                    self._pct(row.get("cashflow_momentum")),
+                    self._pct(row.get("inventory_relief")),
+                    row.get("working_capital_signal_source",""),
                     int(row.get("improving_signal_count", 0)),
                     row.get("driver_summary", ""),
                 ),
