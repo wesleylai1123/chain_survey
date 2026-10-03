@@ -7,6 +7,7 @@ import pandas as pd
 
 from core.free_evidence_connectors import (
     extract_data_gov_resource_url,
+    fetch_bytes,
     parse_moea_export_orders_csv,
     parse_monthly_revenue_json,
     parse_tpca_listing,
@@ -45,9 +46,9 @@ class LiveFreeEvidenceConnectorTests(unittest.TestCase):
         self.assertEqual(evidence.iloc[0]["reliability_basis"],"SOURCE_CLASS_PRIOR")
 
     def test_tpca_public_text_parser(self):
-        html="<a>2026年7月台灣硬板出口YoY26.91%</a><a>2026年6月台灣上市櫃PCB原物料營收YoY 45.3%</a><a>2026年6月台灣CCL 進口YoY 65.3%</a>"
+        html="<a>2026年7月台灣硬板出口YoY26.91%</a><a>2026年6月台灣上市櫃PCB原物料營收YoY 45.3%</a><a>2026年6月台灣CCL 進口YoY 65.3%</a><a>2026年6月台灣CCL 出口YoY 41.5%</a>"
         frame=parse_tpca_listing(html,collected_at=self.now,source_url="https://tpca.example")
-        self.assertEqual(set(frame["indicator"]),{"rigid_pcb_export_yoy","pcb_material_revenue_yoy","ccl_import_yoy"})
+        self.assertEqual(set(frame["indicator"]),{"rigid_pcb_export_yoy","pcb_material_revenue_yoy","ccl_import_yoy","ccl_export_yoy"})
 
     def test_revenue_mapping_labels_exposure_assumption(self):
         frame=pd.DataFrame([{
@@ -63,6 +64,30 @@ class LiveFreeEvidenceConnectorTests(unittest.TestCase):
     def test_roc_month_period(self):
         self.assertEqual(parse_month_period("115年7月"),pd.Timestamp("2026-07-01"))
         self.assertEqual(parse_month_period("11507"),pd.Timestamp("2026-07-01"))
+
+    def test_fetch_retries_incomplete_read(self):
+        import http.client
+        from unittest.mock import patch
+
+        class Response:
+            def __init__(self,payload=b"[]"):
+                self.payload=payload
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self): return self.payload
+            def geturl(self): return "https://official.example/api"
+
+        calls={"n":0}
+        def fake_urlopen(req,timeout=30):
+            calls["n"]+=1
+            if calls["n"]==1:
+                raise http.client.IncompleteRead(b"partial",100)
+            return Response()
+
+        with patch("core.free_evidence_connectors.urllib.request.urlopen",side_effect=fake_urlopen):
+            result=fetch_bytes("https://official.example/api",retries=2,backoff_seconds=0)
+        self.assertEqual(result.payload,b"[]")
+        self.assertEqual(calls["n"],2)
 
 
 if __name__=="__main__":
