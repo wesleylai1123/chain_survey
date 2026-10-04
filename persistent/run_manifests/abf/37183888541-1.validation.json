@@ -1,0 +1,61 @@
+{
+  "pipeline": "abf",
+  "validated_at": "2026-10-04T06:52:33.664888+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "abf_each_company_has_healthy_source",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3037/3189/8046"
+    },
+    {
+      "name": "abf_documents_processed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "75"
+    },
+    {
+      "name": "abf_document_sha_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha required"
+    },
+    {
+      "name": "abf_candidate_review_gate",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "no auto-promotion"
+    },
+    {
+      "name": "abf_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "candidate raw sha required"
+    },
+    {
+      "name": "abf_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline run required"
+    },
+    {
+      "name": "abf_fetch_mode_explicit",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "successful docs require explicit fetch mode"
+    },
+    {
+      "name": "abf_cache_reuse_requires_unchanged_raw",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "304 cache reuse must not claim raw changed"
+    },
+    {
+      "name": "abf_document_failure_rate",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "0/75"
+    }
+  ]
+}
