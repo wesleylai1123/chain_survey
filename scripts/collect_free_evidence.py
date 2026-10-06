@@ -233,6 +233,11 @@ def persist_if_changed(
         latest=current.get("latest_snapshot")
         existing=(persistent_root/latest) if latest else None
         canonical=pd.to_datetime(current.get("collected_at"),utc=True)
+        current["last_verified_at"]=collected_at.isoformat()
+        current["source"]=source_url
+        manifest["sources"][source_id]=current
+        manifest_path.parent.mkdir(parents=True,exist_ok=True)
+        manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
         return existing, digest, False, canonical
     stamp = collected_at.tz_convert("UTC").strftime("%Y%m%dT%H%M%SZ")
     out = persistent_root / "raw" / source_id / f"{stamp}.{extension}"
@@ -242,11 +247,100 @@ def persist_if_changed(
         "sha256": digest,
         "latest_snapshot": str(out.relative_to(persistent_root)),
         "collected_at": collected_at.isoformat(),
+        "last_verified_at": collected_at.isoformat(),
         "source": source_url,
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return out, digest, True, collected_at
+
+
+def load_persisted_snapshot(
+    *,
+    persistent_root: Path,
+    source_id: str,
+) -> tuple[bytes,Path,str,pd.Timestamp,pd.Timestamp,str] | None:
+    manifest=_manifest(persistent_root/"manifest.json")
+    current=manifest.get("sources",{}).get(source_id)
+    if not current:
+        return None
+    latest=current.get("latest_snapshot")
+    digest=str(current.get("sha256",""))
+    if not latest or len(digest)!=64:
+        return None
+    path=persistent_root/latest
+    if not path.exists():
+        return None
+    payload=path.read_bytes()
+    actual=hashlib.sha256(payload).hexdigest()
+    if actual!=digest:
+        raise ValueError(f"persisted snapshot SHA mismatch for {source_id}: {actual} != {digest}")
+    canonical=pd.to_datetime(current.get("collected_at"),utc=True)
+    last_verified=pd.to_datetime(current.get("last_verified_at") or current.get("collected_at"),utc=True)
+    return payload,path,digest,canonical,last_verified,str(current.get("source",""))
+
+
+def _display_path(path: Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _decorate_retrieval(
+    derived: pd.DataFrame,
+    *,
+    digest: str,
+    raw_path: Path | None,
+    run_id: str,
+    retrieval_status: str,
+    retrieval_attempted_at: pd.Timestamp,
+    last_verified_at: pd.Timestamp,
+    stale_age_hours: float,
+    fetch_error: str="",
+) -> pd.DataFrame:
+    if derived.empty:
+        return derived
+    out=derived.copy()
+    out["raw_sha256"]=digest
+    out["raw_snapshot_path"]=_display_path(raw_path)
+    out["pipeline_run_id"]=run_id
+    out["retrieval_status"]=retrieval_status
+    out["retrieval_attempted_at"]=retrieval_attempted_at.isoformat()
+    out["last_verified_at"]=last_verified_at.isoformat()
+    out["stale_age_hours"]=float(stale_age_hours)
+    out["retrieval_error"]=fetch_error
+    return out
+
+
+def _parse_payload(
+    source: dict[str,Any],
+    payload: bytes,
+    *,
+    canonical_collected_at: pd.Timestamp,
+    source_url: str,
+    relationships: pd.DataFrame,
+    companies: pd.DataFrame,
+) -> tuple[pd.DataFrame,int]:
+    sid,kind=source["source_id"],source["kind"]
+    if kind=="monthly_revenue_json":
+        parsed=parse_monthly_revenue_json(
+            payload,source_id=sid,market=source["market"],
+            collected_at=canonical_collected_at,source_url=source_url,
+        )
+        return revenue_snapshot_to_evidence(parsed,relationships,companies),len(parsed)
+    if kind=="data_gov_dataset_csv":
+        parsed=parse_moea_export_orders_csv(
+            payload,source_id=sid,chain=source["chain"],dimension=source["dimension"],
+            collected_at=canonical_collected_at,source_url=source_url,
+        )
+        return moea_snapshot_to_evidence(parsed),len(parsed)
+    if kind=="tpca_public_listing":
+        parsed=parse_tpca_listing(payload,collected_at=canonical_collected_at,source_url=source_url)
+        return tpca_snapshot_to_evidence(parsed),len(parsed)
+    raise ValueError(f"Unsupported connector kind: {kind}")
 
 
 def collect_all(
@@ -278,10 +372,11 @@ def collect_all(
                     collected_at=canonical_collected_at, source_url=fetched.url,
                 )
                 derived=revenue_snapshot_to_evidence(parsed, relationships, companies)
-                if not derived.empty:
-                    derived["raw_sha256"]=digest
-                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
-                    derived["pipeline_run_id"]=run_id
+                derived=_decorate_retrieval(
+                    derived,digest=digest,raw_path=raw_path,run_id=run_id,retrieval_status="FRESH",
+                    retrieval_attempted_at=fetched.collected_at,last_verified_at=fetched.collected_at,
+                    stale_age_hours=0.0,
+                )
                 evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "data_gov_dataset_csv":
@@ -297,10 +392,11 @@ def collect_all(
                     collected_at=canonical_collected_at, source_url=fetched.url,
                 )
                 derived=moea_snapshot_to_evidence(parsed)
-                if not derived.empty:
-                    derived["raw_sha256"]=digest
-                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
-                    derived["pipeline_run_id"]=run_id
+                derived=_decorate_retrieval(
+                    derived,digest=digest,raw_path=raw_path,run_id=run_id,retrieval_status="FRESH",
+                    retrieval_attempted_at=fetched.collected_at,last_verified_at=fetched.collected_at,
+                    stale_age_hours=0.0,
+                )
                 evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "tpca_public_listing":
@@ -311,10 +407,11 @@ def collect_all(
                 )
                 parsed = parse_tpca_listing(fetched.payload, collected_at=canonical_collected_at, source_url=fetched.url)
                 derived=tpca_snapshot_to_evidence(parsed)
-                if not derived.empty:
-                    derived["raw_sha256"]=digest
-                    derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
-                    derived["pipeline_run_id"]=run_id
+                derived=_decorate_retrieval(
+                    derived,digest=digest,raw_path=raw_path,run_id=run_id,retrieval_status="FRESH",
+                    retrieval_attempted_at=fetched.collected_at,last_verified_at=fetched.collected_at,
+                    stale_age_hours=0.0,
+                )
                 evidence_frames.append(derived)
                 rows = len(parsed)
             else:
@@ -323,14 +420,63 @@ def collect_all(
                 "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"ok","rows":rows,
                 "fetch_collected_at":fetched.collected_at.isoformat(),
                 "canonical_available_at":canonical_collected_at.isoformat(),
+                "last_verified_at":fetched.collected_at.isoformat(),
+                "retrieval_status":"FRESH",
+                "stale_age_hours":0.0,
                 "source_url":fetched.url,
                 "sha256":digest,"payload_bytes":len(fetched.payload),"changed":bool(changed),
-                "persistent_path":str(raw_path.relative_to(ROOT)) if raw_path else "",
+                "persistent_path":_display_path(raw_path),
             })
         except Exception as exc:
+            attempted_at=pd.Timestamp.now(tz="UTC")
+            fallback=None
+            if bool(source.get("allow_stale_fallback",False)):
+                try:
+                    fallback=load_persisted_snapshot(persistent_root=persistent_root,source_id=sid)
+                except Exception as fallback_load_exc:
+                    exc=RuntimeError(f"{exc}; persisted fallback invalid: {fallback_load_exc}")
+            if fallback is not None:
+                payload,raw_path,digest,canonical_collected_at,last_verified_at,stored_url=fallback
+                stale_age_hours=max(0.0,(attempted_at-last_verified_at).total_seconds()/3600.0)
+                max_stale_hours=float(source.get("max_stale_hours",72))
+                if stale_age_hours<=max_stale_hours:
+                    try:
+                        derived,rows=_parse_payload(
+                            source,payload,canonical_collected_at=canonical_collected_at,
+                            source_url=stored_url or str(source.get("url","")),
+                            relationships=relationships,companies=companies,
+                        )
+                        derived=_decorate_retrieval(
+                            derived,digest=digest,raw_path=raw_path,run_id=run_id,
+                            retrieval_status="STALE_FALLBACK",retrieval_attempted_at=attempted_at,
+                            last_verified_at=last_verified_at,stale_age_hours=stale_age_hours,
+                            fetch_error=str(exc),
+                        )
+                        evidence_frames.append(derived)
+                        status.append({
+                            "source_id":sid,"provider":source.get("provider",""),"kind":kind,
+                            "status":"stale_fallback","rows":rows,
+                            "fetch_collected_at":attempted_at.isoformat(),
+                            "canonical_available_at":canonical_collected_at.isoformat(),
+                            "last_verified_at":last_verified_at.isoformat(),
+                            "retrieval_status":"STALE_FALLBACK",
+                            "stale_age_hours":stale_age_hours,
+                            "max_stale_hours":max_stale_hours,
+                            "source_url":stored_url or str(source.get("url","")),
+                            "sha256":digest,"payload_bytes":len(payload),"changed":False,
+                            "persistent_path":_display_path(raw_path),
+                            "error":str(exc),
+                        })
+                        continue
+                    except Exception as fallback_parse_exc:
+                        exc=RuntimeError(f"{exc}; stale fallback parse failed: {fallback_parse_exc}")
+                else:
+                    exc=RuntimeError(
+                        f"{exc}; stale fallback exceeds max age: {stale_age_hours:.1f}h > {max_stale_hours:.1f}h"
+                    )
             status.append({
                 "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"error","rows":0,
-                "error":str(exc),"collected_at":pd.Timestamp.now(tz="UTC").isoformat(),
+                "retrieval_status":"ERROR","error":str(exc),"collected_at":attempted_at.isoformat(),
             })
 
     frames = [f for f in evidence_frames if not f.empty]
@@ -346,6 +492,8 @@ def collect_all(
         "policy": cfg.get("policy",""),
         "sources_total": len(status),
         "sources_ok": sum(s["status"] == "ok" for s in status),
+        "sources_stale": sum(s["status"] == "stale_fallback" for s in status),
+        "sources_usable": sum(s["status"] in {"ok","stale_fallback"} for s in status),
         "sources_error": sum(s["status"] == "error" for s in status),
         "evidence_rows": len(evidence),
         "sources": status,

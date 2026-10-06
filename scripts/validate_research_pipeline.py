@@ -12,12 +12,24 @@ ROOT=Path(__file__).resolve().parents[1]
 def validate_live_evidence() -> list[dict]:
     status=json.loads((ROOT/"artifacts/free_evidence_collection_status.json").read_text(encoding="utf-8"))
     evidence=pd.read_csv(ROOT/"artifacts/free_evidence_latest.csv")
+    sources_ok=int(status.get("sources_ok",0))
+    sources_stale=int(status.get("sources_stale",0))
+    sources_usable=int(status.get("sources_usable",sources_ok+sources_stale))
+    retrieval=set(evidence.get("retrieval_status",pd.Series(dtype=str)).dropna().astype(str))
+    stale_status=[s for s in status.get("sources",[]) if s.get("status")=="stale_fallback"]
+    stale_within_limit=all(
+        float(s.get("stale_age_hours",1e99)) <= float(s.get("max_stale_hours",-1))
+        for s in stale_status
+    )
     checks=[
-        {"name":"live_sources_minimum","passed":status["sources_ok"]>=4,"severity":"FAIL","detail":f"{status['sources_ok']}/{status['sources_total']}"},
+        {"name":"live_sources_minimum","passed":sources_usable>=4,"severity":"FAIL","detail":f"usable={sources_usable}/{status['sources_total']} fresh={sources_ok} stale={sources_stale}"},
+        {"name":"live_fresh_sources_reasonable","passed":sources_ok>=4,"severity":"DEGRADED","detail":f"fresh={sources_ok}/{status['sources_total']} stale={sources_stale}"},
+        {"name":"live_stale_within_limit","passed":stale_within_limit,"severity":"FAIL","detail":f"stale_sources={len(stale_status)}"},
         {"name":"live_evidence_nonempty","passed":len(evidence)>=1,"severity":"FAIL","detail":str(len(evidence))},
         {"name":"live_pit_policy","passed":set(evidence["availability_policy"])=={"collection_time_conservative"},"severity":"FAIL","detail":"collection_time_conservative"},
         {"name":"live_raw_trace","passed":evidence["raw_sha256"].astype(str).str.len().eq(64).all(),"severity":"FAIL","detail":"raw sha256 required"},
         {"name":"live_run_trace","passed":evidence["pipeline_run_id"].astype(str).str.len().gt(0).all(),"severity":"FAIL","detail":"pipeline_run_id required"},
+        {"name":"live_retrieval_status","passed":bool(retrieval) and retrieval.issubset({"FRESH","STALE_FALLBACK"}),"severity":"FAIL","detail":" | ".join(sorted(retrieval))},
         {"name":"live_reliability_prior","passed":set(evidence["reliability_basis"])=={"SOURCE_CLASS_PRIOR"},"severity":"FAIL","detail":"prior only"},
     ]
     return checks
