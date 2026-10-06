@@ -1,0 +1,32 @@
+{
+  "schema_version": "PipelineContinuityV1",
+  "pipeline": "history",
+  "validated_at": "2026-10-06T07:38:23.675979+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "history_append_only_keys_preserved",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "missing_keys=0"
+    },
+    {
+      "name": "history_row_count_non_decreasing",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "current=271 baseline=270"
+    },
+    {
+      "name": "history_latest_period_not_regressed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "regressed=none"
+    },
+    {
+      "name": "history_value_revisions_recorded",
+      "passed": true,
+      "severity": "INFO",
+      "detail": "revised_existing_rows=0"
+    }
+  ]
+}
