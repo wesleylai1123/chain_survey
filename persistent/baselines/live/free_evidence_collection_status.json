@@ -1,6 +1,6 @@
 {
-  "pipeline_run_id": "37585820069-1",
-  "collected_at": "2026-10-07T07:13:24.907144+00:00",
+  "pipeline_run_id": "37742690055-1",
+  "collected_at": "2026-10-08T07:20:46.813353+00:00",
   "policy": "Latest-only endpoints are forward-collected. Collection time is the earliest allowed availability when an exact historical publication timestamp is unavailable.",
   "sources_total": 5,
   "sources_ok": 5,
@@ -13,7 +13,7 @@
       "kind": "monthly_revenue_json",
       "status": "ok",
       "rows": 1086,
-      "fetch_collected_at": "2026-10-07T07:12:36.499346+00:00",
+      "fetch_collected_at": "2026-10-08T07:20:41.081074+00:00",
       "canonical_available_at": "2026-10-03T15:25:39.960961+00:00",
       "source_url": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
       "sha256": "83480ff80b337e936821b45e2cef1c2a48ba92f112fb3e31027501810e8bccf5",
@@ -27,7 +27,7 @@
       "kind": "monthly_revenue_json",
       "status": "ok",
       "rows": 892,
-      "fetch_collected_at": "2026-10-07T07:13:19.997468+00:00",
+      "fetch_collected_at": "2026-10-08T07:20:41.965283+00:00",
       "canonical_available_at": "2026-10-03T15:25:43.539982+00:00",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O",
       "sha256": "f00e3fdd7060db0db943b79dc53d732df940d038ef208a1b075363e06660bd92",
@@ -41,7 +41,7 @@
       "kind": "data_gov_dataset_csv",
       "status": "ok",
       "rows": 511,
-      "fetch_collected_at": "2026-10-07T07:13:21.049437+00:00",
+      "fetch_collected_at": "2026-10-08T07:20:43.248799+00:00",
       "canonical_available_at": "2026-10-03T15:25:44.514767+00:00",
       "source_url": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E8%B3%87%E8%A8%8A%E9%80%9A%E8%A8%8A%E7%94%A2%E5%93%81.csv",
       "sha256": "e689dc9ac9d8ce5adec7c8d69280bc4333681bac14e606133dbf2f72a8d5b10a",
@@ -55,7 +55,7 @@
       "kind": "data_gov_dataset_csv",
       "status": "ok",
       "rows": 511,
-      "fetch_collected_at": "2026-10-07T07:13:21.704511+00:00",
+      "fetch_collected_at": "2026-10-08T07:20:43.907660+00:00",
       "canonical_available_at": "2026-10-03T15:25:44.911933+00:00",
       "source_url": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv",
       "sha256": "bf9dd408799dc677a37e512d22cec1100d43ae1c028d89af308c26da221af60d",
@@ -69,13 +69,13 @@
       "kind": "tpca_public_listing",
       "status": "ok",
       "rows": 5,
-      "fetch_collected_at": "2026-10-07T07:13:24.896546+00:00",
-      "canonical_available_at": "2026-10-07T07:13:24.896546+00:00",
+      "fetch_collected_at": "2026-10-08T07:20:46.804613+00:00",
+      "canonical_available_at": "2026-10-08T07:20:46.804613+00:00",
       "source_url": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184",
-      "sha256": "17c0b54ba0e5fdf2e6ad7179836f0b1311801b8e7fe109ba47db4af686107f24",
-      "payload_bytes": 89749,
+      "sha256": "f0a4ff2531750c6f16ee8745709b1ab8282c2932777248ab5af11256fd58a332",
+      "payload_bytes": 89737,
       "changed": true,
-      "persistent_path": "persistent/free_evidence/raw/tpca_monthly_industry/20261007T071324Z.html"
+      "persistent_path": "persistent/free_evidence/raw/tpca_monthly_industry/20261008T072046Z.html"
     }
   ]
 }
