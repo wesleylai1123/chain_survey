@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-09T21:52:26.416402+00:00",
+  "updated_at": "2026-10-10T20:41:17.771624+00:00",
   "universe_companies": 1968,
   "batch_size": 25,
   "total_batches": 79,
@@ -29,12 +29,13 @@
     22,
     23,
     24,
-    25
+    25,
+    26
   ],
-  "completed_batch_count": 26,
-  "pending_batch_count": 53,
-  "next_batch": 26,
-  "companies_materialized": 648,
-  "factor_rows": 16773,
+  "completed_batch_count": 27,
+  "pending_batch_count": 52,
+  "next_batch": 27,
+  "companies_materialized": 673,
+  "factor_rows": 17397,
   "universe_source": "taiwan_stock_universe.csv"
 }
