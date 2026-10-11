@@ -7,9 +7,9 @@
       "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L"
     },
     "tpex_monthly_revenue": {
-      "sha256": "f00e3fdd7060db0db943b79dc53d732df940d038ef208a1b075363e06660bd92",
-      "latest_snapshot": "raw/tpex_monthly_revenue/20261003T152543Z.json",
-      "collected_at": "2026-10-03T15:25:43.539982+00:00",
+      "sha256": "82e93e2b7a8895e2c3507ef766bee34c5a9b467b9aebc6c9067ec3278e9ad607",
+      "latest_snapshot": "raw/tpex_monthly_revenue/20261011T070852Z.json",
+      "collected_at": "2026-10-11T07:08:52.981237+00:00",
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
@@ -25,9 +25,9 @@
       "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv"
     },
     "tpca_monthly_industry": {
-      "sha256": "f6517ef9f20366cda18abcd2c013c7dfd707535ea98a7046ce85f9f9e7b70227",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261010T070222Z.html",
-      "collected_at": "2026-10-10T07:02:22.346206+00:00",
+      "sha256": "920f918ef2bc352484b58bb9e8daa35fdab09dd3caa01a6e961633790929d260",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261011T070857Z.html",
+      "collected_at": "2026-10-11T07:08:57.869827+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
