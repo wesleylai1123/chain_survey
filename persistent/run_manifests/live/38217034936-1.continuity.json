@@ -1,0 +1,32 @@
+{
+  "schema_version": "PipelineContinuityV1",
+  "pipeline": "live",
+  "validated_at": "2026-10-12T07:19:50.090757+00:00",
+  "status": "DEGRADED",
+  "checks": [
+    {
+      "name": "live_previously_healthy_sources_present",
+      "passed": false,
+      "severity": "DEGRADED",
+      "detail": "lost=['tpex_monthly_revenue']"
+    },
+    {
+      "name": "live_row_count_not_collapsed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "current=10 baseline=10 ratio=1.000"
+    },
+    {
+      "name": "live_row_count_reasonable",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "current=10 baseline=10 ratio=1.000"
+    },
+    {
+      "name": "live_latest_availability_not_regressed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "regressed=none"
+    }
+  ]
+}
