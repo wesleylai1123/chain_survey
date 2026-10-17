@@ -1,6 +1,6 @@
 {
-  "pipeline_run_id": "38857709403-1",
-  "collected_at": "2026-10-16T05:49:14.071859+00:00",
+  "pipeline_run_id": "39006683140-1",
+  "collected_at": "2026-10-17T05:34:02.916656+00:00",
   "policy": "Latest-only endpoints are forward-collected. Collection time is the earliest allowed availability when an exact historical publication timestamp is unavailable.",
   "sources_total": 5,
   "sources_ok": 5,
@@ -12,28 +12,28 @@
       "provider": "TWSE",
       "kind": "monthly_revenue_json",
       "status": "ok",
-      "rows": 1079,
-      "fetch_collected_at": "2026-10-16T05:49:09.045119+00:00",
-      "canonical_available_at": "2026-10-16T05:49:09.045119+00:00",
+      "rows": 1088,
+      "fetch_collected_at": "2026-10-17T05:33:55.214881+00:00",
+      "canonical_available_at": "2026-10-17T05:33:55.214881+00:00",
       "source_url": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
-      "sha256": "bbfed37eeed65593d607037d871ae1b4040932b2966840f784e3a673cc9e05f9",
-      "payload_bytes": 601808,
+      "sha256": "ed3a8aa324336a026c4c70b902694e2a6142aae70b418af8760c947bb88bb990",
+      "payload_bytes": 607634,
       "changed": true,
-      "persistent_path": "persistent/free_evidence/raw/twse_monthly_revenue/20261016T054909Z.json"
+      "persistent_path": "persistent/free_evidence/raw/twse_monthly_revenue/20261017T053355Z.json"
     },
     {
       "source_id": "tpex_monthly_revenue",
       "provider": "TPEx",
       "kind": "monthly_revenue_json",
       "status": "ok",
-      "rows": 894,
-      "fetch_collected_at": "2026-10-16T05:49:09.987680+00:00",
-      "canonical_available_at": "2026-10-16T05:49:09.987680+00:00",
+      "rows": 893,
+      "fetch_collected_at": "2026-10-17T05:33:57.756479+00:00",
+      "canonical_available_at": "2026-10-17T05:33:57.756479+00:00",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O",
-      "sha256": "eef4442b3e629863785d59bba2ae910bb92a722be5b1b4687d20e2c33c6f1850",
-      "payload_bytes": 497134,
+      "sha256": "20e3160dea74fbd95cf0a68e479a7350402817f82ea54e57b9320be147186c82",
+      "payload_bytes": 496597,
       "changed": true,
-      "persistent_path": "persistent/free_evidence/raw/tpex_monthly_revenue/20261016T054909Z.json"
+      "persistent_path": "persistent/free_evidence/raw/tpex_monthly_revenue/20261017T053357Z.json"
     },
     {
       "source_id": "moea_export_orders_info_comm",
@@ -41,7 +41,7 @@
       "kind": "data_gov_dataset_csv",
       "status": "ok",
       "rows": 511,
-      "fetch_collected_at": "2026-10-16T05:49:10.765155+00:00",
+      "fetch_collected_at": "2026-10-17T05:33:58.611448+00:00",
       "canonical_available_at": "2026-10-03T15:25:44.514767+00:00",
       "source_url": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E8%B3%87%E8%A8%8A%E9%80%9A%E8%A8%8A%E7%94%A2%E5%93%81.csv",
       "sha256": "e689dc9ac9d8ce5adec7c8d69280bc4333681bac14e606133dbf2f72a8d5b10a",
@@ -55,7 +55,7 @@
       "kind": "data_gov_dataset_csv",
       "status": "ok",
       "rows": 511,
-      "fetch_collected_at": "2026-10-16T05:49:11.278173+00:00",
+      "fetch_collected_at": "2026-10-17T05:33:59.171374+00:00",
       "canonical_available_at": "2026-10-03T15:25:44.911933+00:00",
       "source_url": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv",
       "sha256": "bf9dd408799dc677a37e512d22cec1100d43ae1c028d89af308c26da221af60d",
@@ -69,13 +69,13 @@
       "kind": "tpca_public_listing",
       "status": "ok",
       "rows": 5,
-      "fetch_collected_at": "2026-10-16T05:49:14.065372+00:00",
-      "canonical_available_at": "2026-10-16T05:49:14.065372+00:00",
+      "fetch_collected_at": "2026-10-17T05:34:02.904591+00:00",
+      "canonical_available_at": "2026-10-17T05:34:02.904591+00:00",
       "source_url": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184",
-      "sha256": "f12b5a749b9f9634a523bcc03dd95de0c01c55fbd8dd00d6c09766fe0777dafb",
-      "payload_bytes": 89671,
+      "sha256": "d6d809c075f16044cc870c1b934a1b7a3e9914d8bcd3b113009192cfca68863a",
+      "payload_bytes": 89666,
       "changed": true,
-      "persistent_path": "persistent/free_evidence/raw/tpca_monthly_industry/20261016T054914Z.html"
+      "persistent_path": "persistent/free_evidence/raw/tpca_monthly_industry/20261017T053402Z.html"
     }
   ]
 }
