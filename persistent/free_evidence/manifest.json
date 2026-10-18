@@ -1,15 +1,15 @@
 {
   "sources": {
     "twse_monthly_revenue": {
-      "sha256": "ed3a8aa324336a026c4c70b902694e2a6142aae70b418af8760c947bb88bb990",
-      "latest_snapshot": "raw/twse_monthly_revenue/20261017T053355Z.json",
-      "collected_at": "2026-10-17T05:33:55.214881+00:00",
+      "sha256": "a58c04b3bdc2b94632027018ca4f09f6ad053848addb7b9580b372626542fc17",
+      "latest_snapshot": "raw/twse_monthly_revenue/20261018T055123Z.json",
+      "collected_at": "2026-10-18T05:51:23.867803+00:00",
       "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L"
     },
     "tpex_monthly_revenue": {
-      "sha256": "20e3160dea74fbd95cf0a68e479a7350402817f82ea54e57b9320be147186c82",
-      "latest_snapshot": "raw/tpex_monthly_revenue/20261017T053357Z.json",
-      "collected_at": "2026-10-17T05:33:57.756479+00:00",
+      "sha256": "a27fea120daa8ef4543bcbf6e31426cad2e0201111ee8d97916fbb5fce2727a6",
+      "latest_snapshot": "raw/tpex_monthly_revenue/20261018T055124Z.json",
+      "collected_at": "2026-10-18T05:51:24.790196+00:00",
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
@@ -25,9 +25,9 @@
       "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv"
     },
     "tpca_monthly_industry": {
-      "sha256": "d6d809c075f16044cc870c1b934a1b7a3e9914d8bcd3b113009192cfca68863a",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261017T053402Z.html",
-      "collected_at": "2026-10-17T05:34:02.904591+00:00",
+      "sha256": "676474b539ddad1f39f6fa97773d9f087c0c36bd2e2072334f95a4f1aa9fbeda",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261018T055130Z.html",
+      "collected_at": "2026-10-18T05:51:30.010585+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
