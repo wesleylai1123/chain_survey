@@ -13,21 +13,21 @@
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
-      "sha256": "e689dc9ac9d8ce5adec7c8d69280bc4333681bac14e606133dbf2f72a8d5b10a",
-      "latest_snapshot": "raw/moea_export_orders_info_comm/20261003T152544Z.csv",
-      "collected_at": "2026-10-03T15:25:44.514767+00:00",
+      "sha256": "bfee99dc3ccfb83059e8a0f610abed82eb08ec2a6b1e652d375e4ced0492da9e",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261021T060046Z.csv",
+      "collected_at": "2026-10-21T06:00:46.031769+00:00",
       "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E8%B3%87%E8%A8%8A%E9%80%9A%E8%A8%8A%E7%94%A2%E5%93%81.csv"
     },
     "moea_export_orders_electronics": {
-      "sha256": "bf9dd408799dc677a37e512d22cec1100d43ae1c028d89af308c26da221af60d",
-      "latest_snapshot": "raw/moea_export_orders_electronics/20261003T152544Z.csv",
-      "collected_at": "2026-10-03T15:25:44.911933+00:00",
+      "sha256": "b6fceef56171935b7100bad2bc17acd30ccc123587176d091693e9ed3e60adf4",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261021T060046Z.csv",
+      "collected_at": "2026-10-21T06:00:46.668213+00:00",
       "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv"
     },
     "tpca_monthly_industry": {
-      "sha256": "abba8026fa25af41fc6598ba75831bcf16b6f80c3176f297e4bd99b7e94ca6cb",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261020T055954Z.html",
-      "collected_at": "2026-10-20T05:59:54.672282+00:00",
+      "sha256": "dfcf530c48df60a7b1e2461d55fe6f95d0501f09191e6726cbdf735f989e59af",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261021T060049Z.html",
+      "collected_at": "2026-10-21T06:00:49.529625+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
