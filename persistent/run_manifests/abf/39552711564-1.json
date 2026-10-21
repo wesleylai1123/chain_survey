@@ -1,0 +1,141 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "39552711564-1",
+  "pipeline": "abf_source_discovery",
+  "status": "DEGRADED",
+  "code_revision": "6fa27210a4a5b8c131cf0c87b96c4c400a6bcabb",
+  "run_attempt": "1",
+  "generated_at": "2026-10-21T06:03:33.635881+00:00",
+  "inputs": [
+    {
+      "path": "data/abf_source_registry.csv",
+      "exists": true,
+      "bytes": 4051,
+      "sha256": "c4d460fbdd789d8e5e378981b4150b2529addbbe42d96947d4875a69c2cec160"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/abf_source_manifest.csv",
+      "exists": true,
+      "bytes": 65283,
+      "sha256": "6ee53bea518d2861eac0ad61b6b11f538e5578a5afb8124e08e1b0517bcb79db"
+    },
+    {
+      "path": "artifacts/abf_source_health.csv",
+      "exists": true,
+      "bytes": 4725,
+      "sha256": "d0e8fc10c0e257e55dd9a089848c6dae4b4a959b72a8d29c09c76ab1031c4810"
+    },
+    {
+      "path": "artifacts/abf_operating_candidates.csv",
+      "exists": true,
+      "bytes": 59130,
+      "sha256": "ddaf0d49af7590eea0f30983490853d53c070f70e560e8fad05e17642886cbf9"
+    },
+    {
+      "path": "artifacts/abf_document_extract_status.csv",
+      "exists": true,
+      "bytes": 21998,
+      "sha256": "de03b5f56bda3c9d852a82670c8b6cebcd05a7bb93b94867164f094a76f9c4aa"
+    },
+    {
+      "path": "artifacts/abf_pipeline_validation.json",
+      "exists": true,
+      "bytes": 1404,
+      "sha256": "447b35dff58eeb05f196c06b022af780f5601229151cfe04eaf47e26ed99eb1f"
+    },
+    {
+      "path": "artifacts/abf_pipeline_continuity.json",
+      "exists": true,
+      "bytes": 1023,
+      "sha256": "0f11b11d4a8f59790ebbe104af91cb02fd234e354268c6a7764b52f237f3a50b"
+    }
+  ],
+  "checks": [
+    {
+      "name": "abf_each_company_has_healthy_source",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3037/3189/8046"
+    },
+    {
+      "name": "abf_documents_processed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "58"
+    },
+    {
+      "name": "abf_document_sha_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha required"
+    },
+    {
+      "name": "abf_candidate_review_gate",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "no auto-promotion"
+    },
+    {
+      "name": "abf_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "candidate raw sha required"
+    },
+    {
+      "name": "abf_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline run required"
+    },
+    {
+      "name": "abf_fetch_mode_explicit",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "successful docs require explicit fetch mode"
+    },
+    {
+      "name": "abf_cache_reuse_requires_unchanged_raw",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "304 cache reuse must not claim raw changed"
+    },
+    {
+      "name": "abf_document_failure_rate",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "0/58"
+    },
+    {
+      "name": "abf_processed_document_count_not_collapsed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "current_ok=58 baseline_ok=74 ratio=0.784"
+    },
+    {
+      "name": "abf_processed_document_count_reasonable",
+      "passed": false,
+      "severity": "DEGRADED",
+      "detail": "current_ok=58 baseline_ok=74 ratio=0.784"
+    },
+    {
+      "name": "abf_previously_healthy_sources_present",
+      "passed": false,
+      "severity": "DEGRADED",
+      "detail": "lost=['kinsus_esg', 'kinsus_ir', 'kinsus_monthly']"
+    },
+    {
+      "name": "abf_candidate_count_reasonable",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "current=67 baseline=68 ratio=0.985"
+    },
+    {
+      "name": "abf_candidate_types_preserved",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "lost=none"
+    }
+  ]
+}
