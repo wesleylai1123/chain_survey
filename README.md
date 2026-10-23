@@ -2,6 +2,8 @@
 
 chain_survey is the main research product in a three-repository investment research stack.
 
+ABF's audited Company × Product reference slice now has a [machine-readable semantics contract and Level/Change comparison](docs/abf-semantics-validation.md). Open **Semantics & Stability** in the ABF Research Lab or run `python scripts/run_abf_semantics_validation.py` to export independent upside/downside evidence, explicit proxy/PIT limitations and calibration prerequisites.
+
 The platform is built around one idea:
 
 > Do not start from price prediction. Start from where industry profit is moving, identify the operating driver, connect it to products and companies, validate the relation point-in-time, and only then translate it into earnings and investment hypotheses.

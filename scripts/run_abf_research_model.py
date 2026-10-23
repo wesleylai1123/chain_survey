@@ -17,6 +17,8 @@ from core.abf_margin_transmission import scan_revenue_to_margin
 from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
+from scripts.run_abf_semantics_validation import main as run_semantics_validation
+from datetime import datetime, timezone
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
 FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
@@ -25,6 +27,7 @@ OUT=ROOT/"artifacts"
 
 
 def main() -> None:
+    run_semantics_validation(['--as-of',datetime.now(timezone.utc).isoformat()])
     history=pd.read_csv(HISTORY)
     factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
     operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
@@ -41,7 +44,8 @@ def main() -> None:
         config=ScenarioValidationConfig(),
     )
 
-    model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table)
+    audited=json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8'))
+    model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table,comparisons=pd.DataFrame(audited['comparisons']))
 
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
@@ -64,20 +68,20 @@ def main() -> None:
     )
 
     basket=sensitivities[sensitivities["ticker"]=="ABF"].iloc[0]
-    revenue_status=(
-        "DIRECTION_AND_MAGNITUDE_VALIDATED"
-        if bool(basket["magnitude_validation_pass"])
-        else "DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE"
-    )
+    revenue_status='PROXY_RESEARCH_ONLY_NOT_PRODUCT_CALIBRATED'
 
     snapshot={
-        "schema_version":"ABFResearchSnapshotV1",
+        "schema_version":"ABFResearchSnapshotV2",
+        'audited_semantics':json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8')),
+        'legacy_fit_policy':'Basket fits below are exploratory; audited Company × Product eligibility controls model use.',
         "industry_model_id":"ic_substrate_abf_bt",
         "leading_indicator":{
             "indicator_id":"tpca_pcb_revenue_yoy",
             "timing_class":"LEADING",
             "relative_to":"abf_revenue_yoy_basket",
-            "validated_lag_months":1
+            "candidate_lag_months":1,
+            'eligibility':'reject',
+            'evidence_status':'DERIVED'
         },
         "driver":{
             "driver_id":"end_demand",
@@ -85,7 +89,8 @@ def main() -> None:
             "scenario_validation":scenario_table.where(pd.notna(scenario_table),None).to_dict("records")
         },
         "sensitivity":{
-            "model_type":"linear_beta_v1",
+            "model_type":"exploratory_linear_beta_v1",
+            'model_use':'DO_NOT_USE_AS_ABF_PRODUCT_FORECAST',
             "source_units":"TPCA PCB Revenue YoY percentage points",
             "target_units":"ABF company revenue YoY percentage points",
             "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")

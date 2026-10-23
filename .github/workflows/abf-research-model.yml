@@ -75,7 +75,8 @@ jobs:
           lead=timing[timing.indicator_id=='tpca_pcb_revenue_yoy'].iloc[0]
           assert lead['timing_class']=='LEADING'
           assert int(lead['lag_value'])==1
-          assert lead['evidence_status']=='FULL_SAMPLE_RELATION_VALIDATED'
+          assert lead['evidence_status']=='DERIVED'
+          assert lead['validation_status']=='FULL_SAMPLE_RELATION_VALIDATED'
 
           assert set(sens['ticker'])=={'3037.TW','3189.TW','8046.TW','ABF'}
           assert set(scenarios['scenario'])=={'UPSIDE','DOWNSIDE'}
@@ -97,17 +98,12 @@ jobs:
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
-          assert snap['downstream']['revenue'] in {
-              'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE',
-              'DIRECTION_AND_MAGNITUDE_VALIDATED'
-          }
-          basket=sens[sens.ticker=='ABF'].iloc[0]
-          expected=(
-              'DIRECTION_AND_MAGNITUDE_VALIDATED'
-              if bool(basket['magnitude_validation_pass'])
-              else 'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE'
-          )
-          assert snap['downstream']['revenue']==expected
+          assert snap['downstream']['revenue']=='PROXY_RESEARCH_ONLY_NOT_PRODUCT_CALIBRATED'
+          assert snap['schema_version']=='ABFResearchSnapshotV2'
+          audit=snap['audited_semantics']
+          assert len(audit['comparisons'])==120
+          assert all(r['product']=='ABF' and r['company'] in {'3037.TW','3189.TW','8046.TW'} for r in audit['comparisons'])
+          assert all(r['eligibility']!='eligible' for r in audit['comparisons'])
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
 
           print('ABF_RESEARCH_OUTPUTS_OK')
@@ -141,6 +137,12 @@ jobs:
             artifacts/abf_revenue_to_margin_scan.csv
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
+            artifacts/abf_semantics_validation.json
+            artifacts/abf_semantics_validation.html
+            artifacts/abf_transform_comparison.csv
+            artifacts/abf_calibration_handoff.json
+            artifacts/abf_downside_source_priorities.json
+            artifacts/abf-semantics-stability.png
             artifacts/abf-indicator-timing.png
             artifacts/abf-scenario-evidence.png
             artifacts/abf-data-coverage.png

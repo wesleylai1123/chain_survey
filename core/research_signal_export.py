@@ -188,7 +188,19 @@ def _prepare(
             },
         }
         records.append(record)
-        details.append({"entity_id": record["entity_id"], "period": period, "source_url": row["source_url"], "knowledge_time_method": row["knowledge_time_method"], "published_at": row["published_at"]})
+        # V1 is a frozen cross-repository boundary. Its keyed companion carries
+        # the richer semantics without silently changing downstream schemas.
+        details.append({"entity_id": record["entity_id"], "period": period, "source_url": row["source_url"],
+            "knowledge_time_method": row["knowledge_time_method"], "published_at": row["published_at"],
+            'observation_date':row['period_date'],
+            'release_date':None if is_proxy else row['published_at'],
+            'available_at':record['available_at'],'signal_generated_at':cutoff.isoformat(),
+            'generation_time_basis':'EXPLICIT_AS_OF_REPLAY',
+            'company':record['entity_id'],'product':'ABF','source_scope':'COMPANY_TOTAL',
+            'is_proxy':True,'pit_basis':'PROXY' if is_proxy else 'SOURCE_REPORTED',
+            'measure_kind':'CHANGE','change_basis':'YOY','unit':'percent',
+            'accounting_basis':'CONSOLIDATED_REPORTED','return_basis':'NOT_APPLICABLE',
+            'evidence_status':'DERIVED','eligibility':'support-only'})
     records.sort(key=lambda signal: (-signal["signal_value"], signal["entity_id"]))
     for rank, record in enumerate(records, 1):
         record["rank"] = rank
