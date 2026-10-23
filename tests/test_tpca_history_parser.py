@@ -1,11 +1,36 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
+import pandas as pd
 
 from scripts.backfill_tpca_history import parse_list_page
 
 
 class TpcaHistoryParserTests(unittest.TestCase):
+    def test_partial_listing_refresh_preserves_verified_history_and_pit(self):
+        from scripts import backfill_tpca_history as module
+        self.assertTrue(hasattr(module,'merge_history'),'history merge is missing')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'tpca.csv'
+            old=pd.DataFrame([{'metric_id':'pcb_revenue_yoy','period':'2024-01','change_pct':2,
+                'published_at':'2024-02-15T23:59:59+08:00','source_url':'https://example.com/old'}])
+            old.to_csv(path,index=False)
+            current=pd.DataFrame([{'metric_id':'pcb_revenue_yoy','period':'2026-09','change_pct':10,
+                'published_at':'2026-10-15T23:59:59+08:00','source_url':'https://example.com/new'}])
+            merged=module.merge_history(current,path)
+            self.assertEqual(len(merged),2)
+            retained=merged[merged.period.eq('2024-01')].iloc[0]
+            self.assertEqual(retained.published_at,old.iloc[0].published_at)
+            self.assertEqual(retained.source_url,old.iloc[0].source_url)
+            merged.to_csv(path,index=False)
+            pd.testing.assert_frame_equal(module.merge_history(current,path),merged)
+            revised=current.copy()
+            revised['change_pct']=11
+            result=module.merge_history(revised,path)
+            self.assertEqual(float(result[result.period.eq('2026-09')].iloc[0].change_pct),11)
+
     def test_parse_public_titles(self) -> None:
         html = """
         <ul>
