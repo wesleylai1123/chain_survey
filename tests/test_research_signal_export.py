@@ -52,6 +52,18 @@ def build(rows: list[dict], **kwargs: object) -> list[dict]:
 
 
 class ResearchSignalExportTests(unittest.TestCase):
+    def test_manifest_companion_has_all_signal_times_and_product_scope(self):
+        from core.research_signal_export import _prepare
+        _,manifest=_prepare([row(code) for code in ('3037','3189','8046')],
+            snapshot_acquired_at=ACQUIRED,as_of=ACQUIRED,commit_sha=SHA,input_snapshot_id='test',
+            stock_ids=('3037','3189','8046'))
+        for signal in manifest['signals']:
+            for field in ('observation_date','release_date','available_at','signal_generated_at'):
+                self.assertIn(field,signal)
+            self.assertIsNone(signal['release_date'])
+            self.assertEqual(signal['evidence_status'],'DERIVED')
+            self.assertEqual(signal['source_scope'],'COMPANY_TOTAL')
+
     def setUp(self) -> None:
         self.rows = [row("3037"), row("3189", yoy="5"), row("8046", yoy="-1")]
 

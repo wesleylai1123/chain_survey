@@ -27,6 +27,8 @@ def load_indicator_catalog(path: str | Path=DEFAULT_CATALOG) -> dict[str,Any]:
             raise ValueError(f"Indicator {iid} must declare relative_to")
         if item.get("economic_orientation") not in VALID_ORIENTATIONS:
             raise ValueError(f"Indicator {iid} must declare economic_orientation")
+        if item.get('evidence_status') not in {'DISCLOSED','DERIVED','ESTIMATED','INFERRED','UNKNOWN'}:
+            raise ValueError(f'Noncanonical evidence status for {iid}')
     return payload
 
 
@@ -43,6 +45,7 @@ def indicator_table(path: str | Path=DEFAULT_CATALOG) -> pd.DataFrame:
             "lag_value":lag.get("value"),
             "lag_unit":lag.get("unit"),
             "evidence_status":item.get("evidence_status",""),
+            "validation_status":item.get('validation_status','NOT_VALIDATED'),
             "economic_orientation":item.get("economic_orientation",""),
             "positive_case":item.get("positive_case",""),
             "negative_case":item.get("negative_case",""),

@@ -15,15 +15,17 @@ from app.abf_research_lab import AbfResearchLab
 OUT_DIR=ROOT/"artifacts"
 
 
-def capture(app: AbfResearchLab, index: int, name: str) -> Path:
-    app.book.select(index)
+def capture(app: AbfResearchLab, tab_name: str, name: str) -> Path:
+    tab=next(tab for tab in app.book.tabs() if app.book.tab(tab,'text')==tab_name)
+    app.book.select(tab)
     app.update_idletasks()
     app.update()
     out=OUT_DIR/name
     if shutil.which("scrot"):
         subprocess.run(["scrot",str(out)],check=True)
     else:
-        ImageGrab.grab().save(out)
+        bounds=(app.winfo_rootx(),app.winfo_rooty(),app.winfo_rootx()+app.winfo_width(),app.winfo_rooty()+app.winfo_height())
+        ImageGrab.grab(bbox=bounds).save(out)
     if not out.exists() or out.stat().st_size==0:
         raise RuntimeError(f"Screenshot missing: {out}")
     return out
@@ -34,16 +36,21 @@ def main() -> None:
     app.update_idletasks(); app.update()
     if len(app.indicators)<6:
         raise RuntimeError("Indicator taxonomy incomplete")
-    if app.sensitivity.empty:
-        raise RuntimeError("Sensitivity table missing; history not restored")
+    if app.comparisons.empty:
+        raise RuntimeError('Explicit comparison/missing-state table absent')
+    if set(app.comparisons['scenario'])!={'UPSIDE','DOWNSIDE'}:
+        raise RuntimeError('Independent scenario rows missing')
+    if app.comparison_tree is None or len(app.comparison_tree.get_children())!=60:
+        raise RuntimeError('Downside Company × Product rows not rendered')
     OUT_DIR.mkdir(parents=True,exist_ok=True)
     files=[
-        capture(app,0,"abf-indicator-timing.png"),
-        capture(app,1,"abf-scenario-evidence.png"),
-        capture(app,2,"abf-data-coverage.png"),
-        capture(app,3,"abf-revenue-to-gm.png"),
-        capture(app,4,"abf-revenue-sensitivity.png"),
-        capture(app,5,"abf-driver-sensitivity-model.png"),
+        capture(app,'Semantics & Stability','abf-semantics-stability.png'),
+        capture(app,'Indicator Timing',"abf-indicator-timing.png"),
+        capture(app,'Scenario Evidence',"abf-scenario-evidence.png"),
+        capture(app,'Data Coverage',"abf-data-coverage.png"),
+        capture(app,'Revenue → GM',"abf-revenue-to-gm.png"),
+        capture(app,'Revenue Sensitivity',"abf-revenue-sensitivity.png"),
+        capture(app,'Driver → Sensitivity → Model',"abf-driver-sensitivity-model.png"),
     ]
     print(f"ABF_RESEARCH_UI_SMOKE_OK indicators={len(app.indicators)} sensitivity={len(app.sensitivity)}")
     for path in files:

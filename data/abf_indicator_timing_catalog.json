@@ -14,7 +14,8 @@
         "value": 1,
         "unit": "month"
       },
-      "evidence_status": "FULL_SAMPLE_RELATION_VALIDATED",
+      "evidence_status": "DERIVED",
+      "validation_status": "FULL_SAMPLE_RELATION_VALIDATED",
       "relation_id": "tpca_pcb_revenue_yoy_to_abf_revenue_1m",
       "role": "Early external demand/throughput signal before ABF company revenue confirmation.",
       "use_in_model": "driver_state_and_revenue_sensitivity",
@@ -34,7 +35,8 @@
         "value": 0,
         "unit": "month"
       },
-      "evidence_status": "OBSERVED",
+      "evidence_status": "DISCLOSED",
+      "validation_status": "NOT_PRODUCT_ATTRIBUTED",
       "role": "Confirms that industry demand is already reaching company revenue.",
       "use_in_model": "current_state_confirmation",
       "economic_orientation": "HIGHER_IS_BETTER",
@@ -70,7 +72,8 @@
         "value": null,
         "unit": "quarter"
       },
-      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "evidence_status": "INFERRED",
+      "validation_status": "CAUSAL_HYPOTHESIS",
       "role": "Confirms that demand/revenue improvement has propagated through utilization, pricing, mix and fixed-cost absorption.",
       "use_in_model": "margin_confirmation_and_sensitivity_target",
       "note": "Lag and sensitivity are not yet empirically calibrated.",
@@ -89,7 +92,8 @@
         "value": null,
         "unit": "quarter"
       },
-      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "evidence_status": "INFERRED",
+      "validation_status": "CAUSAL_HYPOTHESIS",
       "role": "Confirms operating leverage after gross-profit improvement and OPEX absorption.",
       "use_in_model": "earnings_bridge_confirmation",
       "note": "Lag and sensitivity are not yet empirically calibrated.",
@@ -108,7 +112,8 @@
         "value": null,
         "unit": "quarter"
       },
-      "evidence_status": "CAUSAL_HYPOTHESIS",
+      "evidence_status": "INFERRED",
+      "validation_status": "CAUSAL_HYPOTHESIS",
       "role": "Late financial confirmation that operating changes have propagated through the income statement.",
       "use_in_model": "final_financial_confirmation",
       "note": "Lag and sensitivity are not yet empirically calibrated.",

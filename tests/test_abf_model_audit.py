@@ -7,6 +7,12 @@ from core.abf_model_audit import build_abf_model_audit
 
 
 class AbfModelAuditTests(unittest.TestCase):
+    def test_audited_rejections_block_legacy_model_promotion(self):
+        comparisons=pd.DataFrame([{'company':'3037.TW','product':'ABF','eligibility':'reject'}])
+        out=build_abf_model_audit(pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),comparisons=comparisons)
+        self.assertNotIn('ACTIVE_STATE_SCORE',set(out.model_use))
+        self.assertNotIn('EMPIRICALLY_VALIDATED_DRIVER',set(out.assessment))
+
     def test_marks_cost_risk_for_refinement_and_beta_candidate(self):
         sens=pd.DataFrame([{
             "company":"ABF Basket","feature":"pcb_revenue_yoy","target":"abf_revenue_yoy_basket",

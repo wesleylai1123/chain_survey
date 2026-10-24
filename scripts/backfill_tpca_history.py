@@ -104,8 +104,19 @@ def backfill(min_year: int=2023,max_pages: int=40,delay: float=0.0,workers: int=
     if not rows:
         raise RuntimeError("TPCA history backfill returned no matching rows")
     frame=pd.DataFrame(rows)
-    frame=frame.drop_duplicates(["metric_id","period"],keep="first").sort_values(["period","metric_id"])
+    # Concurrent page completion order must not choose the data vintage.
+    frame=frame.sort_values(['period','metric_id','published_at','source_url']).drop_duplicates(["metric_id","period"],keep="last")
     return frame.reset_index(drop=True)
+
+
+def merge_history(current: pd.DataFrame, path: Path=OUTPUT) -> pd.DataFrame:
+    """A rolling listing is not a complete snapshot of previously verified history."""
+    previous=pd.read_csv(path) if path.exists() else pd.DataFrame()
+    combined=pd.concat([previous,current],ignore_index=True,sort=False)
+    combined['_publication_time']=pd.to_datetime(combined['published_at'],utc=True,format='mixed')
+    # Stable ordering prefers current observations only when publication time ties.
+    combined=combined.sort_values('_publication_time',kind='stable').drop_duplicates(['metric_id','period'],keep='last')
+    return combined.drop(columns='_publication_time').sort_values(['period','metric_id']).reset_index(drop=True)
 
 
 def main() -> None:
@@ -117,6 +128,7 @@ def main() -> None:
     parser.add_argument("--output",type=Path,default=OUTPUT)
     args=parser.parse_args()
     frame=backfill(args.min_year,args.max_pages,args.delay,args.workers)
+    frame=merge_history(frame,args.output)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     frame.to_csv(args.output,index=False)
     counts=frame.groupby("metric_id")["period"].nunique().to_dict()

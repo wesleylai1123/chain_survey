@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chain-survey.local/contracts/metric-semantics/v1",
+  "title": "MetricSignalSemanticsV1",
+  "type": "object",
+  "required": ["contract", "metric_id", "company", "product", "source_scope", "measure_kind", "change_basis", "transform", "unit", "accounting_basis", "return_basis", "is_proxy", "evidence_status", "pit_basis", "observation_date", "release_date", "available_at", "signal_generated_at", "signal_value", "source_urls", "observation_id", "dependency_ids"],
+  "allOf": [
+    {"if": {"properties": {"source_scope": {"enum": ["INDUSTRY_AGGREGATE", "COMPANY_TOTAL"]}}}, "then": {"properties": {"is_proxy": {"const": true}}}},
+    {"if": {"properties": {"change_basis": {"enum": ["YOY", "QOQ", "MOM"]}}}, "then": {"properties": {"measure_kind": {"const": "CHANGE"}}}},
+    {"if": {"properties": {"transform": {"const": "CHANGE"}}}, "then": {"properties": {"unit": {"const": "percentage_points"}, "measure_kind": {"const": "CHANGE"}}}},
+    {"if": {"properties": {"pit_basis": {"const": "SOURCE_REPORTED"}}}, "then": {"properties": {"release_date": {"type": "string"}, "available_at": {"type": "string"}}}}
+  ],
+  "properties": {
+    "contract": {"const": "MetricSignalSemanticsV1"},
+    "metric_id": {"type": "string", "minLength": 1},
+    "company": {"type": "string", "minLength": 1},
+    "product": {"type": "string", "minLength": 1},
+    "source_scope": {"enum": ["INDUSTRY_AGGREGATE", "COMPANY_TOTAL", "COMPANY_PRODUCT"]},
+    "measure_kind": {"enum": ["LEVEL", "CHANGE"]},
+    "change_basis": {"enum": ["YOY", "QOQ", "MOM", "NONE"]},
+    "transform": {"enum": ["LEVEL", "CHANGE"]},
+    "unit": {"enum": ["percent", "percentage_points", "ratio", "currency", "currency_per_share"]},
+    "accounting_basis": {"enum": ["INDUSTRY_AGGREGATE", "CONSOLIDATED_REPORTED", "STANDALONE_QUARTER", "YTD", "TTM", "UNKNOWN"]},
+    "return_basis": {"enum": ["NOT_APPLICABLE", "PRICE_RETURN", "TOTAL_RETURN", "UNKNOWN"]},
+    "is_proxy": {"type": "boolean"},
+    "evidence_status": {"enum": ["DISCLOSED", "DERIVED", "ESTIMATED", "INFERRED", "UNKNOWN"]},
+    "pit_basis": {"enum": ["SOURCE_REPORTED", "PROXY", "UNKNOWN"]},
+    "observation_date": {"type": "string", "format": "date-time"},
+    "release_date": {"type": ["string", "null"], "format": "date-time"},
+    "available_at": {"type": ["string", "null"], "format": "date-time"},
+    "signal_generated_at": {"type": "string", "format": "date-time"},
+    "signal_value": {"type": ["number", "null"]},
+    "source_urls": {"type": "array", "items": {"type": "string", "format": "uri"}, "uniqueItems": true},
+    "observation_id": {"type": "string", "minLength": 1},
+    "dependency_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+  }
+}
