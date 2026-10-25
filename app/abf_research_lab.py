@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import json
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
@@ -21,11 +22,15 @@ from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
 from core.abf_transform_validation import compare_abf_transforms
 from app.abf_semantics_view import build_semantics_tab
+from app.abf_company_survey_view import CompanySurveyView
+from core.abf_company_survey import build_company_survey
+from core.metric_semantics import normalize_history, transform_observations
 from datetime import datetime, timezone
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
 OPERATING = ROOT / "data" / "abf_operating_observations.csv"
+COMPANY_FACTS = ROOT / "data" / "abf_company_research_evidence.json"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -53,10 +58,11 @@ class AbfResearchLab(tk.Tk):
         self.geometry("1600x980")
         self.minsize(1320, 820)
         self.configure(bg=BG)
+        self.as_of = datetime.now(timezone.utc).isoformat()
         self.indicators = indicator_table()
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
         self.comparisons,self.comparison_details=compare_abf_transforms(
-            history,as_of=datetime.now(timezone.utc).isoformat(),iterations=199)
+            history,as_of=self.as_of,iterations=199)
         self.sensitivity = self._load_sensitivity()
         self.scenarios = self._load_scenarios()
         self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
@@ -66,6 +72,12 @@ class AbfResearchLab(tk.Tk):
         self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
         self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios,comparisons=self.comparisons)
+        facts = json.loads(COMPANY_FACTS.read_text(encoding='utf-8')) if COMPANY_FACTS.exists() else []
+        observations = transform_observations(normalize_history(history, as_of=self.as_of), 'LEVEL')
+        self.company_report = build_company_survey(dict(contract='ABFSemanticsValidationV1',
+            as_of=self.as_of, generated_at=self.as_of, policy={'lag_months': 1},
+            comparisons=self.comparisons.to_dict('records'), details=self.comparison_details,
+            observations=observations.to_dict('records')), self.factor, facts, as_of=self.as_of)
         self._configure_style()
         self._build()
 
@@ -102,8 +114,8 @@ class AbfResearchLab(tk.Tk):
             "Research.TNotebook.Tab",
             background="#E8EDF4",
             foreground=MUTED,
-            padding=(20, 10),
-            font=("Segoe UI", 10, "bold"),
+            padding=(8, 9),
+            font=("Segoe UI", 9, "bold"),
             borderwidth=0,
         )
         style.map(
@@ -164,6 +176,10 @@ class AbfResearchLab(tk.Tk):
         self.book = ttk.Notebook(content, style="Research.TNotebook")
         self.book.pack(fill="both", expand=True)
 
+        company_research = tk.Frame(self.book, bg=BG)
+        self.book.add(company_research, text='Company Research')
+        self.company_view = CompanySurveyView(company_research, self.company_report)
+        self.company_view.pack(fill='both', expand=True)
         timing = tk.Frame(self.book, bg=BG)
         scenarios = tk.Frame(self.book, bg=BG)
         coverage = tk.Frame(self.book, bg=BG)
@@ -416,6 +432,8 @@ class AbfResearchLab(tk.Tk):
             text="AVAILABLE = usable history; PROXY = usable but not exact; INSUFFICIENT = connected but too short; MISSING = no historical dataset connected.",
             bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
         ).pack(anchor="w",pady=(4,0))
+        tk.Label(intro, text='Calibration dataset coverage only. Reviewed document facts appear separately in Company Research; historical publication proof may remain unavailable.',
+            bg=BG, fg=MUTED, font=('Segoe UI', 9), wraplength=1400, justify='left').pack(anchor='w', pady=(4, 0))
 
         frame=tk.Frame(parent,bg=BG)
         frame.pack(fill="both",expand=True,padx=18,pady=(0,18))

@@ -42,19 +42,44 @@ def _write(path: Path, value):
     path.write_text(json.dumps(clean(value),ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
 
 
+def factor_known_at(factor: pd.DataFrame, *, as_of: str) -> pd.DataFrame:
+    """Keep only financial snapshots known by the replay cutoff."""
+    if factor.empty or 'available_date' not in factor:
+        return factor.iloc[:0].copy()
+    cutoff=timestamp(as_of)
+
+    def bound(value, *, daily=False):
+        if value is None or pd.isna(value) or not str(value).strip():
+            return None
+        parsed=pd.Timestamp(value)
+        if pd.isna(parsed):
+            return None
+        if parsed.tzinfo is None:
+            if not daily and len(str(value))!=10:
+                raise ValueError(f'Timezone-aware acquisition/publication timestamp required: {value}')
+            parsed=(parsed.normalize()+pd.Timedelta(days=1)-pd.Timedelta(microseconds=1)).tz_localize('Asia/Taipei')
+        return parsed.tz_convert('UTC')
+
+    def known(row):
+        available=bound(row.get('available_date'),daily=True)
+        if available is None:
+            return False
+        times=[available,bound(row.get('report_date'),daily=True)]
+        times.extend(bound(row.get(field)) for field in (
+            'observation_date','available_at','filing_published_at','release_date',
+            'acquired_at','first_seen_at','snapshot_acquired_at'))
+        return all(t<=cutoff for t in times if t is not None)
+
+    return factor.loc[[known(row) for row in factor.to_dict('records')]].copy()
+
+
 def build_report(history: pd.DataFrame, factor: pd.DataFrame, *, as_of: str, iterations: int=999) -> dict:
     table,details=compare_abf_transforms(history,as_of=as_of,iterations=iterations)
     signals=normalize_history(history,as_of=as_of)
     observations=[]
     for transform in ('LEVEL','CHANGE'):
         observations.extend(transform_observations(signals,transform).to_dict('records'))
-    # Date-only factor availability is a conservative local end-of-day proxy.
-    if not factor.empty:
-        factor=factor.copy()
-        availability=pd.to_datetime(factor['available_date'],errors='coerce')
-        if availability.dt.tz is None:
-            availability=(availability.dt.normalize()+pd.Timedelta(days=1)-pd.Timedelta(microseconds=1)).dt.tz_localize('Asia/Taipei').dt.tz_convert('UTC')
-        factor=factor[availability.le(timestamp(as_of))].copy()
+    factor=factor_known_at(factor,as_of=as_of)
     margin=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
     handoff=[]
     for company in COMPANIES:

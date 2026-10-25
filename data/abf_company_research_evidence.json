@@ -577,7 +577,8 @@
     "document_sha256": "69840c6f7ae1550b1e159b9421efefd1675857e79459ce396cb6a8f8b031e4fa",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "公司 AI 資料中心應用別營收占比，不等於純 ABF 營收占比。"
   },
   {
     "fact_id": "3189_q2_2026_ic_substrate_revenue",
@@ -646,7 +647,8 @@
     "document_sha256": "9a7b52f9311ef0af288fcec980fb64ba93b2ed069e6972f651e19e9ea1b57af6",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "公司與客戶開發更大尺寸、更多層數的 ABF 載板，對應未來 AI 伺服器 ASIC、CPU 與高速交換器，並規畫高階 AI PC 載板生產。"
   },
   {
     "fact_id": "8046_q2_2026_1_6t_switch_ramp",
@@ -680,7 +682,8 @@
     "document_sha256": "9a7b52f9311ef0af288fcec980fb64ba93b2ed069e6972f651e19e9ea1b57af6",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "管理層說明，第二季營收季增由 1.6T 交換器載板量產帶動。"
   },
   {
     "fact_id": "8046_2026h1_pc_component_constraint",
@@ -714,7 +717,8 @@
     "document_sha256": "9a7b52f9311ef0af288fcec980fb64ba93b2ed069e6972f651e19e9ea1b57af6",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "零組件短缺限制 PC 與消費性電子成長，相關應用占比與 2025 年相近。"
   },
   {
     "fact_id": "8046_2026h1_automotive_weakness",
@@ -748,7 +752,8 @@
     "document_sha256": "9a7b52f9311ef0af288fcec980fb64ba93b2ed069e6972f651e19e9ea1b57af6",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "車用需求與供應鏈干擾，使車用應用貢獻與 2025 年相近。"
   },
   {
     "fact_id": "3037_q2_2026_company_operating_income",
@@ -1000,6 +1005,7 @@
     "document_sha256": "7378c8688eec4613f6fbada32336babd11030c7d42be27e062fe9cad5f147a99",
     "document_version_status": "ARCHIVED",
     "document_hash_acquired_at": "2026-10-24T08:08:48.811141+00:00",
-    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW"
+    "review_method": "AGENT_PRIMARY_DOCUMENT_PAGE_REVIEW",
+    "statement_zh": "2025 年第四季 HPC 載板應用占比由產品組合圖揭露，不等於純 ABF 營收占比。"
   }
 ]

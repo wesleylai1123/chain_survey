@@ -21,7 +21,9 @@ def capture(app: AbfResearchLab, tab_name: str, name: str) -> Path:
     app.update_idletasks()
     app.update()
     out=OUT_DIR/name
-    if shutil.which("scrot"):
+    if sys.platform=='win32':
+        ImageGrab.grab(window=app.winfo_id()).save(out)
+    elif shutil.which("scrot"):
         subprocess.run(["scrot",str(out)],check=True)
     else:
         bounds=(app.winfo_rootx(),app.winfo_rooty(),app.winfo_rootx()+app.winfo_width(),app.winfo_rooty()+app.winfo_height())
@@ -44,6 +46,7 @@ def main() -> None:
         raise RuntimeError('Downside Company × Product rows not rendered')
     OUT_DIR.mkdir(parents=True,exist_ok=True)
     files=[
+        capture(app,'Company Research','abf-company-survey-lab.png'),
         capture(app,'Semantics & Stability','abf-semantics-stability.png'),
         capture(app,'Indicator Timing',"abf-indicator-timing.png"),
         capture(app,'Scenario Evidence',"abf-scenario-evidence.png"),

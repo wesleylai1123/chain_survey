@@ -18,16 +18,19 @@ from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 from scripts.run_abf_semantics_validation import main as run_semantics_validation
+from scripts.run_abf_company_survey import export_company_survey
 from datetime import datetime, timezone
 
 HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
 FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
 OPERATING=ROOT/"data"/"abf_operating_observations.csv"
+FACTS=ROOT/"data"/"abf_company_research_evidence.json"
 OUT=ROOT/"artifacts"
 
 
 def main() -> None:
-    run_semantics_validation(['--as-of',datetime.now(timezone.utc).isoformat()])
+    as_of = datetime.now(timezone.utc).isoformat()
+    run_semantics_validation(['--as-of', as_of])
     history=pd.read_csv(HISTORY)
     factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
     operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
@@ -46,6 +49,9 @@ def main() -> None:
 
     audited=json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8'))
     model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table,comparisons=pd.DataFrame(audited['comparisons']))
+    facts = json.loads(FACTS.read_text(encoding='utf-8')) if FACTS.exists() else []
+    company_survey = export_company_survey(audited, factor, facts, as_of=as_of, output_dir=OUT,
+        input_paths={'audit': OUT/'abf_semantics_validation.json', 'factor': FACTOR, 'facts': FACTS})
 
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
@@ -72,6 +78,7 @@ def main() -> None:
 
     snapshot={
         "schema_version":"ABFResearchSnapshotV2",
+        'company_survey':company_survey,
         'audited_semantics':json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8')),
         'legacy_fit_policy':'Basket fits below are exploratory; audited Company × Product eligibility controls model use.',
         "industry_model_id":"ic_substrate_abf_bt",
@@ -96,6 +103,7 @@ def main() -> None:
             "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")
         },
         "data_coverage":{
+            'scope':'Calibration dataset only; reviewed document facts are shown separately in Company Research and may lack historical publication proof.',
             "available":int((coverage["status"]=="AVAILABLE").sum()),
             "proxy":int((coverage["status"]=="PROXY").sum()),
             "missing":int((coverage["status"]=="MISSING").sum()),

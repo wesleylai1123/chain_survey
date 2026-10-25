@@ -22,6 +22,18 @@ The financial context retains its FinMind value-provider provenance separately f
 
 ## Refresh and acceptance
 
+With persisted industry history restored, refresh the company financial snapshot and build both research outputs:
+
+```powershell
+python scripts/refresh_factor_validation.py --stocks 3037,3189,8046 --start 2020-01-01
+python scripts/run_abf_research_model.py
+python app/main.py --abf-research
+```
+
+`python scripts/run_abf_company_survey.py` reuses an existing audit without recalculating it. Optional arguments are `--audit`, `--factor`, `--facts`, `--as-of` and `--output-dir`. It writes `artifacts/abf_company_survey.json` and a self-contained `artifacts/abf_company_survey.html`. The HTML needs no network connection for its charts; source links open the original official documents.
+
+Run `python -m unittest discover -s tests -v`, `python contract_tests/validate_contracts.py`, and `python scripts/abf_company_survey_ui_smoke.py`. Linux GUI checks run under Xvfb. Windows screenshots use the target window handle through Pillow 11.2 or later, so a foreground app cannot be mistaken for the research window. The smoke manifest records 24 selections, exact plotted coordinates/OOS subsets and the unavailable state.
+
 Run the existing targeted financial refresh and TPCA/history builders before rebuilding the semantics audit and company survey. PDF facts are explicitly checked against original pages; extracted candidates are never automatically promoted to actuals. The current file records an agent document review, not a claim of human approval. The CLI records input hashes and code revision, and the application and HTML export consume the same company research structure.
 
 The current local live collection passes the unchanged five-source health checks when run with the bundled Python 3.12 runtime. System Python 3.14 rejects some government certificate chains under its stricter validation; certificate verification has not been disabled. Azure CI still receives HTTP 403 from the two MOEA resources. Local HTTP 200 does not prove cloud access, and cached snapshots must not be relabeled as successful live collection. PR acceptance remains incomplete while a required Action fails.

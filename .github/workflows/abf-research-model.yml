@@ -38,6 +38,11 @@ jobs:
           python scripts/refresh_factor_validation.py             --stocks 3037,3189,8046             --start 2020-01-01             --sleep-seconds 0.1             --cache-dir artifacts/abf_factor_cache             --manifest artifacts/abf_factor_cache_manifest.json             --output artifacts/factor_validation_dataset.csv             --raw-dir artifacts/abf_factor_raw             2>&1 | tee abf-factor-refresh-results.txt
           test -s artifacts/factor_validation_dataset.csv
 
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk fonts-noto-cjk
+
       - name: Run ABF timing and sensitivity tests
         shell: bash
         run: |
@@ -51,6 +56,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_abf_model_audit.py' -v | tee abf-model-audit-test-results.txt
           python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
+          xvfb-run -a python -m unittest discover -s tests -p 'test_abf_company_survey*.py' -v | tee abf-company-survey-test-results.txt
 
       - name: Build real ABF research snapshot
         shell: bash
@@ -105,16 +111,18 @@ jobs:
           assert all(r['product']=='ABF' and r['company'] in {'3037.TW','3189.TW','8046.TW'} for r in audit['comparisons'])
           assert all(r['eligibility']!='eligible' for r in audit['comparisons'])
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
+          survey=snap['company_survey']
+          assert survey['contract']=='ABFCompanySurveyV1'
+          assert {c['company'] for c in survey['companies']}=={'3037.TW','3189.TW','8046.TW'}
+          assert sum(len(c['primary_facts']) for c in survey['companies'])==28
+          assert all(c['financial_bridge']['status']=='NOT_CALIBRATED' for c in survey['companies'])
+          direct=[f for c in survey['companies'] for f in c['primary_facts'] if f['metric_id']=='abf_product_mix']
+          assert len(direct)==3 and all(not f['is_proxy'] and not f['pit_exact'] for f in direct)
 
           print('ABF_RESEARCH_OUTPUTS_OK')
           assert set(sens['direction_status'])=={'SUPPORTED_BY_VALIDATED_DRIVER'}
           print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','oos_directional_corr','sensitivity_status','impact_per_10ppt_driver']].to_string(index=False))
           PY
-
-      - name: Install virtual display tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb scrot tk
 
       - name: Render ABF Research Lab
         shell: bash
@@ -122,6 +130,7 @@ jobs:
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/abf_research_ui_smoke.py | tee abf-research-ui-smoke-results.txt
           grep -q "ABF_RESEARCH_UI_SMOKE_OK" abf-research-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1700x1100x24" python scripts/abf_company_survey_ui_smoke.py
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -149,6 +158,10 @@ jobs:
             artifacts/abf-revenue-to-gm.png
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
+            artifacts/abf_company_survey.*
+            artifacts/abf-company-survey-*.png
+            artifacts/abf-company-survey-ui-smoke.json
+            abf-company-survey-test-results.txt
             indicator-taxonomy-test-results.txt
             directional-indicator-test-results.txt
             scenario-evidence-validation-test-results.txt

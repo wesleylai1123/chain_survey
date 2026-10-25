@@ -22,8 +22,11 @@ def capture(root,path):
     # Allow the native compositor to present the mapped window before capture.
     root.after(350,root.quit)
     root.mainloop()
-    bounds=(root.winfo_rootx(),root.winfo_rooty(),root.winfo_rootx()+root.winfo_width(),root.winfo_rooty()+root.winfo_height())
-    ImageGrab.grab(bbox=bounds).save(path)
+    if sys.platform=='win32':
+        ImageGrab.grab(window=root.winfo_id()).save(path)
+    else:
+        bounds=(root.winfo_rootx(),root.winfo_rooty(),root.winfo_rootx()+root.winfo_width(),root.winfo_rooty()+root.winfo_height())
+        ImageGrab.grab(bbox=bounds).save(path)
     if not path.exists() or not path.stat().st_size:
         raise RuntimeError('Screenshot missing')
 
