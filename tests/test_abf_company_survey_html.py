@@ -218,6 +218,7 @@ class CompanySurveyHtmlTests(unittest.TestCase):
     def test_cli_writes_three_unavailable_companies_when_files_are_absent(self):
         path = ROOT/'scripts/run_abf_company_survey.py'
         self.assertTrue(path.exists(), 'Company survey CLI is missing')
+        (ROOT/'artifacts').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=ROOT/'artifacts') as tmp:
             output = Path(tmp)/'output'
             absent = Path(tmp)/'missing'
