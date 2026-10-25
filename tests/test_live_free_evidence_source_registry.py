@@ -25,6 +25,15 @@ class LiveFreeEvidenceSourceRegistryTests(unittest.TestCase):
         payload=json.loads(Path("data/free_evidence_sources.json").read_text(encoding="utf-8"))
         self.assertIn("Collection time",payload["policy"])
 
+    def test_official_fallback_preserves_moea_currency_and_commodity_mapping(self):
+        payload=json.loads(Path("data/free_evidence_sources.json").read_text(encoding="utf-8"))
+        rows={r["dataset_id"]:r["official_fallback"] for r in payload["sources"] if r.get("provider")=="MOEA"}
+        self.assertEqual(rows["16361"]["commodity_id"],"9")
+        self.assertEqual(rows["16362"]["commodity_id"],"6")
+        for fallback in rows.values():
+            self.assertEqual(fallback["dataset_id"],"A050106010")
+            self.assertEqual(fallback["unit"],"百萬美元")
+
 
 if __name__=="__main__":
     unittest.main()

@@ -59,6 +59,7 @@ jobs:
           set -o pipefail
           python -m unittest discover -s tests -p 'test_live_free_evidence_connectors.py' -v | tee live-free-evidence-tests.txt
           python -m unittest discover -s tests -p 'test_live_free_evidence_source_registry.py' -v | tee live-free-evidence-registry-tests.txt
+          python -m unittest discover -s tests -p 'test_moea_official_fallback.py' -v | tee moea-official-fallback-tests.txt
 
       - name: Collect latest public snapshots
         working-directory: code
@@ -107,9 +108,12 @@ jobs:
             code/artifacts/live_pipeline_validation.json
             code/artifacts/live_pipeline_continuity.json
             code/artifacts/live_pipeline_run_manifest.json
+            code/persistent/free_evidence/manifest.json
+            code/persistent/free_evidence/raw/moea_export_orders_*/**
             code/live-free-evidence-tests.txt
             code/live-free-evidence-registry-tests.txt
             code/live-free-evidence-collection.txt
+            code/moea-official-fallback-tests.txt
             code/live-free-evidence-ui-smoke-results.txt
           if-no-files-found: warn
 

@@ -25,6 +25,13 @@
       "provider": "MOEA",
       "kind": "data_gov_dataset_csv",
       "dataset_id": "16361",
+      "official_fallback": {
+        "kind": "dgbas_export_orders_json",
+        "dataset_id": "A050106010",
+        "commodity_id": "9",
+        "commodity": "資訊與通信產品",
+        "unit": "百萬美元"
+      },
       "chain": "Networking",
       "dimension": "orders_backlog",
       "primary": true,
@@ -35,6 +42,13 @@
       "provider": "MOEA",
       "kind": "data_gov_dataset_csv",
       "dataset_id": "16362",
+      "official_fallback": {
+        "kind": "dgbas_export_orders_json",
+        "dataset_id": "A050106010",
+        "commodity_id": "6",
+        "commodity": "電子產品",
+        "unit": "百萬美元"
+      },
       "chain": "Compute",
       "dimension": "orders_backlog",
       "primary": true,
