@@ -101,7 +101,14 @@ jobs:
           assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
-          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
+          # New provider quarters must remain PROXY until their filing is verified.
+          factor=pd.read_csv('artifacts/factor_validation_dataset.csv')
+          exact=(factor['availability_method'].eq('official_filing_timestamp_next_day')
+                 & factor['filing_source_url'].notna() & factor['filing_published_at'].notna())
+          filing=coverage.loc[coverage.data_id=='quarterly_exact_filing_time'].iloc[0]
+          assert len(factor)>0
+          assert filing['status']==('AVAILABLE' if exact.all() else 'PROXY')
+          assert f'verified={int(exact.sum())}/{len(factor)} rows' in filing['detail']
           assert coverage.loc[coverage.data_id=='ic_substrate_revenue_mix_history','status'].iloc[0]=='INSUFFICIENT_HISTORY'
           assert coverage.loc[coverage.data_id=='abf_product_mix_history','status'].iloc[0]=='MISSING'
           assert not margin.empty
