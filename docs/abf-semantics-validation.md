@@ -16,13 +16,15 @@ The 120 predeclared comparisons cover five source metrics, three companies, two 
 
 `eligible` requires all statistical gates plus complete provenance, exact PIT and nonproxy product scope. Statistically passing proxy results are `support-only`; other results are `reject`. Reject is a model-use decision, not a claim that an economic mechanism cannot exist. Short conditional history is a material limitation.
 
-Revenue → GM now aligns calendar quarters, excludes missing availability, uses a common date holdout and retains company-specific descriptive results. Pooled robustness is identified as a pooled reference and never grants a company's own validation. Unverified/YTD/TTM basis blocks calibration. The handoff retains null betas where evidence is insufficient and prioritizes downside source history and Revenue → GM before GM → EPS.
+Revenue → GM now has 72 predeclared company-specific comparisons, separate 36-test FDR families per scenario, percentage-point descriptive slopes, uncertainty, and three fixed expanding chronological folds. Both training feature and label knowledge must precede the first test feature; an untrained test-subset correlation cannot count as validated OOS. Resampling stops at calendar/conditional-sample gaps. Monthly feature provenance/PIT/basis proof is independent of quarterly financial verification. Pooled exploration never grants a company's own validation. Unverified/YTD/TTM basis blocks calibration. Twelve of 78 quarters are reconciled against inspected primary financial reports; this verifies current amounts and standalone basis, not historical provider vintage or ABF product attribution. The handoff retains null forecast betas and prioritizes downside source history and Revenue → GM before GM → EPS.
 
 Artifacts in `artifacts/`:
 
 - `abf_semantics_validation.json` / `.html`: full evidence and review report.
 - `abf_transform_comparison.csv`: flat Company × Product comparison table.
 - `abf_calibration_handoff.json`: company-specific calibration prerequisites.
+- `abf_margin_validation.json`: 72 company-specific margin comparisons and all sample/fold/gate evidence.
+- `abf_financial_reconciliation.json`: provider-to-primary value and accounting-basis verification coverage.
 - `abf_downside_source_priorities.json`: connected proxy history and explicitly missing product sources.
 - `abf-semantics-present.png` / `abf-semantics-unavailable.png`: exercised UI states.
 

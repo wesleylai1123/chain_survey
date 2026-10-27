@@ -17,11 +17,15 @@ if str(ROOT) not in sys.path:
 
 from core.abf_company_survey import build_company_survey
 from core.abf_company_survey_html import render_company_survey
+from core.abf_financial_evidence import reconcile_financial_evidence
 
 
 def export_company_survey(audit: dict, factor: pd.DataFrame, facts: list | dict, *,
-                          as_of: str, output_dir: Path, input_paths: dict[str, Path] | None = None) -> dict:
+                          as_of: str, output_dir: Path, input_paths: dict[str, Path] | None = None,
+                          financial_evidence: dict | None = None) -> dict:
     """Reuse an existing audit. No correlations or holdout choices are recomputed."""
+    if financial_evidence is not None:
+        factor=reconcile_financial_evidence(factor,financial_evidence,as_of=as_of)
     report = build_company_survey(audit, factor, facts, as_of=as_of)
     report['input_manifest'] = {name: dict(path=str(path),
         sha256=sha256(path.read_bytes()).hexdigest() if path.exists() else None,
@@ -42,14 +46,18 @@ def main(argv=None) -> int:
     parser.add_argument('--audit', type=Path, default=ROOT/'artifacts/abf_semantics_validation.json')
     parser.add_argument('--factor', type=Path, default=ROOT/'artifacts/factor_validation_dataset.csv')
     parser.add_argument('--facts', type=Path, default=ROOT/'data/abf_company_research_evidence.json')
+    parser.add_argument('--quarterly-financial-evidence',type=Path,default=ROOT/'data/abf_quarterly_financial_evidence.json')
     parser.add_argument('--as-of', default=datetime.now(timezone.utc).isoformat())
     parser.add_argument('--output-dir', type=Path, default=ROOT/'artifacts')
     args = parser.parse_args(argv)
     audit = json.loads(args.audit.read_text(encoding='utf-8')) if args.audit.exists() else {}
     facts = json.loads(args.facts.read_text(encoding='utf-8')) if args.facts.exists() else []
     factor = pd.read_csv(args.factor, low_memory=False) if args.factor.exists() else pd.DataFrame()
+    reviewed=json.loads(args.quarterly_financial_evidence.read_text(encoding='utf-8')) if args.quarterly_financial_evidence.exists() else None
     report = export_company_survey(audit, factor, facts, as_of=args.as_of, output_dir=args.output_dir,
-        input_paths={'audit': args.audit, 'factor': args.factor, 'facts': args.facts})
+        financial_evidence=reviewed,
+        input_paths={'audit': args.audit, 'factor': args.factor, 'facts': args.facts,
+                     'quarterly_financial_evidence':args.quarterly_financial_evidence})
     print('ABF_COMPANY_SURVEY_OK', len(report['companies']), 'companies',
           sum(len(c['primary_facts']) for c in report['companies']), 'reviewed facts')
     return 0

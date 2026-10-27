@@ -72,6 +72,7 @@ def main():
     view=CompanySurveyView(root,report)
     view.pack(fill='both',expand=True)
     exercised=[]
+    margin_exercised=[]
     for company in report['companies']:
         ticker=company['company']
         for scenario in ('UPSIDE','DOWNSIDE'):
@@ -81,6 +82,27 @@ def main():
         assert_selection(view,ticker,'UPSIDE','LEVEL','LEVEL')
         select_tab(view,'趨勢與相關')
         capture(root,out/f'abf-company-survey-{ticker[:4]}.png')
+        for scenario in ('UPSIDE','DOWNSIDE'):
+            view.scenario_var.set(scenario)
+            for feature in ('monthly_revenue_3m_yoy','revenue_yoy'):
+                for target in ('gross_margin_qoq','gross_margin_yoy_delta'):
+                    for lag in (0,1,2):
+                        view.margin_feature_var.set(feature);view.margin_target_var.set(target);view.margin_lag_var.set(lag)
+                        view.render()
+                        detail=view.selected_margin_detail
+                        assert detail and detail['company']==ticker and detail['scenario']==scenario
+                        assert detail['forecast_beta'] is None
+                        expected=[[s['x'],s['y']] for s in detail['sample_rows']]
+                        collections=view.margin_ax.collections
+                        assert (collections[0].get_offsets().tolist() if collections else [])==expected
+                        assert len(collections)<=2
+                        if not any(f['valid'] for f in detail['oos_folds']):assert len(collections)<=1
+                        margin_exercised.append(detail['comparison_id'])
+        view.margin_feature_var.set('revenue_yoy');view.margin_target_var.set('gross_margin_qoq');view.margin_lag_var.set(0)
+        view.scenario_var.set('DOWNSIDE');view.render()
+        select_tab(view,'財務脈絡')
+        view.finance_book.select(next(t for t in view.finance_book.tabs() if view.finance_book.tab(t,'text')=='Revenue→GM驗證'))
+        capture(root,out/f'abf-company-survey-margin-{ticker[:4]}.png')
     assert_selection(view,'3037.TW','DOWNSIDE','LEVEL','LEVEL')
     capture(root,out/'abf-company-survey-downside.png')
     assert_selection(view,'3037.TW','UPSIDE','CHANGE','CHANGE')
@@ -95,10 +117,12 @@ def main():
     view.pack(fill='both',expand=True)
     detail=assert_selection(view,'3037.TW','DOWNSIDE','CHANGE','CHANGE')
     assert detail['data_status']=='UNAVAILABLE' and not detail['sample_rows']
+    assert view.selected_margin_detail is None and not view.margin_ax.collections
     select_tab(view,'趨勢與相關')
     capture(root,out/'abf-company-survey-unavailable.png')
     root.destroy()
     result=dict(status='PASS',selection_count=len(exercised),comparison_ids=exercised,
+                margin_selection_count=len(margin_exercised),margin_comparison_ids=margin_exercised,
                 unavailable_exercised=True,
                 screenshot_scope='TARGET_WINDOW_HANDLE' if sys.platform=='win32' else 'ISOLATED_DISPLAY_BOUNDS')
     (out/'abf-company-survey-ui-smoke.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

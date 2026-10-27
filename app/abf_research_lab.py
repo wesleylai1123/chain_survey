@@ -18,19 +18,20 @@ from core.directional_indicator_engine import scenario_transmission
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_financial_evidence import reconcile_financial_evidence
 from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
 from core.abf_transform_validation import compare_abf_transforms
 from app.abf_semantics_view import build_semantics_tab
 from app.abf_company_survey_view import CompanySurveyView
 from core.abf_company_survey import build_company_survey
-from core.metric_semantics import normalize_history, transform_observations
 from datetime import datetime, timezone
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
 OPERATING = ROOT / "data" / "abf_operating_observations.csv"
 COMPANY_FACTS = ROOT / "data" / "abf_company_research_evidence.json"
+SEMANTICS_AUDIT = ROOT / "artifacts" / "abf_semantics_validation.json"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -66,20 +67,24 @@ class AbfResearchLab(tk.Tk):
         self.sensitivity = self._load_sensitivity()
         self.scenarios = self._load_scenarios()
         self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+        primary_financial=ROOT/'data/abf_quarterly_financial_evidence.json'
+        if primary_financial.exists():
+            self.factor=reconcile_financial_evidence(self.factor,json.loads(primary_financial.read_text(encoding='utf-8')),as_of=self.as_of)
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
         operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
         self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
         self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
         self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios,comparisons=self.comparisons)
-        facts = json.loads(COMPANY_FACTS.read_text(encoding='utf-8')) if COMPANY_FACTS.exists() else []
-        observations = transform_observations(normalize_history(history, as_of=self.as_of), 'LEVEL')
-        self.company_report = build_company_survey(dict(contract='ABFSemanticsValidationV1',
-            as_of=self.as_of, generated_at=self.as_of, policy={'lag_months': 1},
-            comparisons=self.comparisons.to_dict('records'), details=self.comparison_details,
-            observations=observations.to_dict('records')), self.factor, facts, as_of=self.as_of)
+        self.company_report = self._load_company_report()
         self._configure_style()
         self._build()
+
+    def _load_company_report(self) -> dict:
+        """Read the canonical audit used by the CLI without estimating new statistics."""
+        audit = json.loads(SEMANTICS_AUDIT.read_text(encoding='utf-8')) if SEMANTICS_AUDIT.exists() else {}
+        facts = json.loads(COMPANY_FACTS.read_text(encoding='utf-8')) if COMPANY_FACTS.exists() else []
+        return build_company_survey(audit, self.factor, facts, as_of=self.as_of)
 
     def _load_scenarios(self) -> pd.DataFrame:
         if not HISTORY.exists():

@@ -29,6 +29,10 @@ METRIC_LABELS = {
     'application_revenue_mix': '公司應用別營收占比', 'segment_revenue': '部門營收',
     'product_development_guidance': 'ABF 產品開發展望',
     'application_demand_driver': '應用需求說明', 'downside_signal': '下行情境營運訊息',
+    'segment_revenue_qoq':'IC載板營收季增率（非純ABF）',
+    'segment_revenue_mix':'IC載板營收占比（非純ABF）',
+    'monthly_revenue_3m_yoy':'近三個月公司營收年增率', 'revenue_yoy':'公司單季營收年增率',
+    'gross_margin_qoq':'公司毛利率季差', 'gross_margin_yoy_delta':'公司毛利率年差',
 }
 
 STATUS_LABELS = {'DISCLOSED': '直接揭露', 'DERIVED': '依揭露計算', 'ESTIMATED': '估計',
@@ -129,6 +133,12 @@ def company_brief(company: dict) -> list[dict]:
         for fact in matches(metric):
             if statement(fact):
                 add(prefix + statement(fact), [fact])
+    downturn=[f for f in matches('segment_revenue_qoq') if _observed_numeric(f)
+              and f.get('temporal_role')=='LAGGED_HISTORICAL_CONTEXT' and f.get('is_proxy')]
+    if downturn:
+        add('下行期IC載板合計營收季增率（非純ABF）：'+' → '.join(
+            f['observation_date'][:7]+' '+number(f['value'],0)+'%' for f in downturn)
+            +'；為事後核對的歷史代理證據，不能回填當時已知訊號。',downturn)
     return lines
 
 
@@ -136,6 +146,18 @@ def scatter_points(detail: dict) -> list[dict]:
     folds = detail.get('oos_folds', [])
     return [dict(row, is_oos=any(f.get('first_test_period', '~') <= row.get('period', '')
             <= f.get('last_test_period', '') for f in folds)) for row in detail.get('sample_rows', [])]
+
+
+def margin_points(detail: dict) -> list[dict]:
+    """Only validated holdouts receive the OOS highlight; coordinates are audited."""
+    folds=[f for f in detail.get('oos_folds',[]) if f.get('valid')]
+    return [dict(row,is_oos=any(f.get('test_start_period','~')<=row.get('feature_period','')
+        <=f.get('test_end_period','') for f in folds)) for row in detail.get('sample_rows',[])]
+
+
+def selected_margin(company: dict, scenario: str, feature: str, target: str, lag: int) -> dict | None:
+    return next((r for r in company.get('financial_bridge',{}).get('margin_audit',{}).get('comparisons',[])
+        if (r['scenario'],r['feature'],r['target'],r['lag_quarters'])==(scenario,feature,target,lag)),None)
 
 
 def trend_series(company: dict, metric: str) -> list[dict]:
@@ -207,10 +229,39 @@ def source_link(fact: dict) -> str | None:
     return None
 
 
+def financial_proof_html(row: dict) -> str:
+    """Label primary-document proof separately from the financial value provider."""
+    url = source_link(dict(source_url=row.get('primary_financial_source_url'),
+                           page=row.get('financial_source_page')))
+    source = ('<a href="'+escape(url, quote=True)+'" target="_blank" rel="noopener noreferrer">'
+              +escape(url)+'</a>') if url else 'null · 未驗證'
+    metadata = [('原始財報數值核對', row.get('financial_value_verification') or 'UNVERIFIED'),
+        ('財報頁碼', row.get('financial_source_page')),
+        ('財報證據 ID', row.get('financial_evidence_id')),
+        ('財報 SHA-256', row.get('financial_evidence_sha256')),
+        ('財報本次取得／快照取得', row.get('financial_evidence_acquired_at')),
+        ('口徑驗證可取得', row.get('financial_basis_verification_available_at'))]
+    return ('<small>原始財報來源：'+source+'<br>'+'<br>'.join(
+        escape(label)+'：'+escape(str(value) if value is not None else 'null · 未驗證')
+        for label, value in metadata)+'</small>')
+
+
+def margin_bridge_note(company: dict) -> str:
+    margin = company['financial_bridge'].get('margin_audit', {})
+    examined = margin.get('data_status') == 'AVAILABLE' and any(
+        row.get('sample_rows') for row in margin.get('comparisons', []))
+    return ('NOT_CALIBRATED · 尚未校準；ABF預測係數 β = null。'
+        +('公司Revenue→GM的描述關係已獨立檢驗' if examined else '缺少公司Revenue→GM可驗證樣本')
+        +'；產品歸因、口徑、PIT或樣本外門檻未通過時，仍不提供ABF預測。')
+
+
 def render_company_survey(report: dict) -> str:
     """Return one offline HTML file; dynamic text and JSON are injection-safe."""
     copy = {'metrics': METRIC_LABELS, 'statuses': STATUS_LABELS, 'companies': {c['company']: {
         'brief': company_brief(c), 'gross_margin': latest_gross_margin_fact(c),
+        'bridge_note': margin_bridge_note(c),
+        'financial_proofs': {r['evidence_id']: financial_proof_html(r)
+                             for r in c['financial_context']['rows']},
         'fact_links': {f['fact_id']: source_link(f) for f in c.get('primary_facts', [])}}
         for c in report['companies']}}
     overview, margins = [], []
@@ -253,8 +304,10 @@ _HTML = r'''<!doctype html>
 <section class="card"><h2>稽核樣本相關性</h2><p class="chart-note" id="scatter-note"></p><div id="scatter-stats" class="stats"></div><svg id="scatter-chart" viewBox="0 0 620 300" role="img" aria-label="固定情境稽核散點圖"></svg><div class="legend"><span><i class="dot" style="background:#96aabd"></i>完整樣本（灰）</span><span><i class="dot" style="background:#d98b29"></i>固定時序 OOS（橙色覆蓋）</span></div></section></div>
 <section class="card"><h2>驗證資格與逐點來源</h2><p class="muted">所有預先宣告的指標與 2 × 2 轉換均可選；不依 OOS 結果挑選勝出模型。相關性不代表因果。</p><div id="validation-meta"></div><div id="gates" class="gates"></div><details><summary>OOS 分段、原始 x/y、來源 ID 與四個訊號日期</summary><div id="oos-table" class="table-wrap"></div><pre id="sample-detail"></pre></details></section>
 <section class="card"><h2>經核對的一手營運與財務事實</h2><p class="muted">DISCLOSED = 直接揭露；DERIVED = 依來源計算。發布時間為 null 時顯示 PIT_UNAVAILABLE；前瞻展望與實績分開。本次取得／快照取得為目前封存紀錄的取得時間，歷史首次取得時間未驗證。</p><div id="facts" class="table-wrap"></div></section>
-<section class="card"><h2>公司整體財務脈絡</h2><p class="notice">範圍：COMPANY_TOTAL · 全公司產品。歷史資料會計口徑 UNKNOWN，尚未驗證各列是否為獨立單季；此圖不代表 ABF 產品獲利。本次取得／快照取得為目前封存紀錄的取得時間，歷史首次取得時間未驗證。</p><svg id="finance-chart" viewBox="0 0 1200 270" role="img" aria-label="公司整體毛利率與營收年增率"></svg><div class="legend"><span><i class="dot" style="background:#087f8c"></i>公司毛利率（%）· COMPANY_TOTAL 代理</span><span><i class="dot" style="background:#2563b4"></i>公司營收年增率（%）· COMPANY_TOTAL 代理</span></div><details><summary>財務數值、會計口徑與可取得時間</summary><div id="finance-table" class="table-wrap"></div></details></section>
-<section class="card"><h2>Driver → Revenue → GM → EPS</h2><p class="notice">NOT_CALIBRATED · 尚未校準；β = null。需先驗證 ABF 產品歸因、獨立單季口徑、精確 PIT 與各公司樣本外穩定性。</p><div id="bridge" class="bridge"></div></section>
+<section class="card"><h2>公司整體財務脈絡</h2><p id="finance-basis-note" class="notice">範圍：COMPANY_TOTAL · 全公司產品。會計口徑依各列核對狀態標示；此圖不代表 ABF 產品獲利。本次取得／快照取得為目前封存紀錄的取得時間，歷史首次取得時間未驗證。</p><svg id="finance-chart" viewBox="0 0 1200 270" role="img" aria-label="公司整體毛利率與營收年增率"></svg><div class="legend"><span><i class="dot" style="background:#087f8c"></i>公司毛利率（%）· COMPANY_TOTAL 代理</span><span><i class="dot" style="background:#2563b4"></i>公司營收年增率（%）· COMPANY_TOTAL 代理</span></div><details><summary>財務數值、會計口徑與可取得時間</summary><div id="finance-table" class="table-wrap"></div></details></section>
+<section class="card"><h2>Revenue→GM · 公司財務傳導驗證</h2><p class="notice">公司整體代理值；描述性估計不等於ABF預測係數。灰點為全部封存樣本，橙點僅標示通過時間與樣本門檻的OOS資料。</p><p id="financial-verification" class="muted">核對單季口徑與原始來源。</p><div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px"><label>營收衡量<select id="margin-feature-select"><option value="monthly_revenue_3m_yoy">近三個月公司營收年增率</option><option value="revenue_yoy">公司單季營收年增率</option></select></label><label>毛利率變化<select id="margin-target-select"><option value="gross_margin_yoy_delta">公司毛利率年差</option><option value="gross_margin_qoq">公司毛利率季差</option></select></label><label>傳導間隔<select id="margin-lag-select"><option value="1">候選領先1季</option><option value="0">同期參考</option><option value="2">候選領先2季</option></select></label></div><p id="margin-note" class="chart-note"></p><div id="margin-stats" class="stats"></div><svg id="margin-chart" viewBox="0 0 1200 340" role="img" aria-label="公司營收與毛利率傳導稽核散點圖"></svg><div id="margin-gates" class="gates"></div><details><summary>公司獨立驗證、來源與逐點時間</summary><div id="margin-evidence" class="table-wrap"></div><pre id="margin-samples"></pre></details></section>
+<section class="card"><h2>Driver → Revenue → GM → EPS</h2><p id="bridge-note" class="notice">NOT_CALIBRATED · 尚未校準；ABF預測係數 β = null。缺少公司Revenue→GM可驗證樣本。</p><div id="bridge" class="bridge"></div></section>
+<section class="card"><h2>下行期的一手歷史證據</h2><p class="muted">這些是事後公開、現在核對的歷史脈絡，不代表當季已可交易的預警訊號。IC載板合計不能填成純ABF實績。</p><div id="downside-context"></div></section>
 <section class="card"><h2>營運傳導假說（尚未驗證）</h2><p class="notice">INFERRED · UNVALIDATED_HYPOTHESIS。此為待驗證的傳導機制，尚未建立因果或財務係數。</p><div id="mechanisms"></div></section>
 <div class="grid"><section class="card"><h2>優先補足的研究資料</h2><div id="missing"></div><h3>下一步研究問題</h3><ol id="questions" class="research-list"></ol></section><section class="card"><h2>失效與撤回條件</h2><ol id="invalidations" class="research-list"></ol><details><summary>全部引用來源與證據 ID</summary><div id="sources" class="sources"></div></details></section></div>
 <footer id="provenance"></footer></main>
@@ -285,6 +338,23 @@ function chart(svg,series,{scatter=false,xlabel='',ylabel='%',time=false,cadence
 function monthNumber(p){const [y,m]=String(p).slice(0,7).split('-').map(Number);return y*12+m-1}function monthText(n){return Math.floor(n/12)+'-'+String(n%12+1).padStart(2,'0')}
 function selectedCompany(){return report.companies.find(c=>c.company===$('company-select').value)}
 function currentDetail(c){return Object.values(c.details).find(d=>d.scenario===$('scenario-select').value&&d.metric_id===$('metric-select').value&&d.feature_transform===$('feature-select').value&&d.target_transform===$('target-select').value)}
+function renderMargin(c){
+ $('bridge-note').textContent=copy.companies[c.company].bridge_note;
+ const all=c.financial_bridge.margin_audit?.comparisons||[], d=all.find(r=>r.scenario===$('scenario-select').value&&r.feature===$('margin-feature-select').value&&r.target===$('margin-target-select').value&&r.lag_quarters===Number($('margin-lag-select').value));
+ const b=c.financial_context.basis_coverage||{};
+ $('finance-basis-note').textContent='COMPANY_TOTAL · 公司整體代理值；已核對單季 '+(b.verified_standalone||0)+' / '+(b.periods||0)+'期，其餘口徑未驗證。本次取得／快照取得不代表歷史首次取得時間已驗證。';
+ $('financial-verification').textContent='核對單季：'+(b.verified_standalone||0)+' / '+(b.periods||0)+'期；未核對 '+(b.unverified||0)+'期。財務數值保留原供應商，原始財報另列核對來源；比較欄不回填歷史已知時間。';
+ $('margin-note').textContent=d?c.name+' · '+d.scenario+' · '+label(d.feature)+' → '+label(d.target)+' · '+(d.lag_quarters===0?'同期參考':'候選領先'+d.lag_quarters+'季')+' · '+d.data_status:'UNAVAILABLE · 缺少選定財務比較';
+ $('margin-stats').innerHTML=[['樣本 N',d?.sample_size??0],['描述性估計 β',fmt(d?.descriptive_beta)],['β Bootstrap CI','['+fmt(d?.beta_ci_low)+', '+fmt(d?.beta_ci_high)+']'],['FDR q',fmt(d?.fdr_q,4)]].map(([k,v])=>'<div class="stat"><small>'+esc(k)+'</small><b>'+esc(v)+'</b></div>').join('');
+ const folds=(d?.oos_folds||[]).filter(f=>f.valid),pts=(d?.sample_rows||[]).map(p=>({x:p.x,y:p.y,period:p.feature_period,is_oos:folds.some(f=>f.test_start_period<=p.feature_period&&p.feature_period<=f.test_end_period),tooltip:p.feature_period+' → '+p.target_period+' | x='+p.x+' pp, y='+p.y+' pp | 可取得 '+p.feature_available_at+' | '+(p.source_urls||[]).join(' ')}));
+ chart($('margin-chart'),[{color:'#96aabd',points:pts}],{scatter:true,xlabel:'公司營收年增率（%）',ylabel:'毛利率變動（百分點）'});
+ const names={minimum_samples:'樣本量',expected_direction:'方向',bootstrap_excludes_zero:'信賴區間',permutation:'排列檢驗',fdr:'多重比較',cross_company_sign:'跨公司方向',oos_stability:'樣本外穩定',source:'來源',accounting:'單季口徑',pit:'歷史PIT',leading_availability:'領先時間',product_attribution:'ABF產品歸因'};
+ $('margin-gates').innerHTML='描述係數單位：每1百分點營收年增率差異對應的毛利率變動百分點；ESTIMATED，非因果係數。<br>有效OOS分段 '+folds.length+' / '+(d?.oos_folds||[]).length+'；ρ '+fmt(d?.spearman)+'；跨公司同向 '+fmt(d?.cross_company_sign_share)+'；ABF預測係數 = null<br>'+Object.entries(d?.gates||{}).map(([k,v])=>'<span class="'+(v?'pass':'fail')+'">'+esc(names[k]||k)+' '+(v?'✓':'✕')+'</span>').join('　');
+ $('margin-evidence').innerHTML=table(['情境／營收／毛利率','間隔／N','ρ／描述β','FDR q／資格'],all.map(r=>[esc(r.scenario)+'<br>'+esc(label(r.feature))+'<br>'+esc(label(r.target)),esc(r.lag_quarters+'季 / '+r.sample_size),fmt(r.spearman)+' / '+fmt(r.descriptive_beta),fmt(r.fdr_q,4)+' / '+esc(r.eligibility)]));
+ $('margin-samples').textContent=JSON.stringify(d||{data_status:'UNAVAILABLE',forecast_beta:null},null,2);
+ const history=c.primary_facts.filter(f=>f.temporal_role==='LAGGED_HISTORICAL_CONTEXT');
+ $('downside-context').innerHTML=history.length?history.map(f=>'<p><b>'+esc(f.observation_date.slice(0,10))+' · '+esc(label(f.metric_id))+'</b><br>'+esc(f.statement_zh||f.statement)+'<small>'+esc(f.source_product||f.product)+' · '+esc(f.evidence_status)+' · '+link(f.source_url,f.document+' · p.'+f.page)+'</small></p>').join(''):'<p>UNAVAILABLE · 尚無經核對的下行期歷史紀錄。</p>';
+}
 function render(){
  const c=selectedCompany(), ui=copy.companies[c.company], d=currentDetail(c);window.companySurveySelection={company:c,detail:d};
  document.querySelectorAll('.overview-card').forEach(n=>n.classList.toggle('active',n.dataset.company===c.company));
@@ -304,9 +374,10 @@ function render(){
  $('oos-table').innerHTML=table(['測試起月','測試迄月','訓練／測試 N','OOS ρ'],(d?.oos_folds||[]).map(f=>[esc(f.first_test_period),esc(f.last_test_period),esc(f.train_size+' / '+f.test_size),fmt(f.test_spearman)]));
  $('sample-detail').textContent=JSON.stringify({comparison_id:d?.comparison_id,source_scope:d?.source_scope,target_scope:d?.target_scope,sample_rows:d?.sample_rows||[],oos_folds:d?.oos_folds||[]},null,2);
  $('facts').innerHTML=c.primary_facts.length?table(['事實與數值','範圍／證據狀態','來源與四個訊號日期'],c.primary_facts.map(f=>['<b>'+esc(label(f.metric_id))+'</b><br>'+esc(f.value===null?'文字揭露':fmt(f.value,2)+' '+(f.unit||''))+'<small>'+esc(f.statement)+'</small>','<span class="badge neutral">'+esc(f.source_scope)+'</span><br>'+esc((copy.statuses[f.evidence_status]||f.evidence_status)+' · '+f.evidence_status)+'<br>'+esc(f.is_forward_looking?'前瞻展望，非實績':'觀察／歷史數值')+'<small>'+esc(f.data_status)+'</small>',link(ui.fact_links[f.fact_id],f.document+' · p.'+f.page)+'<small>'+esc(f.fact_id)+'<br>觀察 '+esc(f.observation_date)+'<br>發布 '+esc(f.release_date??'null · 未驗證')+'<br>可取得 '+esc(f.available_at)+'<br>訊號生成 '+esc(f.signal_generated_at)+'<br>本次取得／快照取得 '+esc(f.acquired_at)+'</small><details><summary>完整揭露與計算依賴</summary><pre>'+esc(JSON.stringify(f,null,2))+'</pre></details>'])):'<div class="empty">UNAVAILABLE · 缺少經核對的一手事實</div>';
- const fin=c.financial_context.rows;chart($('finance-chart'),[{color:'#087f8c',points:fin.map(f=>({x:monthNumber(f.report_date),period:f.report_date,id:f.evidence_id,y:f.gross_margin===null?null:f.gross_margin*100,tooltip:f.report_date+' · GM '+fmt(f.gross_margin*100,2)+'% · COMPANY_TOTAL · '+f.accounting_basis}))},{color:'#2563b4',points:fin.map(f=>({x:monthNumber(f.report_date),period:f.report_date,id:f.evidence_id,y:f.revenue_yoy===null?null:f.revenue_yoy*100,tooltip:f.report_date+' · 營收 YoY '+fmt(f.revenue_yoy*100,2)+'% · '+f.evidence_id}))}],{xlabel:'報告期末（公司整體；口徑 UNKNOWN）',ylabel:'%',time:true,cadence:3});
- $('finance-table').innerHTML=fin.length?table(['報告期','營收（新台幣元）','營收 YoY','毛利率','EPS（元／股）','口徑與時間'],fin.map(f=>[esc(f.report_date),fmt(f.revenue,0),f.revenue_yoy===null?'—':fmt(f.revenue_yoy*100,2)+'%',f.gross_margin===null?'—':fmt(f.gross_margin*100,2)+'%',fmt(f.eps,2),esc(f.accounting_basis)+'<small>'+esc(f.data_status)+' · 數值供應商 '+esc(f.fundamental_source)+'<br>觀察 '+esc(f.observation_date)+'<br>發布 '+esc(f.release_date??'null · 未驗證')+'<br>可取得 '+esc(f.available_at)+'<br>訊號生成 '+esc(f.signal_generated_at)+'<br>本次取得／快照取得 '+esc(f.acquired_at)+'<br>'+esc(f.evidence_id)+'<br>'+(f.source_urls||[]).map(u=>link(u,u)).join('<br>')+'</small>'])):'<p>UNAVAILABLE · 缺少財務歷史</p>';
+ const fin=c.financial_context.rows;chart($('finance-chart'),[{color:'#087f8c',points:fin.map(f=>({x:monthNumber(f.report_date),period:f.report_date,id:f.evidence_id,y:f.gross_margin===null?null:f.gross_margin*100,tooltip:f.report_date+' · GM '+fmt(f.gross_margin*100,2)+'% · COMPANY_TOTAL · '+f.accounting_basis}))},{color:'#2563b4',points:fin.map(f=>({x:monthNumber(f.report_date),period:f.report_date,id:f.evidence_id,y:f.revenue_yoy===null?null:f.revenue_yoy*100,tooltip:f.report_date+' · 營收 YoY '+fmt(f.revenue_yoy*100,2)+'% · '+f.evidence_id}))}],{xlabel:'報告期末（公司整體；各期口徑另列）',ylabel:'%',time:true,cadence:3});
+ $('finance-table').innerHTML=fin.length?table(['報告期','營收（新台幣元）','營收 YoY','毛利率','EPS（元／股）','口徑與時間','原始財報核對'],fin.map(f=>[esc(f.report_date),fmt(f.revenue,0),f.revenue_yoy===null?'—':fmt(f.revenue_yoy*100,2)+'%',f.gross_margin===null?'—':fmt(f.gross_margin*100,2)+'%',fmt(f.eps,2),esc(f.accounting_basis)+'<small>'+esc(f.data_status)+' · 數值供應商 '+esc(f.fundamental_source)+'<br>'+(f.value_source_urls||[]).map(u=>link(u,u)).join('<br>')+'<br>觀察 '+esc(f.observation_date)+'<br>發布 '+esc(f.release_date??'null · 未驗證')+'<br>可取得 '+esc(f.available_at)+'<br>訊號生成 '+esc(f.signal_generated_at)+'<br>本次取得／快照取得 '+esc(f.acquired_at)+'<br>'+esc(f.evidence_id)+'<br>'+(f.source_urls||[]).map(u=>link(u,u)).join('<br>')+'</small>',ui.financial_proofs[f.evidence_id]])):'<p>UNAVAILABLE · 缺少財務歷史</p>';
  $('bridge').innerHTML=c.financial_bridge.stages.map(s=>'<div><h3>'+esc(s.stage)+'</h3><span class="badge">'+esc(s.status)+'</span><p>β = null<br>尚未校準</p></div>').join('');
+  renderMargin(c);
  $('mechanisms').innerHTML=(c.operating_mechanism||[]).map(m=>'<p>'+esc(m.statement_zh||m.statement)+'<small>'+esc(m.evidence_status)+' · '+esc(m.status)+'<br>證據 ID：'+(m.evidence_ids||[]).map(id=>link(ui.fact_links[id],id)).join(' · ')+'</small></p>').join('');
  $('missing').innerHTML=table(['ABF 產品輸入','狀態／已核對值'],c.missing_inputs.map(m=>[esc(label(m.metric_id)),esc(m.value===null?'缺少 · '+m.data_status:fmt(m.value,2)+' '+(m.unit||'')+' · '+m.data_status)+'<small>'+esc((m.evidence_ids||[]).join(' · '))+'</small>']));
  const questions=['公司產品層級的訂單、客戶庫存、實際稼動率、售價與產品組合，是否有可持續追蹤的一手揭露？','上下行情境是否各自通過固定時序 OOS、信賴區間、多重比較與跨公司檢驗？','可否取得獨立單季、精確公開時間的 ABF 營收與毛利，建立財務傳導？'];
@@ -318,6 +389,7 @@ function render(){
 option($('company-select'),report.companies.map(c=>c.company),v=>{const c=report.companies.find(x=>x.company===v);return c.name+' '+c.stock_id});
 function syncMetrics(){const previous=$('metric-select').value,options=selectedCompany().scenarios[$('scenario-select').value].options;option($('metric-select'),[...new Set(options.map(o=>o.metric_id))],label);if([...$('metric-select').options].some(o=>o.value===previous))$('metric-select').value=previous}
 $('company-select').addEventListener('change',()=>{syncMetrics();render()});$('scenario-select').addEventListener('change',()=>{syncMetrics();render()});['metric-select','feature-select','target-select'].forEach(id=>$(id).addEventListener('change',render));
+['margin-feature-select','margin-target-select','margin-lag-select'].forEach(id=>$(id).addEventListener('change',()=>renderMargin(selectedCompany())));
 document.querySelectorAll('.overview-card').forEach(b=>b.addEventListener('click',()=>{$('company-select').value=b.dataset.company;syncMetrics();render()}));
 $('report-date').textContent='研究知識截止 '+report.as_of+' · 報告生成 '+report.generated_at;
 $('provenance').textContent='ABFCompanySurveyV1 · '+report.owner+' · 統計權威 '+report.policy.statistical_authority+' · 版本 '+(report.code_revision||report.audit_metadata.code_revision||'未提供')+' · 所有圖表使用封存證據，無外部連線。';

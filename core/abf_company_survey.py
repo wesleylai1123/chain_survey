@@ -109,7 +109,8 @@ def _status(raw: dict, default: str = 'UNKNOWN') -> str:
 def _urls(raw: dict) -> list[str]:
     supplied = raw.get('source_urls', [])
     candidates = list(supplied) if isinstance(supplied, (list, tuple)) else [supplied]
-    candidates += [raw.get('source_url'), raw.get('filing_source_url'), raw.get('fundamental_source_url')]
+    candidates += [raw.get('source_url'), raw.get('filing_source_url'), raw.get('fundamental_source_url'),
+                   raw.get('primary_financial_source_url')]
     urls = set()
     for value in candidates:
         if not _present(value):
@@ -124,13 +125,17 @@ def _urls(raw: dict) -> list[str]:
 def _dates(raw: dict, *, generated_at: str, financial: bool = False) -> dict:
     observed = _time(raw.get('observation_date', raw.get('report_date')),
                      field='observation_date', end_of_day=False)
-    releases = [_time(raw.get(k), field=k) for k in ('release_date', 'filing_published_at')]
+    release_fields = ('release_date', 'filing_published_at') + (('financial_release_date',) if financial else ())
+    releases = [_time(raw.get(k), field=k) for k in release_fields]
     release = max((t for t in releases if t is not None), default=None)
-    acquisitions = [_time(raw.get(k), field=k) for k in ACQUISITION_FIELDS]
+    acquisition_fields = ACQUISITION_FIELDS + (('financial_evidence_acquired_at',) if financial else ())
+    acquisitions = [_time(raw.get(k), field=k) for k in acquisition_fields]
     acquired = max((t for t in acquisitions if t is not None), default=None)
     available_times = [release, acquired, _time(raw.get('available_at'), field='available_at')]
     if financial:
         available_times.append(_time(raw.get('available_date'), field='available_date'))
+        available_times.append(_time(raw.get('financial_basis_verification_available_at'),
+                                     field='financial_basis_verification_available_at'))
     available = max((t for t in available_times if t is not None), default=None)
     generated = _time(raw.get('signal_generated_at') or generated_at, field='signal_generated_at')
     if observed is not None:
@@ -153,6 +158,8 @@ def _dates(raw: dict, *, generated_at: str, financial: bool = False) -> dict:
         if _present(raw.get(field)) and raw[field] not in exact_values:
             exact_release = False
     if raw.get('pit_exact') is False:
+        exact_release = False
+    if financial and raw.get('financial_pit_exact') is False:
         exact_release = False
     return dict(observation_date=_iso(observed), release_date=_iso(release),
                 available_at=_iso(available), acquired_at=_iso(acquired),
@@ -323,6 +330,17 @@ def _financial_rows(factor: pd.DataFrame, *, cutoff: pd.Timestamp, generated_at:
             source_urls=urls, source_lineage_complete=bool(urls),
             fundamental_source=raw.get('fundamental_source') or 'UNKNOWN',
             fundamental_source_url=raw.get('fundamental_source_url'), market_source=raw.get('market_source'),
+            financial_value_verification=raw.get('financial_value_verification') or 'UNVERIFIED',
+            primary_financial_source_url=raw.get('primary_financial_source_url'),
+            financial_evidence_id=raw.get('financial_evidence_id'),
+            financial_evidence_sha256=raw.get('financial_evidence_sha256'),
+            financial_evidence_acquired_at=raw.get('financial_evidence_acquired_at'),
+            financial_source_page=raw.get('financial_source_page'),
+            financial_period_start=raw.get('financial_period_start'),
+            financial_published_decimal_places=raw.get('financial_published_decimal_places'),
+            financial_rounding_tolerance_twd=raw.get('financial_rounding_tolerance_twd'),
+            financial_basis_verification_available_at=raw.get('financial_basis_verification_available_at'),
+            financial_comparative_from_later_document=raw.get('financial_comparative_from_later_document',False),
             value_source_urls=_urls({'source_url': raw.get('fundamental_source_url') or raw.get('source_url')}),
             filing_source_url=raw.get('filing_source_url'), filing_source_role='PUBLICATION_TIME_VERIFICATION',
             source_provenance='Financial values retain their provider; the filing URL verifies publication time only.',
@@ -341,6 +359,28 @@ def _financial_rows(factor: pd.DataFrame, *, cutoff: pd.Timestamp, generated_at:
         seen[fid] = row
         rows.append(row)
     return sorted(rows, key=lambda r: (r['company'], r['report_date']))
+
+
+def _margin_audit(audit: dict, company: str, *, cutoff: pd.Timestamp, usable: bool) -> dict:
+    margin=audit.get('margin_validation') or {}
+    known=_time(margin.get('as_of'),field='margin.as_of')
+    comparisons=[]
+    if usable and margin.get('contract')=='ABFMarginValidationV1' and known is not None and known<=cutoff:
+        for raw in margin.get('comparisons',[]):
+            if raw.get('company')!=company or raw.get('product')!='ABF':
+                continue
+            row=deepcopy(raw)
+            # The page packages the audit; it cannot authorize an ABF forecast from a proxy.
+            if row.get('is_proxy',True) or row.get('source_scope')!='COMPANY_PRODUCT':
+                row['forecast_beta']=None
+                if row.get('eligibility')=='eligible':
+                    row['eligibility']='reject'
+                    row['rejection_reasons']=sorted(set(row.get('rejection_reasons',[])+['PROXY_SCOPE']))
+            comparisons.append(row)
+    return dict(contract='ABFMarginValidationV1',
+        data_status='AVAILABLE' if any(r.get('sample_rows') for r in comparisons) else 'UNAVAILABLE',
+        comparisons=comparisons,policy=deepcopy(margin.get('policy',{})),
+        source_scope='COMPANY_TOTAL',is_proxy=True,forecast_beta=None)
 
 
 def _unavailable_detail(company: str, scenario: str, metric: str, ft: str, tt: str,
@@ -543,19 +583,26 @@ def build_company_survey(audit: dict, factor: pd.DataFrame, facts: list | dict, 
                                value=f['value'], unit=f.get('unit'), product=f['product']) for f in company_facts])
         handoff = [deepcopy(h) for h in audit.get('calibration_handoff', [])
                    if usable and h.get('company') == company and h.get('product') == 'ABF']
+        verified=sum(r['accounting_basis_verified'] and r['accounting_basis']=='STANDALONE_QUARTER'
+                     for r in history)
         record = dict(company=company, stock_id=company[:4], name=COMPANY_NAMES[company], product='ABF',
             data_status='AVAILABLE' if has_evidence else 'UNAVAILABLE', assessment=assessment,
             scenario_options=list(SCENARIOS), scenarios=scenarios, details=details, trend=trend,
             financial_context=dict(data_status='AVAILABLE' if history else 'UNAVAILABLE', rows=history,
                 source_scope='COMPANY_TOTAL', source_product='All company products', is_proxy=True,
-                accounting_basis='UNKNOWN', units=dict(FINANCIAL_UNITS)),
+                accounting_basis=('STANDALONE_QUARTER' if history and verified==len(history)
+                                  else 'PARTIALLY_VERIFIED' if verified else 'UNKNOWN'),
+                basis_coverage=dict(periods=len(history),verified_standalone=verified,
+                    unverified=len(history)-verified,
+                    mismatches=sum(r.get('financial_value_verification')=='MISMATCH' for r in history)),
+                units=dict(FINANCIAL_UNITS)),
             primary_facts=company_facts, rejected_facts=[f for f in rejected if f['company'] == company],
             missing_inputs=_missing_inputs(company_facts),
             financial_bridge=dict(status='NOT_CALIBRATED', beta=None, evidence_status='UNKNOWN',
                 reason='Verify ABF attribution, standalone-quarter basis, exact PIT and company-specific robustness before fitting.',
                 stages=[dict(stage=stage, status='NOT_CALIBRATED', beta=None, evidence_ids=references)
                         for stage in ('Driver → Revenue', 'Revenue → GM', 'GM → EPS')],
-                audit_handoff=handoff),
+                audit_handoff=handoff,margin_audit=_margin_audit(audit,company,cutoff=cutoff,usable=usable)),
             operating_mechanism=[dict(statement='ABF orders, utilization, ASP and product mix may affect revenue and margin.',
                 evidence_status='INFERRED', status='UNVALIDATED_HYPOTHESIS', evidence_ids=references)],
             research_questions=[dict(question=question, evidence_ids=references, evidence_status='UNKNOWN') for question in (

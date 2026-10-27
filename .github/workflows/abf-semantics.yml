@@ -28,7 +28,11 @@ jobs:
           python -m unittest discover -s tests -p 'test_metric_semantics.py' -v
           python -m unittest discover -s tests -p 'test_abf_transform_validation.py' -v
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v
+          python -m unittest discover -s tests -p 'test_abf_margin_validation.py' -v
+          python -m unittest discover -s tests -p 'test_abf_financial_evidence.py' -v
           xvfb-run -a python -m unittest discover -s tests -p 'test_abf_company_survey*.py' -v
+          python -m unittest discover -s tests -p 'test_abf_company_financial_calibration.py' -v
+          python -m unittest discover -s tests -p 'test_abf_research_lab_company_report.py' -v
           python -m unittest discover -s tests -p 'test_abf_validation_snapshot.py' -v
           python contract_tests/validate_contracts.py
       - name: Restore persisted real observations
@@ -57,7 +61,9 @@ jobs:
           survey=json.load(open('artifacts/abf_company_survey.json',encoding='utf-8'))
           assert survey['contract']=='ABFCompanySurveyV1'
           assert len(survey['companies'])==3
-          assert sum(len(c['primary_facts']) for c in survey['companies'])==28
+          assert sum(len(c['primary_facts']) for c in survey['companies'])==39
+          assert len(report['margin_validation']['comparisons'])==72
+          assert all(r['forecast_beta'] is None for r in report['margin_validation']['comparisons'])
           assert all(c['financial_bridge']['beta'] is None for c in survey['companies'])
           assert all(set(c['scenarios'])=={'UPSIDE','DOWNSIDE'} for c in survey['companies'])
           PY
@@ -73,6 +79,8 @@ jobs:
             artifacts/abf_semantics_validation.*
             artifacts/abf_transform_comparison.csv
             artifacts/abf_calibration_handoff.json
+            artifacts/abf_margin_validation.json
+            artifacts/abf_financial_reconciliation.json
             artifacts/abf_downside_source_priorities.json
             artifacts/abf-semantics-*.png
             artifacts/abf_company_survey.*

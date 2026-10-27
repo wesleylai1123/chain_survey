@@ -12,13 +12,72 @@ import unittest
 import pandas as pd
 
 from core.abf_company_survey import build_company_survey
-from tests.test_abf_company_survey import AS_OF, audit_fixture, fact_row
+from tests.test_abf_company_survey import AS_OF, audit_fixture, fact_row, factor_row
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class CompanySurveyHtmlTests(unittest.TestCase):
+    def test_bridge_note_claims_examination_only_for_available_margin_samples(self):
+        report=self.report()
+        for status,samples,expected in [('UNAVAILABLE',[],'缺少公司Revenue→GM可驗證樣本'),
+                ('AVAILABLE',[],'缺少公司Revenue→GM可驗證樣本'),
+                ('UNAVAILABLE',[{'x':1,'y':2}],'缺少公司Revenue→GM可驗證樣本'),
+                ('AVAILABLE',[{'x':1,'y':2}],'公司Revenue→GM的描述關係已獨立檢驗')]:
+            with self.subTest(status=status,samples=bool(samples)):
+                report['companies'][0]['financial_bridge']['margin_audit'].update(
+                    data_status=status,comparisons=[{'sample_rows':samples}])
+                rendered=self.renderer().render_company_survey(report)
+                block=re.search(r'<script id="company-view-copy" type="application/json">(.*?)</script>',rendered,re.S)
+                company_copy=json.loads(block.group(1))['companies']['3037.TW']
+                self.assertTrue(expected in company_copy.get('bridge_note',''),'Bridge note must reflect available evidence')
+                self.assertTrue('NOT_CALIBRATED' in company_copy['bridge_note'])
+                self.assertTrue("$('bridge-note').textContent=copy.companies[c.company].bridge_note" in rendered,
+                                'Selected company must update the bridge note')
+
+    def test_financial_proof_labels_official_document_separately_from_value_provider(self):
+        raw=factor_row(accounting_basis='STANDALONE_QUARTER',accounting_basis_verified=True,
+            fundamental_source='FinMind',fundamental_source_url='https://provider.tw/api',
+            financial_value_verification='ROUNDED_MATCH',financial_source_page=7,
+            primary_financial_source_url='https://company.tw/statements.pdf',
+            financial_evidence_id='primary-quarter',financial_evidence_sha256='a'*64,
+            financial_evidence_acquired_at='2025-05-17T00:00:00Z',
+            financial_basis_verification_available_at='2025-05-18T00:00:00Z')
+        report=build_company_survey({},pd.DataFrame([raw]),[],as_of=AS_OF)
+        rendered=self.renderer().render_company_survey(report)
+        block=re.search(r'<script id="company-view-copy" type="application/json">(.*?)</script>',rendered,re.S)
+        copy=json.loads(block.group(1))
+        proof=copy['companies']['3037.TW'].get('financial_proofs',{}).get('financial::3037.TW::2025-03-31','')
+        for value in ('原始財報數值核對','ROUNDED_MATCH','原始財報來源','財報頁碼','7',
+                      'https://company.tw/statements.pdf#page=7','財報 SHA-256','a'*64,
+                      '財報證據 ID','primary-quarter','財報本次取得／快照取得','2025-05-17T00:00:00Z',
+                      '口徑驗證可取得','2025-05-18T00:00:00Z'):
+            self.assertTrue(value in proof,'Financial proof is missing '+value)
+        self.assertTrue('ui.financial_proofs[f.evidence_id]' in rendered,'Financial table must display its proof')
+        self.assertTrue('數值供應商' in rendered,'Keep the value provider separately labeled')
+        self.assertFalse('provider.tw' in proof,'Provider URL is not primary-document proof')
+        self.assertTrue("xlabel:'公司營收年增率（%）'" in rendered,'Revenue-growth axis must show rate percent')
+        self.assertTrue('每1百分點營收年增率差異對應的毛利率變動百分點' in rendered,
+                        'The descriptive slope must distinguish rate differences from the axis unit')
+
+    def test_margin_points_mark_only_validated_holdouts_and_never_recalculate_values(self):
+        renderer=self.renderer()
+        helper=getattr(renderer,'margin_points',None)
+        self.assertIsNotNone(helper)
+        detail=dict(sample_rows=[dict(feature_period='2025Q1',x=10.,y=2.),dict(feature_period='2025Q2',x=-5.,y=-1.)],
+            oos_folds=[dict(test_start_period='2025Q1',test_end_period='2025Q1',valid=False),
+                       dict(test_start_period='2025Q2',test_end_period='2025Q2',valid=True)])
+        points=helper(detail)
+        self.assertEqual([(p['x'],p['y'],p['is_oos']) for p in points],[(10.,2.,False),(-5.,-1.,True)])
+
+    def test_margin_surface_exposes_selection_proof_and_descriptive_estimate_labels(self):
+        rendered=self.renderer().render_company_survey(self.report())
+        for control in ('margin-feature-select','margin-target-select','margin-lag-select','margin-chart','margin-evidence'):
+            self.assertTrue('id="'+control+'"' in rendered,control+' missing')
+        for text in ('Revenue→GM', '描述性估計', '核對單季', '預測係數'):
+            self.assertIn(text,rendered)
+
     def renderer(self):
         self.assertIsNotNone(importlib.util.find_spec('core.abf_company_survey_html'),
                              'Portable company renderer is missing')
@@ -223,7 +282,7 @@ class CompanySurveyHtmlTests(unittest.TestCase):
             output = Path(tmp)/'output'
             absent = Path(tmp)/'missing'
             result = subprocess.run([sys.executable, str(path), '--audit', str(absent),
-                '--factor', str(absent), '--facts', str(absent), '--as-of', AS_OF,
+                '--factor', str(absent), '--facts', str(absent), '--quarterly-financial-evidence',str(absent),'--as-of', AS_OF,
                 '--output-dir', str(output)], cwd=ROOT, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             raw = (output/'abf_company_survey.json').read_text(encoding='utf-8')
@@ -238,6 +297,48 @@ class CompanySurveyHtmlTests(unittest.TestCase):
 
 
 class CompanySurveyDesktopTests(unittest.TestCase):
+    def test_financial_reader_shows_primary_proof_and_verification_dates(self):
+        import tkinter as tk
+        from app.abf_company_survey_view import CompanySurveyView
+        root=tk.Tk();root.withdraw();self.addCleanup(root.destroy)
+        raw=factor_row(fundamental_source='FinMind',financial_value_verification='MATCH',
+            primary_financial_source_url='https://company.tw/filing.pdf',financial_source_page=8,
+            financial_evidence_sha256='b'*64,financial_evidence_id='proof-quarter',
+            financial_evidence_acquired_at='2025-05-17T00:00:00Z',
+            financial_basis_verification_available_at='2025-05-18T00:00:00Z')
+        view=CompanySurveyView(root,build_company_survey({},pd.DataFrame([raw]),[],as_of=AS_OF))
+        text=view.finance_text.get('1.0','end')
+        for value in ('原始財報數值核對：MATCH','數值來源 FinMind','原始財報來源',
+                      '財報頁碼：8','財報 SHA-256：'+'b'*64,'財報證據 ID：proof-quarter',
+                      '財報本次取得／快照取得：2025-05-17T00:00:00Z',
+                      '口徑驗證可取得：2025-05-18T00:00:00Z'):
+            self.assertTrue(value in text,'Desktop financial proof is missing '+value)
+        self.assertEqual(view.margin_ax.get_xlabel(),'近三個月公司營收年增率（%）')
+        self.assertTrue('每1百分點營收年增率差異對應的毛利率變動百分點' in view.margin_status.cget('text'))
+
+    def test_financial_scatter_uses_own_scenario_rows_and_does_not_mark_invalid_oos(self):
+        import tkinter as tk
+        from app.abf_company_survey_view import CompanySurveyView
+        root=tk.Tk();root.withdraw();self.addCleanup(root.destroy)
+        report=build_company_survey(audit_fixture(),pd.DataFrame(),[],as_of=AS_OF)
+        for i,company in enumerate(report['companies']):
+            company['financial_bridge']['margin_audit']['comparisons']=[dict(
+                comparison_id=company['company']+side,company=company['company'],product='ABF',scenario=side,
+                feature='monthly_revenue_3m_yoy',target='gross_margin_yoy_delta',lag_quarters=1,
+                sample_size=1,descriptive_beta=.2,spearman=None,fdr_q=1,eligibility='reject',forecast_beta=None,
+                data_status='DESCRIPTIVE_PROXY_ONLY',gates={'oos_stability':False},
+                sample_rows=[dict(feature_period='2024Q1',target_period='2024Q2',x=(i+1)*sign,y=2*sign)],
+                oos_folds=[dict(test_start_period='2024Q1',test_end_period='2024Q1',valid=False)])
+                for side,sign in [('UPSIDE',1),('DOWNSIDE',-1)]]
+        view=CompanySurveyView(root,report)
+        for i,company in enumerate(report['companies']):
+            for side,sign in [('UPSIDE',1),('DOWNSIDE',-1)]:
+                view.company_var.set(company['company']);view.scenario_var.set(side);view.render()
+                self.assertEqual(view.selected_margin_detail['company'],company['company'])
+                self.assertEqual(view.margin_ax.collections[0].get_offsets().tolist(),[[(i+1)*sign,2*sign]])
+                self.assertEqual(len(view.margin_ax.collections),1)
+                self.assertIn('ABF預測係數 = null',view.margin_status.cget('text'))
+
     def test_desktop_selectors_preserve_company_scenario_and_audited_points(self):
         import tkinter as tk
         from app.abf_company_survey_view import CompanySurveyView

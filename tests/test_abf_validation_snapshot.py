@@ -10,7 +10,8 @@ from scripts import run_abf_semantics_validation as exporter
 class AbfValidationSnapshotTests(unittest.TestCase):
     def test_acquisition_aliases_and_release_cap_historical_replay(self):
         rows = [dict(ticker='3037.TW', report_date='2026-06-30', available_date='2026-08-07', tag='known')]
-        for field in ('acquired_at', 'first_seen_at', 'snapshot_acquired_at', 'filing_published_at', 'available_at'):
+        for field in ('acquired_at', 'first_seen_at', 'snapshot_acquired_at', 'filing_published_at', 'available_at',
+                      'financial_evidence_acquired_at','financial_basis_verification_available_at','financial_release_date'):
             rows.append(dict(rows[0], tag=field, **{field: '2026-10-26T00:00:00Z'}))
         selected = exporter.factor_known_at(pd.DataFrame(rows), as_of='2026-10-25T00:00:00Z')
         self.assertEqual(selected['tag'].tolist(), ['known'])
@@ -32,9 +33,11 @@ class AbfValidationSnapshotTests(unittest.TestCase):
     def test_report_applies_snapshot_filter_before_margin_scan(self):
         rows = pd.DataFrame([dict(ticker='3037.TW', report_date='2026-06-30',
             available_date='2026-08-07', snapshot_acquired_at='2026-10-26T00:00:00Z')])
-        with patch.object(exporter, 'scan_revenue_to_margin') as scan:
+        with patch.object(exporter,'validate_margin_transmission',wraps=exporter.validate_margin_transmission) as validate:
             result = exporter.build_report(pd.DataFrame(), rows, as_of='2026-10-25T00:00:00Z', iterations=19)
-        scan.assert_not_called()
+        validate.assert_called_once()
+        self.assertTrue(validate.call_args.args[0].empty)
+        self.assertTrue(all(r['sample_size']==0 for r in result['margin_validation']['comparisons']))
         self.assertTrue(all(c['stages'][1]['status'] == 'UNAVAILABLE' for c in result['calibration_handoff']))
 
 

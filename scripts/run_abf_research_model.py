@@ -14,6 +14,7 @@ from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_reve
 from core.indicator_taxonomy import indicator_table
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_financial_evidence import reconcile_financial_evidence
 from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
@@ -25,6 +26,7 @@ HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
 FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
 OPERATING=ROOT/"data"/"abf_operating_observations.csv"
 FACTS=ROOT/"data"/"abf_company_research_evidence.json"
+FINANCIAL_EVIDENCE=ROOT/'data/abf_quarterly_financial_evidence.json'
 OUT=ROOT/"artifacts"
 
 
@@ -33,6 +35,8 @@ def main() -> None:
     run_semantics_validation(['--as-of', as_of])
     history=pd.read_csv(HISTORY)
     factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+    if FINANCIAL_EVIDENCE.exists():
+        factor=reconcile_financial_evidence(factor,json.loads(FINANCIAL_EVIDENCE.read_text(encoding='utf-8')),as_of=as_of)
     operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
     coverage=audit_abf_data_coverage(history,factor,operating_observations=operating)
     provenance=build_abf_data_provenance(coverage,history,factor,operating)
@@ -51,7 +55,8 @@ def main() -> None:
     model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table,comparisons=pd.DataFrame(audited['comparisons']))
     facts = json.loads(FACTS.read_text(encoding='utf-8')) if FACTS.exists() else []
     company_survey = export_company_survey(audited, factor, facts, as_of=as_of, output_dir=OUT,
-        input_paths={'audit': OUT/'abf_semantics_validation.json', 'factor': FACTOR, 'facts': FACTS})
+        input_paths={'audit': OUT/'abf_semantics_validation.json', 'factor': FACTOR, 'facts': FACTS,
+                     'quarterly_financial_evidence':FINANCIAL_EVIDENCE})
 
     OUT.mkdir(parents=True,exist_ok=True)
     sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)

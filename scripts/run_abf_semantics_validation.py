@@ -18,7 +18,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0,str(ROOT))
 
 from core.abf_transform_validation import COMPANIES, compare_abf_transforms
-from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_margin_validation import validate_margin_transmission
+from core.abf_financial_evidence import reconcile_financial_evidence
 from core.metric_semantics import normalize_history, timestamp, transform_observations
 
 
@@ -67,7 +68,8 @@ def factor_known_at(factor: pd.DataFrame, *, as_of: str) -> pd.DataFrame:
         times=[available,bound(row.get('report_date'),daily=True)]
         times.extend(bound(row.get(field)) for field in (
             'observation_date','available_at','filing_published_at','release_date',
-            'acquired_at','first_seen_at','snapshot_acquired_at'))
+            'acquired_at','first_seen_at','snapshot_acquired_at',
+            'financial_evidence_acquired_at','financial_basis_verification_available_at','financial_release_date'))
         return all(t<=cutoff for t in times if t is not None)
 
     return factor.loc[[known(row) for row in factor.to_dict('records')]].copy()
@@ -80,26 +82,24 @@ def build_report(history: pd.DataFrame, factor: pd.DataFrame, *, as_of: str, ite
     for transform in ('LEVEL','CHANGE'):
         observations.extend(transform_observations(signals,transform).to_dict('records'))
     factor=factor_known_at(factor,as_of=as_of)
-    margin=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
+    margin=validate_margin_transmission(factor,as_of=as_of,iterations=iterations)
     handoff=[]
     for company in COMPANIES:
         comparisons=table[table.company.eq(company)]
         margin_evidence=[]
-        for record in margin.to_dict('records'):
-            own=next((r for r in record['company_product_results'] if r['company']==company),None)
-            if own:
+        for record in margin['comparisons']:
+            if record['company']==company and record['sample_size']:
+                own={k:v for k,v in record.items() if k not in {'sample_rows','resampling_blocks'}}
                 margin_evidence.append(dict(feature=record['feature'],target=record['target'],lag_quarters=record['lag_quarters'],
                     accounting_basis=record['accounting_basis'],evidence_status='DERIVED',
-                    eligibility='reject',reason='Company-specific OOS, bootstrap, permutation and FDR not yet validated',
-                    pooled_reference={'fdr_q':record['fdr_q'],'permutation_p':record['permutation_p'],
-                                      'eligibility':record['eligibility'],'scope':'THREE_COMPANY_EXPLORATION'},
+                    eligibility=record['eligibility'],reason='; '.join(record['rejection_reasons']),
                     company_result=own))
         handoff.append(dict(company=company,product='ABF',evidence_status='INFERRED',
             stages=[dict(stage='Driver → Revenue',status='NOT_CALIBRATED',beta=None,
                          reason='Industry and company-total proxies; no eligible ABF product relation',
                          comparison_ids=comparisons.comparison_id.tolist()),
-                    dict(stage='Revenue → GM',status='CANDIDATE_ONLY' if margin_evidence else 'UNAVAILABLE',beta=None,
-                         reason='Verify standalone-quarter accounting, exact PIT and product mix before fitting ABF margin beta',
+                    dict(stage='Revenue → GM',status='AUDIT_COMPLETE_NOT_CALIBRATED' if margin_evidence else 'UNAVAILABLE',beta=None,
+                         reason='Own-company validation completed; forecasting still requires every statistical, accounting, PIT and product gate',
                          evidence=margin_evidence),
                     dict(stage='GM → EPS',status='UNAVAILABLE',beta=None,
                          reason='No verified ABF product gross-profit, OPEX, tax, nonoperating and diluted-share bridge')]))
@@ -122,22 +122,32 @@ def build_report(history: pd.DataFrame, factor: pd.DataFrame, *, as_of: str, ite
             conditional_resampling='Calendar-contiguous blocks; gaps are block boundaries',
             iterations=iterations,company_denominator=len(COMPANIES),minimum_samples=10),
         comparisons=table.to_dict('records'),details=details,observations=observations,
-        calibration_handoff=handoff,downside_source_priorities=priority)
+        calibration_handoff=handoff,downside_source_priorities=priority,margin_validation=margin,
+        financial_reconciliation=dict(periods=len(factor),
+            verified_standalone=int(factor.get('accounting_basis_verified',pd.Series(False,index=factor.index)).sum()),
+            rows=[{k:r.get(k) for k in ('ticker','report_date','accounting_basis','financial_value_verification',
+                'financial_evidence_id','primary_financial_source_url','financial_source_page',
+                'financial_basis_verification_available_at','financial_evidence_acquired_at','financial_pit_exact')}
+                for r in factor.to_dict('records')]))
 
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--history',type=Path,default=ROOT/'data/history/free_industry_history_panel.csv')
     parser.add_argument('--factor',type=Path,default=ROOT/'artifacts/factor_validation_dataset.csv')
+    parser.add_argument('--quarterly-financial-evidence',type=Path,default=ROOT/'data/abf_quarterly_financial_evidence.json')
     parser.add_argument('--as-of',default=datetime.now(timezone.utc).isoformat())
     parser.add_argument('--iterations',type=int,default=999)
     parser.add_argument('--output-dir',type=Path,default=ROOT/'artifacts')
     args=parser.parse_args(argv)
     history=pd.read_csv(args.history) if args.history.exists() else pd.DataFrame()
     factor=pd.read_csv(args.factor,low_memory=False) if args.factor.exists() else pd.DataFrame()
+    if args.quarterly_financial_evidence.exists():
+        reviewed=json.loads(args.quarterly_financial_evidence.read_text(encoding='utf-8'))
+        factor=reconcile_financial_evidence(factor,reviewed,as_of=args.as_of)
     report=build_report(history,factor,as_of=args.as_of,iterations=args.iterations)
     inputs={}
-    for name,path in [('history',args.history),('factor',args.factor),
+    for name,path in [('history',args.history),('factor',args.factor),('quarterly_financial_evidence',args.quarterly_financial_evidence),
                       ('semantics',ROOT/'data/abf_metric_semantics.json'),('schema',ROOT/'contracts/metric-semantics/v1/schema.json')]:
         inputs[name]={'path':str(path),'sha256':sha256(path.read_bytes()).hexdigest() if path.exists() else None,
                       'data_status':'AVAILABLE' if path.exists() else 'UNAVAILABLE'}
@@ -150,6 +160,8 @@ def main(argv=None):
     table=pd.DataFrame(report['comparisons'])
     table.to_csv(out/'abf_transform_comparison.csv',index=False)
     _write(out/'abf_calibration_handoff.json',report['calibration_handoff'])
+    _write(out/'abf_margin_validation.json',report['margin_validation'])
+    _write(out/'abf_financial_reconciliation.json',report['financial_reconciliation'])
     _write(out/'abf_downside_source_priorities.json',report['downside_source_priorities'])
     columns=['company','product','scenario','metric_id','feature_transform','target_transform','sample_size','spearman','oos_sign_stability','company_sign_agreement','fdr_q','data_status','eligibility']
     counts=table.groupby(['scenario','eligibility']).size().to_string()

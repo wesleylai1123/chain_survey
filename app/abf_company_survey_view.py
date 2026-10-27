@@ -14,6 +14,7 @@ from matplotlib import font_manager
 from core.abf_company_survey_html import (
     company_brief, detail_text, fact_value, latest_gross_margin_fact,
     metric_label, monthly_segments, number, scatter_points, source_link, trend_series,
+    margin_points, selected_margin,
 )
 
 BG, INK, MUTED = '#F3F6FA', '#17283E', '#64758B'
@@ -38,6 +39,11 @@ class CompanySurveyView(ttk.Frame):
         self.metric_var = tk.StringVar(self, report['companies'][0]['scenarios']['UPSIDE']['options'][0]['metric_id'])
         self.feature_var = tk.StringVar(self, 'LEVEL')
         self.target_var = tk.StringVar(self, 'LEVEL')
+        self.margin_feature_var=tk.StringVar(self,'monthly_revenue_3m_yoy')
+        self.margin_target_var=tk.StringVar(self,'gross_margin_yoy_delta')
+        self.margin_lag_var=tk.IntVar(self,1)
+        self._margin_feature_label_var=tk.StringVar(self)
+        self._margin_target_label_var=tk.StringVar(self)
         self._company_label_var = tk.StringVar(self)
         self._metric_label_var = tk.StringVar(self)
         self._build()
@@ -52,6 +58,11 @@ class CompanySurveyView(ttk.Frame):
         return next((d for d in self.selected_company['details'].values()
                      if (d['scenario'], d['metric_id'], d['feature_transform'], d['target_transform']) ==
                      (self.scenario_var.get(), self.metric_var.get(), self.feature_var.get(), self.target_var.get())), None)
+
+    @property
+    def selected_margin_detail(self) -> dict | None:
+        return selected_margin(self.selected_company,self.scenario_var.get(),self.margin_feature_var.get(),
+                               self.margin_target_var.get(),self.margin_lag_var.get())
 
     def _build(self):
         overview = ttk.Frame(self, padding=(12, 8))
@@ -109,6 +120,28 @@ class CompanySurveyView(ttk.Frame):
         self.finance_canvas = FigureCanvasTkAgg(self.finance_figure, master=finance_chart)
         self.finance_canvas.get_tk_widget().pack(fill='both', expand=True)
         self.finance_text = self._scroll_text(finance_data)
+        margin_chart,margin_data=ttk.Frame(self.finance_book),ttk.Frame(self.finance_book)
+        self.finance_book.add(margin_chart,text='Revenue→GM驗證')
+        self.finance_book.add(margin_data,text='財務驗證來源與樣本')
+        controls=ttk.Frame(margin_chart,padding=8);controls.pack(fill='x')
+        for i,(title,var,values) in enumerate([
+            ('營收衡量',self.margin_feature_var,['monthly_revenue_3m_yoy','revenue_yoy']),
+            ('毛利率變化',self.margin_target_var,['gross_margin_yoy_delta','gross_margin_qoq']),
+            ('間隔（季；0為同期參考）',self.margin_lag_var,[0,1,2])]):
+            cell=ttk.Frame(controls);cell.grid(row=0,column=i,padx=(0,14),sticky='ew')
+            ttk.Label(cell,text=title).pack(anchor='w')
+            shown_var=(self._margin_feature_label_var if i==0 else self._margin_target_label_var if i==1 else var)
+            shown_values=[metric_label(v) for v in values] if i<2 else values
+            box=ttk.Combobox(cell,textvariable=shown_var,values=shown_values,state='readonly',width=29 if i<2 else 21)
+            box.pack(fill='x');box.bind('<<ComboboxSelected>>',lambda _e,key=i:self._margin_control_changed(key))
+            controls.columnconfigure(i,weight=1)
+        self.margin_status=ttk.Label(margin_chart,padding=8,wraplength=1350,foreground='#9A5C12')
+        self.margin_status.pack(fill='x')
+        self.margin_figure=Figure(figsize=(12,4.4),dpi=90,facecolor='white',layout='constrained')
+        self.margin_ax=self.margin_figure.subplots()
+        self.margin_canvas=FigureCanvasTkAgg(self.margin_figure,master=margin_chart)
+        self.margin_canvas.get_tk_widget().pack(fill='both',expand=True)
+        self.margin_text=self._scroll_text(margin_data)
         self.research_text = self._scroll_text(research)
 
     @staticmethod
@@ -176,6 +209,7 @@ class CompanySurveyView(ttk.Frame):
         self._render_summary(company)
         self._render_facts(company)
         self._render_finance(company)
+        self._render_margin(company)
         self._render_research(company)
         self.redraw()
 
@@ -241,6 +275,9 @@ class CompanySurveyView(ttk.Frame):
         text.insert('end', '公司整體財務脈絡 · COMPANY_TOTAL · ABF 代理值\n', 'heading')
         text.insert('end', '會計口徑 UNKNOWN 者尚未確認為獨立單季；公告來源驗證發布時間，財務數值保留原供應商。\n')
         text.insert('end', '本次取得／快照取得為目前封存紀錄的取得時間；歷史首次取得時間未驗證。\n', 'muted')
+        coverage=company['financial_context'].get('basis_coverage',{})
+        text.insert('end', f"核對單季 {coverage.get('verified_standalone',0)} / {coverage.get('periods',0)}期；"
+                    f"未核對 {coverage.get('unverified',0)}期。比較欄的取得時間不回填原季度。\n")
         rows = company['financial_context']['rows']
         if not rows:
             text.insert('end', 'UNAVAILABLE · 缺少財務歷史\n')
@@ -250,12 +287,79 @@ class CompanySurveyView(ttk.Frame):
             text.insert('end', f"營收 {number(row['revenue'], 0)} 元 · YoY {pct(row['revenue_yoy'])} · "
                         f"毛利率 {pct(row['gross_margin'])} · EPS {number(row['eps'])} 元／股\n")
             text.insert('end', f"{row['accounting_basis']} · {row['data_status']} · 數值來源 {row['fundamental_source']}\n", 'muted')
+            text.insert('end', '原始財報數值核對：'+str(row.get('financial_value_verification','UNVERIFIED'))+'\n', 'muted')
+            text.insert('end', '原始財報來源：\n', 'muted')
+            primary=source_link(dict(source_url=row.get('primary_financial_source_url'),
+                                     page=row.get('financial_source_page')))
+            if primary:
+                self._link(text, primary)
+            else:
+                text.insert('end', 'null · 未驗證\n', 'muted')
+            for label,key in [('財報頁碼','financial_source_page'),('財報證據 ID','financial_evidence_id'),
+                              ('財報 SHA-256','financial_evidence_sha256'),
+                              ('財報本次取得／快照取得','financial_evidence_acquired_at'),
+                              ('口徑驗證可取得','financial_basis_verification_available_at')]:
+                text.insert('end', label+'：'+str(row.get(key) if row.get(key) is not None else 'null · 未驗證')+'\n', 'muted')
             text.insert('end', row['evidence_id']+'\n', 'muted')
             for label, key in [('觀察', 'observation_date'), ('發布', 'release_date'), ('可取得', 'available_at'),
                                ('訊號生成', 'signal_generated_at'), ('本次取得／快照取得', 'acquired_at')]:
                 text.insert('end', label+'：'+str(row.get(key) or 'null · 未驗證')+'\n', 'muted')
             for url in row['source_urls']:
                 self._link(text, url)
+        text.configure(state='disabled')
+
+    def _margin_control_changed(self,index):
+        if index==0:
+            self.margin_feature_var.set(next(v for v in ('monthly_revenue_3m_yoy','revenue_yoy')
+                if metric_label(v)==self._margin_feature_label_var.get()))
+        elif index==1:
+            self.margin_target_var.set(next(v for v in ('gross_margin_yoy_delta','gross_margin_qoq')
+                if metric_label(v)==self._margin_target_label_var.get()))
+        self._render_margin(self.selected_company)
+
+    def _render_margin(self, company):
+        self._margin_feature_label_var.set(metric_label(self.margin_feature_var.get()))
+        self._margin_target_label_var.set(metric_label(self.margin_target_var.get()))
+        detail=self.selected_margin_detail
+        points=margin_points(detail) if detail else []
+        self.margin_ax.clear()
+        if points:
+            self.margin_ax.scatter([p['x'] for p in points],[p['y'] for p in points],s=27,color='#96AABD',label='完整封存樣本')
+            heldout=[p for p in points if p['is_oos']]
+            if heldout:
+                self.margin_ax.scatter([p['x'] for p in heldout],[p['y'] for p in heldout],s=40,color=AMBER,label='通過時間門檻的OOS')
+            self.margin_ax.legend(prop={'family':FONT,'size':9})
+        else:
+            self.margin_ax.text(.5,.5,'UNAVAILABLE · 缺少財務比較樣本',ha='center',transform=self.margin_ax.transAxes,fontfamily=FONT,color=MUTED)
+        self._style_axis(self.margin_ax,'公司Revenue→GM · '+self.scenario_var.get(),
+            metric_label(self.margin_feature_var.get())+'（%）',metric_label(self.margin_target_var.get())+'（百分點）')
+        folds=[f for f in (detail or {}).get('oos_folds',[]) if f.get('valid')]
+        self.margin_status.configure(text=(
+            f"{self._company_title(company)} · 公司整體代理值 · {self.margin_lag_var.get()}季間隔 · "
+            f"N {(detail or {}).get('sample_size',0)} · ρ {number((detail or {}).get('spearman'),3)} · "
+            f"描述性估計 β {number((detail or {}).get('descriptive_beta'),3)} · "
+            f"95% CI [{number((detail or {}).get('beta_ci_low'),3)}, {number((detail or {}).get('beta_ci_high'),3)}] · "
+            f"FDR q {number((detail or {}).get('fdr_q'),4)}\n"
+            f"有效OOS {len(folds)}段；ABF預測係數 = null。描述係數單位為每1百分點營收年增率差異對應的毛利率變動百分點，非因果或產品預測。"))
+        self.margin_canvas.draw_idle()
+        text=self.margin_text;self._reset(text)
+        text.insert('end','Revenue→GM · 公司獨立驗證\n','heading')
+        text.insert('end','公司整體代理關係與ABF產品歸因分開；預測係數仍為null。\n')
+        if not detail:
+            text.insert('end','UNAVAILABLE · 尚無這個比較的驗證證據。\n')
+        else:
+            text.insert('end',detail['comparison_id']+'\n','muted')
+            text.insert('end','各項門檻\n','heading')
+            for gate,passed in detail.get('gates',{}).items():
+                text.insert('end',gate+'：'+('通過' if passed else '未通過')+'\n')
+            for fold in detail.get('oos_folds',[]):
+                text.insert('end',f"OOS {fold.get('fold','')}：訓練 {fold.get('train_sample_size',0)}／測試 {fold.get('test_sample_size',0)}；有效 {fold.get('valid',False)}\n")
+            for sample in detail.get('sample_rows',[]):
+                text.insert('end',f"\n{sample.get('feature_period')} → {sample.get('target_period')} · x={number(sample['x'])} pp／y={number(sample['y'])} pp\n",'heading')
+                for label,prefix in [('營收','feature'),('毛利率','target')]:
+                    for name,key in [('觀察','observation_date'),('發布','release_date'),('可取得','available_at'),('訊號生成','signal_generated_at')]:
+                        text.insert('end',label+name+'：'+str(sample.get(prefix+'_'+key) or 'null · 未驗證')+'\n','muted')
+                for url in sample.get('source_urls',[]):self._link(text,url)
         text.configure(state='disabled')
 
     def _render_research(self, company):

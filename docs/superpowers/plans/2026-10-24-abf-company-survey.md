@@ -34,5 +34,5 @@ Files: add `scripts/abf_company_survey_ui_smoke.py`, `.github/workflows/abf-sema
 - [x] Refresh accessible official evidence and targeted company financial inputs; preserve source acquisition time and report external failures. Add primary-source records only after document verification.
 - [x] UI smoke selects all three companies, independently changes scenarios/transforms, exercises present/unavailable data, and captures app bounds screenshots.
 - [x] Run full unittest suite, contract validation and both old/new UI smoke; inspect actual chart screenshots.
-- [ ] Extend deterministic CI with company report/tests/artifacts. Commit on existing feature branch, push PR28, inspect Actions for the exact head and resolve actionable failures without weakening gates.
-- [ ] Write acceptance manifest with coverage, tests, screenshots, sources and outstanding external blockers. Report ABF completion status candidly; do not begin financial industry while required ABF checks remain unresolved.
+- [x] Extend deterministic CI with company report/tests/artifacts. Commit on existing feature branch, push PR28, inspect Actions for the exact head and resolve actionable failures without weakening gates.
+- [x] Write acceptance manifest with coverage, tests, screenshots, sources and outstanding external blockers. Report ABF completion status candidly; do not begin financial industry while required ABF checks remain unresolved.

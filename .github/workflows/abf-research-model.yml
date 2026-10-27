@@ -56,7 +56,11 @@ jobs:
           python -m unittest discover -s tests -p 'test_abf_model_audit.py' -v | tee abf-model-audit-test-results.txt
           python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_margin_validation.py' -v
+          python -m unittest discover -s tests -p 'test_abf_financial_evidence.py' -v
           xvfb-run -a python -m unittest discover -s tests -p 'test_abf_company_survey*.py' -v | tee abf-company-survey-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_company_financial_calibration.py' -v
+          python -m unittest discover -s tests -p 'test_abf_research_lab_company_report.py' -v
 
       - name: Build real ABF research snapshot
         shell: bash
@@ -114,7 +118,10 @@ jobs:
           survey=snap['company_survey']
           assert survey['contract']=='ABFCompanySurveyV1'
           assert {c['company'] for c in survey['companies']}=={'3037.TW','3189.TW','8046.TW'}
-          assert sum(len(c['primary_facts']) for c in survey['companies'])==28
+          assert sum(len(c['primary_facts']) for c in survey['companies'])==39
+          assert len(audit['margin_validation']['comparisons'])==72
+          assert all(r['forecast_beta'] is None for r in audit['margin_validation']['comparisons'])
+          assert sum(c['financial_context']['basis_coverage']['verified_standalone'] for c in survey['companies'])==12
           assert all(c['financial_bridge']['status']=='NOT_CALIBRATED' for c in survey['companies'])
           direct=[f for c in survey['companies'] for f in c['primary_facts'] if f['metric_id']=='abf_product_mix']
           assert len(direct)==3 and all(not f['is_proxy'] and not f['pit_exact'] for f in direct)
@@ -150,6 +157,8 @@ jobs:
             artifacts/abf_semantics_validation.html
             artifacts/abf_transform_comparison.csv
             artifacts/abf_calibration_handoff.json
+            artifacts/abf_margin_validation.json
+            artifacts/abf_financial_reconciliation.json
             artifacts/abf_downside_source_priorities.json
             artifacts/abf-semantics-stability.png
             artifacts/abf-indicator-timing.png
