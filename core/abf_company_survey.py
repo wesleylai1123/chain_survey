@@ -122,7 +122,7 @@ def _urls(raw: dict) -> list[str]:
     return sorted(urls)
 
 
-def _dates(raw: dict, *, generated_at: str, financial: bool = False) -> dict:
+def _dates(raw: dict, *, generated_at: str | None, financial: bool = False) -> dict:
     observed = _time(raw.get('observation_date', raw.get('report_date')),
                      field='observation_date', end_of_day=False)
     release_fields = ('release_date', 'filing_published_at') + (('financial_release_date',) if financial else ())
@@ -313,9 +313,12 @@ def _financial_rows(factor: pd.DataFrame, *, cutoff: pd.Timestamp, generated_at:
         for field in ('report_date', 'available_date'):
             if re.fullmatch(r'\d{4}-\d{2}-\d{2}T00:00:00', str(raw.get(field))):
                 raw[field] = raw[field][:10]  # pandas date columns retain the daily-data convention.
-        dates = _dates(raw, generated_at=generated_at, financial=True)
+        # Validate source dates and any explicit signal before applying the cutoff.
+        # A default current signal is minted only for financial knowledge already known.
+        dates = _dates(raw, generated_at=None, financial=True)
         if not dates['observation_date'] or not _known(dates, cutoff):
             continue
+        dates = _dates(raw, generated_at=generated_at, financial=True)
         urls = _urls(raw)
         verified = raw.get('accounting_basis_verified') is True
         basis = raw.get('accounting_basis') if verified and urls else 'UNKNOWN'

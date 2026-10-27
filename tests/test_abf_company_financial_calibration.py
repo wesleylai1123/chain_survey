@@ -68,6 +68,37 @@ class CompanyFinancialCalibrationTests(unittest.TestCase):
         row=build_company_survey({},self.verified_panel(),[],as_of=self.cutoff)['companies'][2]['financial_context']['rows'][0]
         self.assertEqual(row.get('financial_evidence_acquired_at'),'2026-10-26T01:00:00+00:00')
 
+    def test_future_financial_knowledge_is_omitted_before_default_signal_generation(self):
+        for field in ('available_date','available_at','acquired_at','snapshot_acquired_at',
+                      'filing_published_at','release_date','financial_release_date',
+                      'financial_evidence_acquired_at','financial_basis_verification_available_at'):
+            with self.subTest(field=field):
+                future='2026-11-30' if field=='available_date' else '2026-11-30T00:00:00Z'
+                factor=pd.DataFrame([factor_row(report_date='2024-12-31'),factor_row(**{field:future})])
+                try:
+                    report=build_company_survey({},factor,[],as_of=self.cutoff)
+                except ValueError as exc:
+                    self.fail(f'Future financial knowledge must be omitted before minting a signal: {exc}')
+                rows=report['companies'][0]['financial_context']['rows']
+                self.assertEqual([row['report_date'] for row in rows],['2024-12-31'])
+                self.assertEqual(rows[0]['signal_generated_at'],'2026-10-26T06:00:00+00:00')
+
+    def test_explicit_financial_signal_before_knowledge_remains_invalid_even_beyond_cutoff(self):
+        for available in ('2026-10-25','2026-11-30'):
+            with self.subTest(available=available):
+                factor=pd.DataFrame([factor_row(available_date=available,
+                    signal_generated_at='2026-10-24T06:00:00Z')])
+                with self.assertRaisesRegex(ValueError,'signal_generated_at cannot precede availability/acquisition'):
+                    build_company_survey({},factor,[],as_of=self.cutoff)
+
+    def test_future_financial_availability_does_not_hide_invalid_source_date_order(self):
+        for field in ('acquired_at','filing_published_at'):
+            with self.subTest(field=field):
+                factor=pd.DataFrame([factor_row(available_date='2026-11-30',
+                    **{field:'2025-03-30T00:00:00Z'})])
+                with self.assertRaisesRegex(ValueError,'cannot precede observation_date'):
+                    build_company_survey({},factor,[],as_of=self.cutoff)
+
     def test_margin_handoff_retains_only_own_company_and_withholds_proxy_forecast(self):
         own=dict(comparison_id='margin-own',company='3037.TW',product='ABF',scenario='DOWNSIDE',
             feature='revenue_yoy',target='gross_margin_qoq',lag_quarters=1,
