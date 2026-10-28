@@ -1,0 +1,8 @@
+{
+  "contract": "MetricSignalSemanticsV1",
+  "metric_id": "abf_company_revenue_yoy::3037.TW",
+  "company": "3037.TW",
+  "product": "ABF",
+  "evidence_status": "OBSERVED",
+  "signal_value": 12
+}

@@ -231,6 +231,10 @@ def main() -> None:
     filing_path = Path(args.filing_observations)
     filings = pd.read_csv(filing_path, dtype={"stock_id": str}) if filing_path.exists() else pd.DataFrame()
     dataset = build_factor_validation_dataset(companies, raw["financial_statements"], raw["balance_sheets"], raw["cashflows"], raw["monthly_revenue"], validation_prices, raw["valuation"], filing_observations=filings)
+    # This is acquisition of the current cache snapshot, not historical first-seen.
+    # The research consumer must cap replay availability by this timestamp.
+    dataset["snapshot_acquired_at"] = pd.Timestamp.now(tz="UTC").isoformat()
+    dataset["fundamental_source_url"] = API_URL
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     dataset.to_csv(output, index=False)

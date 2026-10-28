@@ -57,14 +57,23 @@ class FreeEvidenceDashboard(tk.Tk):
         source_tab=ttk.Frame(notebook,padding=8); evidence_tab=ttk.Frame(notebook,padding=8)
         notebook.add(source_tab,text="Connector health"); notebook.add(evidence_tab,text="Latest evidence")
 
-        scols=("source_id","provider","status","rows","error")
+        scols=("source_id","provider","distributor","fetch_mode","status","rows","error")
         st=ttk.Treeview(source_tab,columns=scols,show="headings",height=12)
-        sw={"source_id":280,"provider":100,"status":90,"rows":70,"error":760}
+        sw={"source_id":280,"provider":80,"distributor":90,"fetch_mode":150,"status":65,"rows":60,"error":760}
         for col in scols:
             st.heading(col,text=col.replace("_"," ").title()); st.column(col,width=sw[col],anchor="w")
-        st.pack(fill="x")
+        source_x=ttk.Scrollbar(source_tab,orient="horizontal",command=st.xview)
+        st.configure(xscrollcommand=source_x.set)
+        st.pack(fill="x"); source_x.pack(fill="x")
         for row in self.status.get("sources",[]):
-            st.insert("","end",values=tuple(row.get(c,"") for c in scols))
+            display=dict(row)
+            display["error"]=row.get("error") or row.get("primary_error", "")
+            st.insert("","end",values=tuple(display.get(c,"") for c in scols))
+        ttk.Label(source_tab,text=(
+            "OFFICIAL_FALLBACK: the primary download failed; the same statistical series was fetched live "
+            "from the listed government distributor. The original error remains visible. "
+            "Evidence source links and raw snapshot hashes identify the actual download."
+        ),wraplength=1550).pack(anchor="w",pady=(8,0))
 
         ecols=(
             "available","source_id","chain","dimension","indicator","yoy","signal",

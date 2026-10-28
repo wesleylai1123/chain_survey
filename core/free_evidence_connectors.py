@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import re
 import urllib.parse
 import urllib.request
@@ -18,6 +19,14 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "data" / "free_evidence_sources.json"
 DATA_GOV_METADATA = "https://data.gov.tw/api/v2/rest/dataset/{dataset_id}"
+DGBAS_EXPORT_ORDERS = "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/"
+DGBAS_COMMODITIES = {"6": "電子產品", "9": "資訊與通信產品"}
+
+
+class DgbasUnavailableMonth(ValueError):
+    def __init__(self, period: str):
+        super().__init__(f"DGBAS latest completed month is unavailable: {period}")
+        self.period = period
 
 MONTHLY_REVENUE_ALIASES = {
     "period": ["資料年月", "資料月份", "年月"],
@@ -200,6 +209,87 @@ def parse_moea_export_orders_csv(
     if frame.empty:
         raise ValueError("MOEA parser found no usable observations")
     return frame
+
+
+def dgbas_export_orders_url(commodity_id: str, *, as_of: pd.Timestamp) -> str:
+    if commodity_id not in DGBAS_COMMODITIES:
+        raise ValueError("Unsupported DGBAS export-order commodity")
+    latest = pd.Timestamp(as_of).tz_convert("UTC").replace(day=1) - pd.DateOffset(months=1)
+    # The empty second classification is required by this official endpoint.
+    # Never request the current month: unpublished periods can be returned as zero.
+    return (f"{DGBAS_EXPORT_ORDERS}2.{commodity_id}..M&startTime=1984-M1"
+            f"&endTime={latest.year}-M{latest.month}")
+
+
+def parse_dgbas_export_orders_json(
+    payload: bytes | str,
+    *,
+    source_id: str,
+    chain: str,
+    dimension: str,
+    commodity_id: str,
+    collected_at: pd.Timestamp,
+    source_url: str,
+) -> pd.DataFrame:
+    """Accept only the same MOEA monthly USD series, distributed by DGBAS.
+
+    The API's prepared time is a query time, not a historical publication time.
+    Zero can represent an unpublished period and must never produce a -100% signal.
+    """
+    try:
+        a = json.loads(payload.decode("utf-8-sig") if isinstance(payload, bytes) else payload)
+        structure = a["data"]["structure"]
+        dims = structure["dimensions"]
+        expected = [
+            ("fldid", "2", "美金計價(百萬美元)"),
+            ("code1", commodity_id, DGBAS_COMMODITIES[commodity_id]),
+        ]
+        if (a["meta"]["sender"]["id"] != "dgbas"
+                or structure["name"] != "外銷訂單按主要接單貨品"
+                or len(dims["series"]) != 2):
+            raise ValueError("Unexpected DGBAS table or sender")
+        for pos, (dim_id, value_id, name) in enumerate(expected):
+            dim = dims["series"][pos]
+            if (dim["id"] != dim_id or dim["keyPosition"] != pos
+                    or dim["values"] != [{"id": value_id, "name": name}]):
+                raise ValueError("DGBAS currency or commodity does not match the MOEA series")
+        observations = dims["observation"]
+        datasets = a["data"]["dataSets"]
+        if (len(observations) != 1 or observations[0]["id"] != "ym"
+                or len(datasets) != 1 or set(datasets[0]["series"]) != {"0:0"}):
+            raise ValueError("Unexpected DGBAS series dimensions")
+        periods = observations[0]["values"]
+        values = datasets[0]["series"]["0:0"]["observations"]
+        if not periods or set(values) != {str(i) for i in range(len(periods))}:
+            raise ValueError("Empty or incomplete DGBAS observations")
+        rows = []
+        seen = set()
+        for i, period in enumerate(periods):
+            match = re.fullmatch(r"(\d{4})-M(\d{1,2})", period["id"])
+            if not match:
+                raise ValueError("DGBAS observation is not a monthly level")
+            year, month = map(int, match.groups())
+            stamp = pd.Timestamp(year=year, month=month, day=1, tz="UTC")
+            if stamp >= pd.Timestamp(collected_at).tz_convert("UTC").normalize().replace(day=1) or stamp in seen:
+                raise ValueError("Duplicate or unfinished DGBAS month")
+            seen.add(stamp)
+            value = values[str(i)]
+            number = _to_float(value[0]) if isinstance(value, list) and len(value) == 1 else None
+            previous_month = pd.Timestamp(collected_at).tz_convert("UTC").normalize().replace(day=1) - pd.DateOffset(months=1)
+            if number == 0 and i == len(periods) - 1 and stamp == previous_month:
+                raise DgbasUnavailableMonth(stamp.strftime("%Y-%m"))
+            if number is None or not math.isfinite(number) or number <= 0:
+                raise ValueError("Missing, unpublished or invalid DGBAS export-order level")
+            rows.append({
+                "source_id": source_id, "provider": "MOEA", "distributor": "DGBAS",
+                "period": stamp.strftime("%Y-%m"), "indicator": DGBAS_COMMODITIES[commodity_id],
+                "chain": chain, "dimension": dimension, "raw_value": number, "raw_unit": "百萬美元",
+                "published_at": collected_at, "collected_at": collected_at, "source": source_url,
+                "availability_policy": "collection_time_conservative", "provenance": "LIVE_OFFICIAL_SNAPSHOT",
+            })
+        return pd.DataFrame(rows)
+    except (KeyError, TypeError, IndexError) as exc:
+        raise ValueError("Invalid DGBAS export-order API-JSON structure") from exc
 
 
 def parse_tpca_listing(

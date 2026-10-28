@@ -17,6 +17,7 @@ def build_abf_model_audit(
     *,
     model_path: str | Path=MODEL_PATH,
     registry_path: str | Path=REGISTRY_PATH,
+    comparisons: pd.DataFrame | None=None,
 ) -> pd.DataFrame:
     models=json.loads(Path(model_path).read_text(encoding="utf-8"))["models"]
     model=next(m for m in models if m["model_id"]=="ic_substrate_abf_bt")
@@ -103,4 +104,11 @@ def build_abf_model_audit(
                 "empirical_evidence":f"FDR q={float(r['fdr_q']):.3f}; n={int(r['sample_size'])}",
             })
 
-    return pd.DataFrame(rows)
+    result=pd.DataFrame(rows)
+    if comparisons is not None:
+        # Legacy basket fits cannot grant Company × Product model permission.
+        scoped=result.component_type.isin(['DRIVER','SENSITIVITY','SCENARIO'])
+        result.loc[scoped,'assessment']='EXPLORATORY_PROXY_EVIDENCE'
+        result.loc[scoped,'model_use']='DO_NOT_PROMOTE_TO_PRODUCT_FORECAST'
+        result.loc[scoped,'why']='Legacy basket/company-total reference only. Audited Company × Product evidence governs eligibility; product calibration is pending.'
+    return result

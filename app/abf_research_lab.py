@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import json
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
@@ -17,12 +18,20 @@ from core.directional_indicator_engine import scenario_transmission
 from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
 from core.abf_data_coverage import audit_abf_data_coverage
 from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_financial_evidence import reconcile_financial_evidence
 from core.abf_data_provenance import build_abf_data_provenance
 from core.abf_model_audit import build_abf_model_audit
+from core.abf_transform_validation import compare_abf_transforms
+from app.abf_semantics_view import build_semantics_tab
+from app.abf_company_survey_view import CompanySurveyView
+from core.abf_company_survey import build_company_survey
+from datetime import datetime, timezone
 
 HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
 FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
 OPERATING = ROOT / "data" / "abf_operating_observations.csv"
+COMPANY_FACTS = ROOT / "data" / "abf_company_research_evidence.json"
+SEMANTICS_AUDIT = ROOT / "artifacts" / "abf_semantics_validation.json"
 
 BG = "#F3F6FA"
 CARD = "#FFFFFF"
@@ -50,18 +59,32 @@ class AbfResearchLab(tk.Tk):
         self.geometry("1600x980")
         self.minsize(1320, 820)
         self.configure(bg=BG)
+        self.as_of = datetime.now(timezone.utc).isoformat()
         self.indicators = indicator_table()
+        history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
+        self.comparisons,self.comparison_details=compare_abf_transforms(
+            history,as_of=self.as_of,iterations=199)
         self.sensitivity = self._load_sensitivity()
         self.scenarios = self._load_scenarios()
         self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+        primary_financial=ROOT/'data/abf_quarterly_financial_evidence.json'
+        if primary_financial.exists():
+            self.factor=reconcile_financial_evidence(self.factor,json.loads(primary_financial.read_text(encoding='utf-8')),as_of=self.as_of)
         history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
         operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
         self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
         self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
         self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
-        self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios)
+        self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios,comparisons=self.comparisons)
+        self.company_report = self._load_company_report()
         self._configure_style()
         self._build()
+
+    def _load_company_report(self) -> dict:
+        """Read the canonical audit used by the CLI without estimating new statistics."""
+        audit = json.loads(SEMANTICS_AUDIT.read_text(encoding='utf-8')) if SEMANTICS_AUDIT.exists() else {}
+        facts = json.loads(COMPANY_FACTS.read_text(encoding='utf-8')) if COMPANY_FACTS.exists() else []
+        return build_company_survey(audit, self.factor, facts, as_of=self.as_of)
 
     def _load_scenarios(self) -> pd.DataFrame:
         if not HISTORY.exists():
@@ -77,17 +100,13 @@ class AbfResearchLab(tk.Tk):
         return table
 
     def _scenario_status(self, scenario: str) -> str:
-        if self.scenarios.empty:
-            return "N/A"
-        rows=self.scenarios[self.scenarios["scenario"]==scenario]
-        statuses=set(rows["status"].astype(str))
-        if "VALIDATED" in statuses:
-            return "VALIDATED"
-        if "CANDIDATE" in statuses:
-            return "CANDIDATE"
-        if "INSUFFICIENT" in statuses:
-            return "INSUFFICIENT"
-        return "N/A"
+        rows=self.comparisons[self.comparisons['scenario']==scenario]
+        if rows.empty or not rows['data_status'].eq('AVAILABLE').any():
+            return 'UNAVAILABLE'
+        for status in ('eligible','support-only'):
+            if rows['eligibility'].eq(status).any():
+                return status.upper()
+        return 'REJECT'
 
     def _configure_style(self) -> None:
         style = ttk.Style(self)
@@ -100,8 +119,8 @@ class AbfResearchLab(tk.Tk):
             "Research.TNotebook.Tab",
             background="#E8EDF4",
             foreground=MUTED,
-            padding=(20, 10),
-            font=("Segoe UI", 10, "bold"),
+            padding=(8, 9),
+            font=("Segoe UI", 9, "bold"),
             borderwidth=0,
         )
         style.map(
@@ -162,6 +181,10 @@ class AbfResearchLab(tk.Tk):
         self.book = ttk.Notebook(content, style="Research.TNotebook")
         self.book.pack(fill="both", expand=True)
 
+        company_research = tk.Frame(self.book, bg=BG)
+        self.book.add(company_research, text='Company Research')
+        self.company_view = CompanySurveyView(company_research, self.company_report)
+        self.company_view.pack(fill='both', expand=True)
         timing = tk.Frame(self.book, bg=BG)
         scenarios = tk.Frame(self.book, bg=BG)
         coverage = tk.Frame(self.book, bg=BG)
@@ -170,6 +193,8 @@ class AbfResearchLab(tk.Tk):
         sensitivity = tk.Frame(self.book, bg=BG)
         audit = tk.Frame(self.book, bg=BG)
         flow = tk.Frame(self.book, bg=BG)
+        semantics=tk.Frame(self.book,bg=BG)
+        self.book.add(semantics,text='Semantics & Stability')
         self.book.add(timing, text="Indicator Timing")
         self.book.add(scenarios, text="Scenario Evidence")
         self.book.add(coverage, text="Data Coverage")
@@ -180,6 +205,7 @@ class AbfResearchLab(tk.Tk):
         self.book.add(flow, text="Driver → Sensitivity → Model")
 
         self._build_timing_tab(timing)
+        self.comparison_tree=build_semantics_tab(semantics,self.comparisons,self.comparison_details)
         self._build_scenario_tab(scenarios)
         self._build_coverage_tab(coverage)
         self._build_provenance_tab(provenance)
@@ -231,10 +257,10 @@ class AbfResearchLab(tk.Tk):
             sample_note = "Matched monthly observations"
 
         magnitude = "Candidate"
-        magnitude_note = "Direction valid; exact beta not stable OOS"
+        magnitude_note = "Exploratory fit; requires Company × Product evidence"
         if basket is not None and bool(basket.get("magnitude_validation_pass", False)):
-            magnitude = "Validated"
-            magnitude_note = "Direction and magnitude pass OOS checks"
+            magnitude = "Support only"
+            magnitude_note = "Company-total proxy; product calibration pending"
 
         lead_note = f"UPSIDE {self._scenario_status('UPSIDE')} · DOWNSIDE {self._scenario_status('DOWNSIDE')}"
         cards = [
@@ -365,10 +391,10 @@ class AbfResearchLab(tk.Tk):
     def _build_scenario_tab(self, parent) -> None:
         intro = tk.Frame(parent, bg=BG)
         intro.pack(fill="x", padx=18, pady=(18, 12))
-        tk.Label(intro, text="Upside and downside are independent hypotheses", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(intro, text="Exploratory basket subsets · independent upside / downside", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
         tk.Label(
             intro,
-            text="Each side owns its source list, point-in-time sample, OOS test, bootstrap/permutation result and FDR-adjusted validation status. Shared sources do not share validation.",
+            text="These basket statistics are exploratory. Use Semantics & Stability for Company × Product eligibility, stricter PIT, transform comparison and independent OOS evidence.",
             bg=BG, fg=MUTED, font=("Segoe UI", 10), wraplength=1450, justify="left"
         ).pack(anchor="w", pady=(4,0))
 
@@ -411,6 +437,8 @@ class AbfResearchLab(tk.Tk):
             text="AVAILABLE = usable history; PROXY = usable but not exact; INSUFFICIENT = connected but too short; MISSING = no historical dataset connected.",
             bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
         ).pack(anchor="w",pady=(4,0))
+        tk.Label(intro, text='Calibration dataset coverage only. Reviewed document facts appear separately in Company Research; historical publication proof may remain unavailable.',
+            bg=BG, fg=MUTED, font=('Segoe UI', 9), wraplength=1400, justify='left').pack(anchor='w', pady=(4, 0))
 
         frame=tk.Frame(parent,bg=BG)
         frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
@@ -533,7 +561,7 @@ class AbfResearchLab(tk.Tk):
         top = tk.Frame(body, bg=CARD)
         top.pack(fill="x")
         tk.Label(top, text=str(row["company"]), bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(side="left")
-        self._pill(top, "MAGNITUDE VALIDATED" if validated else "MAGNITUDE CANDIDATE", accent, soft).pack(side="right")
+        self._pill(top, "EXPLORATORY PROXY FIT", AMBER, AMBER_SOFT).pack(side="right")
 
         tk.Label(
             body,
@@ -546,14 +574,14 @@ class AbfResearchLab(tk.Tk):
         downside = scenario_transmission(float(row["beta"]), -10.0)
         tk.Label(
             body,
-            text=f"+10ppt PCB YoY → fitted revenue effect {upside:+.1f}ppt",
+            text=f"Illustrative +10ppt shock → linear fit {upside:+.1f}ppt (not upside validation)",
             bg=CARD,
             fg=GREEN,
             font=("Segoe UI", 9, "bold"),
         ).pack(anchor="w")
         tk.Label(
             body,
-            text=f"-10ppt PCB YoY → fitted revenue effect {downside:+.1f}ppt",
+            text=f"Illustrative -10ppt shock → linear fit {downside:+.1f}ppt (not downside validation)",
             bg=CARD,
             fg=RED,
             font=("Segoe UI", 9, "bold"),
@@ -578,7 +606,7 @@ class AbfResearchLab(tk.Tk):
     def _build_sensitivity_tab(self, parent) -> None:
         intro = tk.Frame(parent, bg=BG)
         intro.pack(fill="x", padx=18, pady=(18, 12))
-        tk.Label(intro, text="How much does the validated leading signal move revenue?", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(intro, text="Exploratory revenue sensitivity · company-total proxy", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
         tk.Label(
             intro,
             text="Direction and magnitude are separate claims. A positive relationship can be directionally valid while its exact beta remains unstable out-of-sample.",
@@ -614,7 +642,7 @@ class AbfResearchLab(tk.Tk):
             text=(
                 "OOS = Out-of-Sample: data the beta was not fitted on. "
                 "If OOS R² is below 0, the fixed beta predicts unseen data worse than simply using the test-period average. "
-                "That is why the current ABF beta is still a magnitude candidate even though the leading direction is validated."
+                "These company-total fits remain exploratory. Company × ABF direction and magnitude require their own evidence gates."
             ),
             bg=RED_SOFT, fg=TEXT, font=("Segoe UI", 10), wraplength=1450, justify="left"
         ).pack(anchor="w", pady=(5, 0))
@@ -665,7 +693,7 @@ class AbfResearchLab(tk.Tk):
         tk.Label(
             body,
             text=(
-                "Validated driver: TPCA PCB Revenue YoY → ABF revenue basket at +1M. "
+                "Exploratory basket relation: TPCA PCB Revenue YoY → company-total revenue at +1M. "
                 "Revenue betas are magnitude candidates because current OOS R² is negative. "
                 "Revenue → GM relations are research candidates, not causal or calibrated margin betas. "
                 "Driver weights remain configured assumptions. Cost / supply pressure needs refinement before calibration."
@@ -703,9 +731,9 @@ class AbfResearchLab(tk.Tk):
         down_state = self._scenario_status("DOWNSIDE")
         indicator_status = f"UP {up_state} / DOWN {down_state}"
         blocks = [
-            ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Observed point-in-time source. Upside and downside are validated on separate subsets.", indicator_status, BLUE, BLUE_SOFT),
+            ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Industry proxy with explicit PIT limitations. Each scenario owns its validation result.", indicator_status, BLUE, BLUE_SOFT),
             ("02 · DRIVER", "ABF End Demand", "Economic state: improving or deteriorating? Confidence comes from evidence breadth and quality.", "STATE", TEAL, TEAL_SOFT),
-            ("03 · SENSITIVITY", "Revenue β", "How much does a validated observable move future revenue? Direction is valid; magnitude is still candidate.", "CANDIDATE", AMBER, AMBER_SOFT),
+            ("03 · SENSITIVITY", "Revenue β", "Exploratory company-total fit. Product direction and magnitude remain uncalibrated.", "PROXY ONLY", AMBER, AMBER_SOFT),
             ("04 · MODEL", "Revenue → GM → EPS", "Structural routing: Revenue = Volume × ASP; GM depends on utilization, pricing, mix, yield and cost.", "STRUCTURAL", NAVY, SLATE_SOFT),
         ]
         for i, block in enumerate(blocks):

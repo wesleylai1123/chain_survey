@@ -16,12 +16,16 @@ if str(ROOT) not in sys.path:
 
 from core.free_evidence_connectors import (
     DATA_GOV_METADATA,
+    DgbasUnavailableMonth,
+    dgbas_export_orders_url,
     extract_data_gov_resource_url,
     fetch_bytes,
     load_source_config,
     parse_moea_export_orders_csv,
+    parse_dgbas_export_orders_json,
     parse_monthly_revenue_json,
     parse_tpca_listing,
+    utc_now,
 )
 from scripts.build_real_point_in_time_evidence import normalize_yoy_to_signal
 
@@ -224,6 +228,7 @@ def persist_if_changed(
     collected_at: pd.Timestamp,
     extension: str,
     source_url: str,
+    observation_sha256: str | None = None,
 ) -> tuple[Path | None, str, bool, pd.Timestamp]:
     manifest_path = persistent_root / "manifest.json"
     manifest = _manifest(manifest_path)
@@ -233,20 +238,28 @@ def persist_if_changed(
         latest=current.get("latest_snapshot")
         existing=(persistent_root/latest) if latest else None
         canonical=pd.to_datetime(current.get("collected_at"),utc=True)
+        if observation_sha256 and current.get("observation_sha256") != observation_sha256:
+            current["observation_sha256"] = observation_sha256
+            manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return existing, digest, False, canonical
+    canonical = collected_at
+    if observation_sha256 and current.get("observation_sha256") == observation_sha256:
+        canonical = pd.to_datetime(current["collected_at"], utc=True)
     stamp = collected_at.tz_convert("UTC").strftime("%Y%m%dT%H%M%SZ")
-    out = persistent_root / "raw" / source_id / f"{stamp}.{extension}"
+    out = persistent_root / "raw" / source_id / f"{stamp}-{digest[:12]}.{extension}"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(payload)
     manifest["sources"][source_id] = {
         "sha256": digest,
         "latest_snapshot": str(out.relative_to(persistent_root)),
-        "collected_at": collected_at.isoformat(),
+        "collected_at": canonical.isoformat(),
+        "fetch_collected_at": collected_at.isoformat(),
         "source": source_url,
+        **({"observation_sha256": observation_sha256} if observation_sha256 else {}),
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return out, digest, True, collected_at
+    return out, digest, True, canonical
 
 
 def collect_all(
@@ -266,6 +279,7 @@ def collect_all(
         if not source.get("enabled", True):
             continue
         sid, kind = source["source_id"], source["kind"]
+        source_diagnostics = {"fetch_mode": "PRIMARY", "distributor": source.get("provider", "")}
         try:
             if kind == "monthly_revenue_json":
                 fetched = fetch_bytes(source["url"])
@@ -285,22 +299,72 @@ def collect_all(
                 evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "data_gov_dataset_csv":
-                metadata_fetch = fetch_bytes(DATA_GOV_METADATA.format(dataset_id=source["dataset_id"]))
-                resource_url = extract_data_gov_resource_url(json.loads(metadata_fetch.payload.decode("utf-8")))
-                fetched = fetch_bytes(resource_url)
+                resource_url = DATA_GOV_METADATA.format(dataset_id=source["dataset_id"])
+                extension = "csv"
+                try:
+                    metadata_fetch = fetch_bytes(resource_url)
+                    resource_url = extract_data_gov_resource_url(json.loads(metadata_fetch.payload.decode("utf-8")))
+                    fetched = fetch_bytes(resource_url)
+                    parsed = parse_moea_export_orders_csv(
+                        fetched.payload, source_id=sid, chain=source["chain"], dimension=source["dimension"],
+                        collected_at=fetched.collected_at, source_url=fetched.url,
+                    )
+                    if moea_snapshot_to_evidence(parsed).empty:
+                        raise ValueError("MOEA snapshot has no matching prior-year month")
+                except Exception as primary_error:
+                    source_diagnostics.update(primary_source_url=resource_url, primary_error=str(primary_error))
+                    fallback = source.get("official_fallback", {})
+                    if fallback.get("kind") != "dgbas_export_orders_json":
+                        raise
+                    resource_url = dgbas_export_orders_url(fallback["commodity_id"], as_of=utc_now())
+                    source_diagnostics.update(fetch_mode="OFFICIAL_FALLBACK", distributor="DGBAS",
+                                              fallback_source_url=resource_url)
+                    fetched = fetch_bytes(resource_url)
+                    for attempt in range(2):
+                        try:
+                            parsed = parse_dgbas_export_orders_json(
+                                fetched.payload, source_id=sid, chain=source["chain"], dimension=source["dimension"],
+                                commodity_id=fallback["commodity_id"], collected_at=fetched.collected_at, source_url=fetched.url,
+                            )
+                            break
+                        except DgbasUnavailableMonth as unavailable:
+                            if attempt:
+                                raise
+                            source_diagnostics["unavailable_period"] = unavailable.period
+                            # A month-start run can precede publication of the previous month.
+                            # Requery live once, ending one month earlier; never consume the zero.
+                            resource_url = dgbas_export_orders_url(
+                                fallback["commodity_id"], as_of=utc_now() - pd.DateOffset(months=1))
+                            source_diagnostics["fallback_source_url"] = resource_url
+                            fetched = fetch_bytes(resource_url)
+                    if moea_snapshot_to_evidence(parsed).empty:
+                        raise ValueError("DGBAS fallback has no matching prior-year month")
+                    extension = "json"
+                # Query metadata changes on every API request. Preserve first-seen knowledge
+                # for the same normalized observations while archiving the actual raw bytes.
+                observed = parsed[["period", "raw_value", "raw_unit"]].copy()
+                observed["period"] = observed["period"].map(parse_month_period).dt.strftime("%Y-%m")
+                observed["raw_value"] = observed["raw_value"].astype(float)
+                observation_sha256 = hashlib.sha256(
+                    observed.sort_values("period").to_json(orient="records", double_precision=15).encode("utf-8")
+                ).hexdigest()
+                source_diagnostics["observation_sha256"] = observation_sha256
+                source_diagnostics["latest_observation_period"] = observed["period"].max()
                 raw_path,digest,changed,canonical_collected_at=persist_if_changed(
                     persistent_root=persistent_root, source_id=sid, payload=fetched.payload,
-                    collected_at=fetched.collected_at, extension="csv", source_url=fetched.url,
+                    collected_at=fetched.collected_at, extension=extension, source_url=fetched.url,
+                    observation_sha256=observation_sha256,
                 )
-                parsed = parse_moea_export_orders_csv(
-                    fetched.payload, source_id=sid, chain=source["chain"], dimension=source["dimension"],
-                    collected_at=canonical_collected_at, source_url=fetched.url,
-                )
+                parsed["published_at"] = canonical_collected_at
+                parsed["collected_at"] = canonical_collected_at
                 derived=moea_snapshot_to_evidence(parsed)
                 if not derived.empty:
                     derived["raw_sha256"]=digest
                     derived["raw_snapshot_path"]=str(raw_path.relative_to(ROOT)) if raw_path else ""
                     derived["pipeline_run_id"]=run_id
+                    derived["source_distributor"] = source_diagnostics["distributor"]
+                    derived["source_fetch_mode"] = source_diagnostics["fetch_mode"]
+                    derived["primary_fetch_error"] = source_diagnostics.get("primary_error", "")
                 evidence_frames.append(derived)
                 rows = len(parsed)
             elif kind == "tpca_public_listing":
@@ -326,11 +390,13 @@ def collect_all(
                 "source_url":fetched.url,
                 "sha256":digest,"payload_bytes":len(fetched.payload),"changed":bool(changed),
                 "persistent_path":str(raw_path.relative_to(ROOT)) if raw_path else "",
+                **source_diagnostics,
             })
         except Exception as exc:
             status.append({
                 "source_id":sid,"provider":source.get("provider",""),"kind":kind,"status":"error","rows":0,
                 "error":str(exc),"collected_at":pd.Timestamp.now(tz="UTC").isoformat(),
+                **source_diagnostics,
             })
 
     frames = [f for f in evidence_frames if not f.empty]

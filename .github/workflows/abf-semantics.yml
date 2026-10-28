@@ -1,0 +1,89 @@
+name: ABF Semantics Contract
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Install virtual display and research fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk fonts-noto-cjk
+      - name: Verify semantics and statistical regressions
+        run: |
+          python -m unittest discover -s tests -p 'test_metric_semantics.py' -v
+          python -m unittest discover -s tests -p 'test_abf_transform_validation.py' -v
+          python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v
+          python -m unittest discover -s tests -p 'test_abf_margin_validation.py' -v
+          python -m unittest discover -s tests -p 'test_abf_financial_evidence.py' -v
+          xvfb-run -a python -m unittest discover -s tests -p 'test_abf_company_survey*.py' -v
+          python -m unittest discover -s tests -p 'test_abf_company_financial_calibration.py' -v
+          python -m unittest discover -s tests -p 'test_abf_research_lab_company_report.py' -v
+          python -m unittest discover -s tests -p 'test_abf_validation_snapshot.py' -v
+          python contract_tests/validate_contracts.py
+      - name: Restore persisted real observations
+        run: |
+          git fetch --depth 1 origin evidence-data
+          git restore --source=FETCH_HEAD -- data/history
+      - name: Build auditable comparison artifact
+        run: python scripts/run_abf_semantics_validation.py --iterations 999
+      - name: Build sourced company research report
+        run: python scripts/run_abf_company_survey.py
+      - name: Verify every exported signal and independent evidence
+        run: |
+          python - <<'PY'
+          import json
+          from core.metric_semantics import validate_signal
+          report=json.load(open('artifacts/abf_semantics_validation.json',encoding='utf-8'))
+          assert len(report['comparisons'])==120
+          assert report['input_manifest']['history']['sha256']
+          assert not report['working_tree_dirty']
+          for observation in report['observations']:
+              validate_signal(observation)
+          for detail in report['details'].values():
+              assert detail['fdr_family_size']==60
+              assert all(k in detail for k in ('gates','oos_folds','cross_company','sample_rows','source_urls'))
+          assert all(r['eligibility']!='eligible' for r in report['comparisons'])
+          survey=json.load(open('artifacts/abf_company_survey.json',encoding='utf-8'))
+          assert survey['contract']=='ABFCompanySurveyV1'
+          assert len(survey['companies'])==3
+          assert sum(len(c['primary_facts']) for c in survey['companies'])==39
+          assert len(report['margin_validation']['comparisons'])==72
+          assert all(r['forecast_beta'] is None for r in report['margin_validation']['comparisons'])
+          assert all(c['financial_bridge']['beta'] is None for c in survey['companies'])
+          assert all(set(c['scenarios'])=={'UPSIDE','DOWNSIDE'} for c in survey['companies'])
+          PY
+      - name: Render both data-present and unavailable UI states
+        run: |
+          xvfb-run -a --server-args='-screen 0 1700x1100x24' python scripts/abf_semantics_ui_smoke.py
+          xvfb-run -a --server-args='-screen 0 1700x1100x24' python scripts/abf_company_survey_ui_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: abf-semantics-evidence
+          path: |
+            artifacts/abf_semantics_validation.*
+            artifacts/abf_transform_comparison.csv
+            artifacts/abf_calibration_handoff.json
+            artifacts/abf_margin_validation.json
+            artifacts/abf_financial_reconciliation.json
+            artifacts/abf_downside_source_priorities.json
+            artifacts/abf-semantics-*.png
+            artifacts/abf_company_survey.*
+            artifacts/abf-company-survey-*.png
+            artifacts/abf-company-survey-ui-smoke.json
+          if-no-files-found: error
