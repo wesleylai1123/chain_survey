@@ -13,26 +13,26 @@
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
-      "sha256": "56d6489a4b66432dca924ce03adb62438c74c35940f36b9cc06168b95cced433",
-      "latest_snapshot": "raw/moea_export_orders_info_comm/20261030T070353Z-56d6489a4b66.json",
+      "sha256": "9535e83e0e92609c287f76ddea99bda582ff4deea36d72f56a4e8abe1dc8c469",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261031T065743Z-9535e83e0e92.json",
       "collected_at": "2026-10-28T00:31:49.035730+00:00",
-      "fetch_collected_at": "2026-10-30T07:03:53.474352+00:00",
+      "fetch_collected_at": "2026-10-31T06:57:43.107140+00:00",
       "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.9..M&startTime=1984-M1&endTime=2026-M9",
       "observation_sha256": "6e3a9142061c156ea8d79a80a97108e017611ba8c96b83bc339a9a53253c2875"
     },
     "moea_export_orders_electronics": {
-      "sha256": "4779a2c37b4ff32b03141f7a1e17a1e576094775e8dbb5a03882d68db0bde8b8",
-      "latest_snapshot": "raw/moea_export_orders_electronics/20261030T070357Z-4779a2c37b4f.json",
+      "sha256": "e87235ed14ab3cb9a32c8e7233457529dcd178b5f11c751def928c265a71cbbc",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261031T065747Z-e87235ed14ab.json",
       "collected_at": "2026-10-28T00:31:52.990680+00:00",
-      "fetch_collected_at": "2026-10-30T07:03:57.708477+00:00",
+      "fetch_collected_at": "2026-10-31T06:57:47.279233+00:00",
       "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M9",
       "observation_sha256": "9ee5a1bea1db0958065928889ec887277606b614082ab537f67289a3fb5fd567"
     },
     "tpca_monthly_industry": {
-      "sha256": "30aadff5911aeb623dd1b1859a07ed55cb7a4dc96f4231f323b47844f9b0cae1",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261030T070400Z-30aadff5911a.html",
-      "collected_at": "2026-10-30T07:04:00.284395+00:00",
-      "fetch_collected_at": "2026-10-30T07:04:00.284395+00:00",
+      "sha256": "2e0a1cb016482de2c5357a15c72cf10c9bd2a0b396d0962210dea8af7b450ec3",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261031T065751Z-2e0a1cb01648.html",
+      "collected_at": "2026-10-31T06:57:51.063499+00:00",
+      "fetch_collected_at": "2026-10-31T06:57:51.063499+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
