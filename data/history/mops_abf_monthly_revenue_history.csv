@@ -98,3 +98,4 @@ company,ticker,period,period_date,published_at,monthly_revenue,yoy_pct,source,so
 欣興,3037.TW,2026-09,2026-09-30T00:00:00+08:00,2026-10-10T23:59:59+08:00,18650679.0,64.66643811385127,FinMind TaiwanStockMonthRevenue (MOPS-derived),https://api.finmindtrade.com/api/v4/data,regulatory_deadline_proxy,finmind
 景碩,3189.TW,2026-09,2026-09-30T00:00:00+08:00,2026-10-10T23:59:59+08:00,5181276.0,44.4685382910458,FinMind TaiwanStockMonthRevenue (MOPS-derived),https://api.finmindtrade.com/api/v4/data,regulatory_deadline_proxy,finmind
 南電,8046.TW,2026-09,2026-09-30T00:00:00+08:00,2026-10-10T23:59:59+08:00,5585816.0,57.815530565546894,FinMind TaiwanStockMonthRevenue (MOPS-derived),https://api.finmindtrade.com/api/v4/data,regulatory_deadline_proxy,finmind
+南電,8046.TW,2026-10,2026-10-31T00:00:00+08:00,2026-11-10T23:59:59+08:00,6288839.0,69.67407659622229,FinMind TaiwanStockMonthRevenue (MOPS-derived),https://api.finmindtrade.com/api/v4/data,regulatory_deadline_proxy,finmind
