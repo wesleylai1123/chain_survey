@@ -29,10 +29,10 @@
       "observation_sha256": "9ee5a1bea1db0958065928889ec887277606b614082ab537f67289a3fb5fd567"
     },
     "tpca_monthly_industry": {
-      "sha256": "ad2de2d7622fc8326cdec0dd5576c9f1454d889d20aef8f6a0add38a5ca3ff2d",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261106T075334Z-ad2de2d7622f.html",
-      "collected_at": "2026-11-06T07:53:34.098504+00:00",
-      "fetch_collected_at": "2026-11-06T07:53:34.098504+00:00",
+      "sha256": "ba2bf13989951d580877e0c4d7f3b677bc926d177b228aa7e97060bad04b1cd0",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261107T070423Z-ba2bf1398995.html",
+      "collected_at": "2026-11-07T07:04:23.061919+00:00",
+      "fetch_collected_at": "2026-11-07T07:04:23.061919+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
