@@ -1,0 +1,117 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "42782168593-1",
+  "pipeline": "live_free_evidence",
+  "status": "PASS",
+  "code_revision": "39c17f21d27af67368135b9863cc4f8af3ff2662",
+  "run_attempt": "1",
+  "generated_at": "2026-11-10T08:23:29.704441+00:00",
+  "inputs": [
+    {
+      "path": "data/free_evidence_sources.json",
+      "exists": true,
+      "bytes": 1978,
+      "sha256": "49b4e7dd9f7aa5f530d643f4b13eab258ab0963a469a0a318a56d2ac11fbf94c"
+    },
+    {
+      "path": "data/company_product_relationships.csv",
+      "exists": true,
+      "bytes": 463,
+      "sha256": "6b950e19057a7a594ac6d77b982279c83f3c648239d602d857ebae11f9945803"
+    },
+    {
+      "path": "data/company_master.csv",
+      "exists": true,
+      "bytes": 1688,
+      "sha256": "78c75e12f6f3211d4866da068e98470bdd32cbcd0cac4f793a8bec95bf23a39d"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/free_evidence_latest.csv",
+      "exists": true,
+      "bytes": 9491,
+      "sha256": "b85bd4b970c772eda2eb912c3c4117ad8a197a289f7dfe2bb7e20e500de0826d"
+    },
+    {
+      "path": "artifacts/free_evidence_collection_status.json",
+      "exists": true,
+      "bytes": 4339,
+      "sha256": "43e4ad62da30c14c41e946fd76f2e383c268fab7571286e142265b94bd4d58af"
+    },
+    {
+      "path": "artifacts/live_pipeline_validation.json",
+      "exists": true,
+      "bytes": 898,
+      "sha256": "bc6146b498941e80c341c02df054f62941d9fc6d86ca7dfbc36eabd40c877641"
+    },
+    {
+      "path": "artifacts/live_pipeline_continuity.json",
+      "exists": true,
+      "bytes": 782,
+      "sha256": "e82f3f5512f76257b1b504d3a9e1285980abec436fb44a6fb0aeb89d225ed685"
+    }
+  ],
+  "checks": [
+    {
+      "name": "live_sources_minimum",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "5/5"
+    },
+    {
+      "name": "live_evidence_nonempty",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "10"
+    },
+    {
+      "name": "live_pit_policy",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "collection_time_conservative"
+    },
+    {
+      "name": "live_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha256 required"
+    },
+    {
+      "name": "live_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline_run_id required"
+    },
+    {
+      "name": "live_reliability_prior",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "prior only"
+    },
+    {
+      "name": "live_previously_healthy_sources_present",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "lost=none"
+    },
+    {
+      "name": "live_row_count_not_collapsed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "current=10 baseline=10 ratio=1.000"
+    },
+    {
+      "name": "live_row_count_reasonable",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "current=10 baseline=10 ratio=1.000"
+    },
+    {
+      "name": "live_latest_availability_not_regressed",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "regressed=none"
+    }
+  ]
+}
