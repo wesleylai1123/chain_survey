@@ -1,0 +1,92 @@
+{
+  "schema_version": "ResearchPipelineRunV1",
+  "pipeline_run_id": "42782168593-1",
+  "pipeline": "free_evidence_history",
+  "status": "PASS",
+  "code_revision": "39c17f21d27af67368135b9863cc4f8af3ff2662",
+  "run_attempt": "1",
+  "generated_at": "2026-11-10T08:30:02.828565+00:00",
+  "inputs": [],
+  "outputs": [
+    {
+      "path": "data/history/mops_abf_monthly_revenue_history.csv",
+      "exists": true,
+      "bytes": 23144,
+      "sha256": "dbe2960febf7e46fe6e5cad274c4bb2b0425801c3825e1c6d2df256cc29786ad"
+    },
+    {
+      "path": "data/history/tpca_industry_history.csv",
+      "exists": true,
+      "bytes": 46599,
+      "sha256": "57e1364872453bbdad80f0dad35ed434649c8ad5c9fe7d79f60af757d4c952dc"
+    },
+    {
+      "path": "data/history/trendforce_public_price_history.csv",
+      "exists": true,
+      "bytes": 7999,
+      "sha256": "f08e219934692c7b5a7ecae02bd43d3feea55361a5f21b005a65190bff01d475"
+    },
+    {
+      "path": "data/history/free_industry_history_panel.csv",
+      "exists": true,
+      "bytes": 88598,
+      "sha256": "07b6eb90a6c06009bc279a558b4487a33e0d734d6993fec4eef126e92fd05728"
+    },
+    {
+      "path": "data/history/free_industry_history_coverage.csv",
+      "exists": true,
+      "bytes": 1158,
+      "sha256": "c92085e9cf6f0848cea263ff4eb8d135dd671ab6d5f512e4bab364b4e41c0e43"
+    },
+    {
+      "path": "artifacts/history_pipeline_validation.json",
+      "exists": true,
+      "bytes": 1022,
+      "sha256": "c21d2ce297355e6555f92333e5cbc9c6985875c82bdbc76db41aeee30f351489"
+    }
+  ],
+  "checks": [
+    {
+      "name": "history_multiple_sources",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3"
+    },
+    {
+      "name": "history_abf_three_companies",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "3"
+    },
+    {
+      "name": "history_abf_min_periods",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "34"
+    },
+    {
+      "name": "history_tpca_min_periods",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "33"
+    },
+    {
+      "name": "history_trendforce_nonempty",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "31"
+    },
+    {
+      "name": "history_no_future_leakage",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "published_at >= period_date"
+    },
+    {
+      "name": "history_coverage_nonempty",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "11"
+    }
+  ]
+}
