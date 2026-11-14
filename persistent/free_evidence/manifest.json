@@ -1,17 +1,17 @@
 {
   "sources": {
     "twse_monthly_revenue": {
-      "sha256": "ef67cb9a521ae7c222f28a178b5f757e904d07fa5ba345a5cc5d4c6af701cbe2",
-      "latest_snapshot": "raw/twse_monthly_revenue/20261113T075333Z-ef67cb9a521a.json",
-      "collected_at": "2026-11-13T07:53:33.232273+00:00",
-      "fetch_collected_at": "2026-11-13T07:53:33.232273+00:00",
+      "sha256": "1ee928b37a1d27b1182a56b8c5eac7ba272d286657eb39631d5be1418f9dbf0d",
+      "latest_snapshot": "raw/twse_monthly_revenue/20261114T073508Z-1ee928b37a1d.json",
+      "collected_at": "2026-11-14T07:35:08.776997+00:00",
+      "fetch_collected_at": "2026-11-14T07:35:08.776997+00:00",
       "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L"
     },
     "tpex_monthly_revenue": {
-      "sha256": "6994e73d4def1e8cb42598f87d15197867b2cb22ef5e4441c6c2b8d3913715e3",
-      "latest_snapshot": "raw/tpex_monthly_revenue/20261113T075336Z-6994e73d4def.json",
-      "collected_at": "2026-11-13T07:53:36.307693+00:00",
-      "fetch_collected_at": "2026-11-13T07:53:36.307693+00:00",
+      "sha256": "835b00a6db638634adc4cc6c509f381cc2acac733fc87e74560b1a0ededef39c",
+      "latest_snapshot": "raw/tpex_monthly_revenue/20261114T073512Z-835b00a6db63.json",
+      "collected_at": "2026-11-14T07:35:12.049473+00:00",
+      "fetch_collected_at": "2026-11-14T07:35:12.049473+00:00",
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
