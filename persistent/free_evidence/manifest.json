@@ -1,33 +1,33 @@
 {
   "sources": {
     "twse_monthly_revenue": {
-      "sha256": "9173fd84fc65200a6bef96f02fb8a21da1e88fa7e38ccbbc1b9eb43fe4345cff",
-      "latest_snapshot": "raw/twse_monthly_revenue/20261115T074914Z-9173fd84fc65.json",
-      "collected_at": "2026-11-15T07:49:14.435253+00:00",
-      "fetch_collected_at": "2026-11-15T07:49:14.435253+00:00",
+      "sha256": "6be6ceb15a3889951c3775be1c5d3a7dbef12d010955a92c17df814274273c88",
+      "latest_snapshot": "raw/twse_monthly_revenue/20261116T075642Z-6be6ceb15a38.json",
+      "collected_at": "2026-11-16T07:56:42.525147+00:00",
+      "fetch_collected_at": "2026-11-16T07:56:42.525147+00:00",
       "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L"
     },
     "tpex_monthly_revenue": {
-      "sha256": "17645441c4d7040322e7b504db7f1933261393c0b6b5c6f0a541439c6031ed1b",
-      "latest_snapshot": "raw/tpex_monthly_revenue/20261115T074925Z-17645441c4d7.json",
-      "collected_at": "2026-11-15T07:49:25.614113+00:00",
-      "fetch_collected_at": "2026-11-15T07:49:25.614113+00:00",
+      "sha256": "200c7f358468b984f5688d433130e470337bbea386f186ac98bddf02a61ab68f",
+      "latest_snapshot": "raw/tpex_monthly_revenue/20261116T075725Z-200c7f358468.json",
+      "collected_at": "2026-11-16T07:57:25.812741+00:00",
+      "fetch_collected_at": "2026-11-16T07:57:25.812741+00:00",
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
-      "sha256": "bfee99dc3ccfb83059e8a0f610abed82eb08ec2a6b1e652d375e4ced0492da9e",
-      "latest_snapshot": "raw/moea_export_orders_info_comm/20261103T075338Z-bfee99dc3ccf.csv",
+      "sha256": "0fc8f6237548d57ae677cc4f7e0f88e33d604b272d26d22b6db98beb08cfaf3d",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261116T075731Z-0fc8f6237548.json",
       "collected_at": "2026-10-28T00:31:49.035730+00:00",
-      "fetch_collected_at": "2026-11-03T07:53:38.894346+00:00",
-      "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E8%B3%87%E8%A8%8A%E9%80%9A%E8%A8%8A%E7%94%A2%E5%93%81.csv",
+      "fetch_collected_at": "2026-11-16T07:57:31.651154+00:00",
+      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.9..M&startTime=1984-M1&endTime=2026-M9",
       "observation_sha256": "6e3a9142061c156ea8d79a80a97108e017611ba8c96b83bc339a9a53253c2875"
     },
     "moea_export_orders_electronics": {
-      "sha256": "b6fceef56171935b7100bad2bc17acd30ccc123587176d091693e9ed3e60adf4",
-      "latest_snapshot": "raw/moea_export_orders_electronics/20261103T075339Z-b6fceef56171.csv",
+      "sha256": "20f01f82770303fbe7caa91f578c09e5575bf8c1597bc2e6ba3f2bc728ade237",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261116T075737Z-20f01f827703.json",
       "collected_at": "2026-10-28T00:31:52.990680+00:00",
-      "fetch_collected_at": "2026-11-03T07:53:39.491475+00:00",
-      "source": "https://service.moea.gov.tw/EE520/opendata/%E7%B6%93%E6%BF%9F%E9%83%A8%E7%B5%B1%E8%A8%88%E8%99%95_%E5%A4%96%E9%8A%B7%E8%A8%82%E5%96%AE_%E9%9B%BB%E5%AD%90%E7%94%A2%E5%93%81.csv",
+      "fetch_collected_at": "2026-11-16T07:57:37.087346+00:00",
+      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M9",
       "observation_sha256": "9ee5a1bea1db0958065928889ec887277606b614082ab537f67289a3fb5fd567"
     },
     "tpca_monthly_industry": {
