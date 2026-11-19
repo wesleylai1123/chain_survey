@@ -1,0 +1,377 @@
+{
+  "contract": "MultiAssetResearchV1",
+  "schema_version": "1.0.0",
+  "as_of": "2025-01-02T00:00:00Z",
+  "base_currency": "USD",
+  "objective": "income",
+  "periods_per_year": 12,
+  "period_grid": [
+    "2024-01-01",
+    "2024-02-01",
+    "2024-03-01",
+    "2024-04-01",
+    "2024-05-01",
+    "2024-06-01",
+    "2024-07-01",
+    "2024-08-01",
+    "2024-09-01",
+    "2024-10-01",
+    "2024-11-01",
+    "2024-12-01",
+    "2025-01-01"
+  ],
+  "risk_free_rate": 0.0,
+  "rolling_windows": [
+    2
+  ],
+  "instruments": [
+    {
+      "instrument_id": "TEST",
+      "symbol": "TEST",
+      "name": "TEST ONLY",
+      "asset_type": "etf",
+      "exchange": "TEST",
+      "quote_currency": "USD",
+      "domicile": null,
+      "management_style": "passive",
+      "benchmark_id": "BENCH",
+      "return_basis": "split_adjusted_price",
+      "distributions_complete": true,
+      "corporate_actions_complete": true,
+      "expense_ratio": 0.001,
+      "expense_ratio_available_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "instrument_id": "BENCH",
+      "symbol": "BENCH",
+      "name": "TEST ONLY",
+      "asset_type": "benchmark",
+      "exchange": "TEST",
+      "quote_currency": "USD",
+      "domicile": null,
+      "management_style": "none",
+      "benchmark_id": null,
+      "return_basis": "total_return_index",
+      "distributions_complete": true,
+      "corporate_actions_complete": true
+    }
+  ],
+  "observations": [
+    {
+      "instrument_id": "TEST",
+      "period": "2024-01-01",
+      "value": 100,
+      "published_at": "2024-01-01T00:00:00Z",
+      "acquired_at": "2024-01-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-02-01",
+      "value": 100,
+      "published_at": "2024-02-01T00:00:00Z",
+      "acquired_at": "2024-02-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-03-01",
+      "value": 100,
+      "published_at": "2024-03-01T00:00:00Z",
+      "acquired_at": "2024-03-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-04-01",
+      "value": 100,
+      "published_at": "2024-04-01T00:00:00Z",
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-05-01",
+      "value": 100,
+      "published_at": "2024-05-01T00:00:00Z",
+      "acquired_at": "2024-05-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-06-01",
+      "value": 100,
+      "published_at": "2024-06-01T00:00:00Z",
+      "acquired_at": "2024-06-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-07-01",
+      "value": 100,
+      "published_at": "2024-07-01T00:00:00Z",
+      "acquired_at": "2024-07-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-08-01",
+      "value": 100,
+      "published_at": "2024-08-01T00:00:00Z",
+      "acquired_at": "2024-08-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-09-01",
+      "value": 100,
+      "published_at": "2024-09-01T00:00:00Z",
+      "acquired_at": "2024-09-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-10-01",
+      "value": 100,
+      "published_at": "2024-10-01T00:00:00Z",
+      "acquired_at": "2024-10-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-11-01",
+      "value": 100,
+      "published_at": "2024-11-01T00:00:00Z",
+      "acquired_at": "2024-11-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2024-12-01",
+      "value": 100,
+      "published_at": "2024-12-01T00:00:00Z",
+      "acquired_at": "2024-12-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "period": "2025-01-01",
+      "value": 100,
+      "published_at": "2025-01-01T00:00:00Z",
+      "acquired_at": "2025-01-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-01-01",
+      "value": 100,
+      "published_at": "2024-01-01T00:00:00Z",
+      "acquired_at": "2024-01-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-02-01",
+      "value": 101,
+      "published_at": "2024-02-01T00:00:00Z",
+      "acquired_at": "2024-02-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-03-01",
+      "value": 102,
+      "published_at": "2024-03-01T00:00:00Z",
+      "acquired_at": "2024-03-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-04-01",
+      "value": 103,
+      "published_at": "2024-04-01T00:00:00Z",
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-05-01",
+      "value": 104,
+      "published_at": "2024-05-01T00:00:00Z",
+      "acquired_at": "2024-05-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-06-01",
+      "value": 105,
+      "published_at": "2024-06-01T00:00:00Z",
+      "acquired_at": "2024-06-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-07-01",
+      "value": 106,
+      "published_at": "2024-07-01T00:00:00Z",
+      "acquired_at": "2024-07-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-08-01",
+      "value": 107,
+      "published_at": "2024-08-01T00:00:00Z",
+      "acquired_at": "2024-08-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-09-01",
+      "value": 108,
+      "published_at": "2024-09-01T00:00:00Z",
+      "acquired_at": "2024-09-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-10-01",
+      "value": 109,
+      "published_at": "2024-10-01T00:00:00Z",
+      "acquired_at": "2024-10-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-11-01",
+      "value": 110,
+      "published_at": "2024-11-01T00:00:00Z",
+      "acquired_at": "2024-11-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2024-12-01",
+      "value": 111,
+      "published_at": "2024-12-01T00:00:00Z",
+      "acquired_at": "2024-12-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "BENCH",
+      "period": "2025-01-01",
+      "value": 112,
+      "published_at": "2025-01-01T00:00:00Z",
+      "acquired_at": "2025-01-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    }
+  ],
+  "distributions": [
+    {
+      "instrument_id": "TEST",
+      "ex_date": "2024-02-01",
+      "pay_date": "2024-02-01",
+      "amount_per_unit": 4,
+      "currency": "USD",
+      "distribution_type": "income",
+      "published_at": "2024-02-01T00:00:00Z",
+      "acquired_at": "2024-02-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "ex_date": "2024-03-01",
+      "pay_date": "2024-03-01",
+      "amount_per_unit": 2,
+      "currency": "USD",
+      "distribution_type": "income",
+      "published_at": "2024-03-01T00:00:00Z",
+      "acquired_at": "2024-03-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    },
+    {
+      "instrument_id": "TEST",
+      "ex_date": "2024-04-01",
+      "pay_date": "2024-04-01",
+      "amount_per_unit": 2,
+      "currency": "USD",
+      "distribution_type": "income",
+      "published_at": "2024-04-01T00:00:00Z",
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "source_url": "https://example.org/test-only",
+      "snapshot_id": "TEST-ONLY"
+    }
+  ],
+  "fx_rates": [],
+  "regimes": [
+    {
+      "contract": "MarketRegimeV1",
+      "schema_version": "1.0.0",
+      "market": "TEST",
+      "as_of": "2024-01-01",
+      "available_at": "2024-01-01T00:00:00Z",
+      "regime": "risk_on",
+      "freshness": {
+        "is_stale": false,
+        "sources": [
+          {
+            "source": "TEST",
+            "is_stale": false,
+            "source_timestamp": "2024-01-01T00:00:00Z"
+          }
+        ]
+      },
+      "raw_factors": {
+        "TEST": 1
+      },
+      "normalized_factor_scores": {
+        "TEST": 50
+      },
+      "composite_score": 50,
+      "industry_states": {},
+      "factor_weights": {
+        "TEST": 1
+      },
+      "thresholds": {
+        "TEST": 50
+      },
+      "config_version": "TEST"
+    }
+  ],
+  "cash_flow_assumptions": {
+    "initial_capital": 1000.0,
+    "withholding_tax_rate": 0.0,
+    "distribution_fee_rate": 0.0,
+    "fx_fee_rate": 0.0,
+    "buy_fee_rate": 0.0,
+    "reinvest_fee_rate": 0.0
+  }
+}

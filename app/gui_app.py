@@ -107,6 +107,7 @@ class FundamentalChainApp(tk.Tk):
 
         header = ttk.Frame(root)
         header.pack(fill="x", pady=(0, 12))
+        ttk.Button(header, text="跨資產 / ETF 研究", command=self.open_multi_asset).pack(side="right")
         ttk.Label(header, text="Fundamental Chain Reaction Platform", style="Header.TLabel").pack(anchor="w")
         ttk.Label(
             header,
@@ -133,6 +134,11 @@ class FundamentalChainApp(tk.Tk):
         self._build_management_tab()
         self._build_event_tab()
         self._build_graph_tab()
+
+    def open_multi_asset(self) -> None:
+        import subprocess
+        subprocess.Popen([sys.executable, str(ROOT / "app/main.py"), "--multi-asset"],
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
     def _build_overview_tab(self) -> None:
         metrics = ttk.Frame(self.overview_tab)

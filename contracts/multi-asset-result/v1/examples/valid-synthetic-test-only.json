@@ -1,0 +1,572 @@
+{
+  "as_of": "2025-01-02T00:00:00Z",
+  "base_currency": "USD",
+  "contract": "MultiAssetResultV1",
+  "correlations": [
+    {
+      "full": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 12,
+        "start": "2024-01-01",
+        "value": 0.7520501623499333
+      },
+      "left": "TEST",
+      "oos": {
+        "end": "2025-01-01",
+        "reason": "constant series",
+        "sample_size": 4,
+        "start": "2024-09-01",
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": "2024-02-01",
+          "reason": "at least three common intervals required",
+          "sample_size": 1,
+          "start": "2024-01-01",
+          "value": null
+        }
+      },
+      "right": "BENCH",
+      "sample_size": 12,
+      "train": {
+        "end": "2024-09-01",
+        "reason": null,
+        "sample_size": 8,
+        "start": "2024-01-01",
+        "value": 0.8574776531542011
+      }
+    }
+  ],
+  "input_sha256": "963061b1a3e9b4da0c58e1bd95c27df19dd8d99a65eb42a2b73077fc168baf62",
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": "BENCH",
+      "cash_flows": [
+        {
+          "amount_per_unit": 4,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 10.0,
+          "ex_date": "2024-02-01",
+          "fx_rate": 1.0,
+          "gross_cash": 40.0,
+          "net_cash": 40.0,
+          "pay_date": "2024-02-01",
+          "reason": null,
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY",
+          "source_url": "https://example.org/test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 2,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 10.0,
+          "ex_date": "2024-03-01",
+          "fx_rate": 1.0,
+          "gross_cash": 20.0,
+          "net_cash": 20.0,
+          "pay_date": "2024-03-01",
+          "reason": null,
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY",
+          "source_url": "https://example.org/test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 2,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 10.0,
+          "ex_date": "2024-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": 20.0,
+          "net_cash": 20.0,
+          "pay_date": "2024-04-01",
+          "reason": null,
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY",
+          "source_url": "https://example.org/test-only",
+          "status": "paid"
+        }
+      ],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "expense_ratio": 0.001,
+      "expense_ratio_available_at": "2024-01-01T00:00:00Z",
+      "instrument_id": "TEST",
+      "management_style": "passive",
+      "metrics": {
+        "annualized_return": 0.08184123756102135,
+        "annualized_volatility": 0.04512608598542134,
+        "earned_income_cash": 80.0,
+        "expense_ratio": 0.001,
+        "gross_paid_cash": 80.0,
+        "max_drawdown": 0.0,
+        "net_paid_cash": 80.0,
+        "paid_distribution_yield": 0.08,
+        "paid_income_yield": 0.08,
+        "payout_cut_frequency": 0.5,
+        "payout_cv": 0.3535533905932738,
+        "return_of_capital_cash": 0.0,
+        "sharpe_ratio": 1.7728105208558367,
+        "sortino_ratio": null,
+        "terminal_wealth": 1080.0,
+        "total_return": 0.08201600000000009,
+        "tracking_difference": -0.037983999999999574,
+        "tracking_error": 0.04428639574267883
+      },
+      "name": "TEST ONLY",
+      "quality": [],
+      "quote_currency": "USD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2024-02-01",
+          "local_return": 0.040000000000000036,
+          "reason": null,
+          "regime": "risk_on",
+          "start": "2024-01-01",
+          "value": 0.040000000000000036
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": 0.020000000000000018,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": 0.020000000000000018
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.020000000000000018,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.020000000000000018
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.0,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.0
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.060799999999999965,
+          "window": 2
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.04039999999999999,
+          "window": 2
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.020000000000000018,
+          "window": 2
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.0,
+          "window": 2
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.0,
+          "window": 2
+        }
+      ],
+      "symbol": "TEST",
+      "unavailable": {
+        "sortino_ratio": "zero downside deviation"
+      }
+    },
+    {
+      "asset_type": "benchmark",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "instrument_id": "BENCH",
+      "management_style": "none",
+      "metrics": {
+        "annualized_return": 0.11973993157711593,
+        "annualized_volatility": 0.001124786402999023,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": 0.0,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": 101.2335224801477,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": 0.11999999999999966
+      },
+      "name": "TEST ONLY",
+      "quality": [],
+      "quote_currency": "USD",
+      "return_basis": "total_return_index",
+      "returns": [
+        {
+          "end": "2024-02-01",
+          "local_return": 0.010000000000000009,
+          "reason": null,
+          "regime": "risk_on",
+          "start": "2024-01-01",
+          "value": 0.010000000000000009
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": 0.00990099009900991,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": 0.00990099009900991
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.009803921568627416,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.009803921568627416
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.009708737864077666,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.009708737864077666
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": 0.009615384615384581,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": 0.009615384615384581
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": 0.00952380952380949,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": 0.00952380952380949
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.009433962264151052,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.009433962264151052
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.009345794392523255,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.009345794392523255
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": 0.0092592592592593,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": 0.0092592592592593
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": 0.00917431192660545,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": 0.00917431192660545
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.009090909090909038,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.009090909090909038
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.009009009009008917,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.009009009009008917
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.020000000000000018,
+          "window": 2
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.01980198019801982,
+          "window": 2
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.019607843137254832,
+          "window": 2
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.01941747572815533,
+          "window": 2
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.019230769230769162,
+          "window": 2
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.019047619047619202,
+          "window": 2
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.018867924528301883,
+          "window": 2
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.01869158878504673,
+          "window": 2
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.0185185185185186,
+          "window": 2
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.0183486238532109,
+          "window": 2
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.018181818181818077,
+          "window": 2
+        }
+      ],
+      "symbol": "BENCH",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sortino_ratio": "zero downside deviation",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    }
+  ],
+  "methodology": {
+    "capm_alpha": "OLS excess-return intercept * periods_per_year; beta requires varying benchmark",
+    "cash": "buy at first grid close; entitlement captured ex-date before same-day pay-date reinvestment; paid cash within grid window",
+    "correlation": "pairwise common declared intervals; minimum 3; chronological floor(70%) train / remainder OOS; no driver promotion",
+    "currency": "exact-date direct/inverse spot; no triangulation, carry or leverage",
+    "expense_ratio": "point-in-time disclosure only; NAV fees are not deducted again",
+    "fees": "proportional deductions once per named transaction; FX fee on initial foreign purchase and paid cash conversion; reinvestment fee on pay-date purchase",
+    "paid_yield": "365-day paid per-unit base-currency payouts / ending split-adjusted market price in base currency; paid_income excludes ROC and unknown classification",
+    "payout_statistics": "CV population stdev / mean of observed pay-date per-unit base-currency payouts; cuts / adjacent observed payouts, including ROC",
+    "price_total_return": "(end split-adjusted price + interval ex-date payouts) / start price - 1; no intra-interval reinvestment assumed",
+    "regimes": "fresh records available exactly on interval start UTC date by midnight; no carrying labels to another date; explicit instrument.market must match; stale source flags preserved",
+    "return_grid": "declared adjacent intervals; consecutive monthly calendar months or daily gaps <=14 calendar days; producer verifies exchange sessions; CAGR uses elapsed days/365.25; no filling or gap bridging",
+    "sharpe": "arithmetic mean excess period return / sample stdev * sqrt(periods_per_year); compounded annual risk-free conversion",
+    "sortino": "all-interval root mean square negative excess return; arithmetic mean excess numerator",
+    "taxes": "uniform user withholding scenario applied to all payouts; no capital-gain liquidation tax inferred",
+    "total_return_index": "index ratios already include distributions; no additions",
+    "tracking_difference": "fund compounded total return minus benchmark compounded total return over full grid",
+    "volatility": "sample standard deviation * sqrt(periods_per_year)"
+  },
+  "objective": "income",
+  "quality": [],
+  "schema_version": "1.0.0"
+}

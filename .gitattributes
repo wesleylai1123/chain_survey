@@ -1,0 +1,3 @@
+contracts/multi-asset/** text eol=lf
+contracts/multi-asset-result/** text eol=lf
+tests/fixtures/multi_asset/** text eol=lf

@@ -1,0 +1,4529 @@
+{
+  "as_of": "2026-01-01T00:00:00Z",
+  "base_currency": "USD",
+  "contract": "MultiAssetResultV1",
+  "correlations": [
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 34,
+        "start": "2023-02-01",
+        "value": 0.9869133929900938
+      },
+      "left": "TEST-PASSIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.9883066198766506
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-ACTIVE",
+      "sample_size": 34,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 23,
+        "start": "2023-02-01",
+        "value": 0.986136505607005
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 34,
+        "start": "2023-02-01",
+        "value": 0.7451841797018639
+      },
+      "left": "TEST-PASSIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.8593070053785721
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "3037.TW",
+      "sample_size": 34,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 23,
+        "start": "2023-02-01",
+        "value": 0.7453062734966178
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 34,
+        "start": "2023-02-01",
+        "value": null
+      },
+      "left": "TEST-PASSIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-USD-TWD",
+      "sample_size": 34,
+      "train": {
+        "end": "2025-01-01",
+        "reason": "constant series",
+        "sample_size": 23,
+        "start": "2023-02-01",
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 34,
+        "start": "2023-02-01",
+        "value": 0.9899153872147933
+      },
+      "left": "TEST-PASSIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.9938356057156092
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-BENCH",
+      "sample_size": 34,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 23,
+        "start": "2023-02-01",
+        "value": 0.9887117888845152
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": 0.7348068165221107
+      },
+      "left": "TEST-ACTIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.8469884251794304
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "3037.TW",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": 0.7300685988193703
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": null
+      },
+      "left": "TEST-ACTIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-USD-TWD",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": "constant series",
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": 0.972137820837379
+      },
+      "left": "TEST-ACTIVE",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.9798871250561749
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-BENCH",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": 0.9692739539078529
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": null
+      },
+      "left": "3037.TW",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-USD-TWD",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": "constant series",
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": 0.7694663914383972
+      },
+      "left": "3037.TW",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": null,
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": 0.8775985129585353
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-BENCH",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": null,
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": 0.779126866399092
+      }
+    },
+    {
+      "full": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 35,
+        "start": "2023-01-01",
+        "value": null
+      },
+      "left": "TEST-USD-TWD",
+      "oos": {
+        "end": "2025-12-01",
+        "reason": "constant series",
+        "sample_size": 11,
+        "start": "2025-01-01",
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TEST-BENCH",
+      "sample_size": 35,
+      "train": {
+        "end": "2025-01-01",
+        "reason": "constant series",
+        "sample_size": 24,
+        "start": "2023-01-01",
+        "value": null
+      }
+    }
+  ],
+  "input_sha256": "3903507a19eb307a4b6cbc3aea2a8e5465029e1a5cfdba080f63f1032e90531c",
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": "TEST-BENCH",
+      "cash_flows": [
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2023-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2023-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2023-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2023-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2023-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2023-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2024-01-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2024-01-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2024-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2024-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2024-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2024-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2024-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2024-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2025-01-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2025-01-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2025-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2025-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2025-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2025-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        },
+        {
+          "amount_per_unit": 0.6,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": null,
+          "ex_date": "2025-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2025-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        }
+      ],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "expense_ratio": 0.002,
+      "expense_ratio_available_at": "2023-01-01T00:00:00Z",
+      "instrument_id": "TEST-PASSIVE",
+      "management_style": "passive",
+      "metrics": {
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "earned_income_cash": null,
+        "expense_ratio": 0.002,
+        "gross_paid_cash": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": 0.018455053847069067,
+        "paid_income_yield": 0.018455053847069067,
+        "payout_cut_frequency": 0.0,
+        "payout_cv": 0.0,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null,
+        "tracking_difference": null,
+        "tracking_error": null
+      },
+      "name": "TEST ONLY TEST-PASSIVE",
+      "quality": [
+        {
+          "code": "unavailable_interval",
+          "end": "2023-02-01",
+          "reason": "missing eligible endpoint; gaps are not bridged",
+          "start": "2023-01-01"
+        }
+      ],
+      "quote_currency": "USD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2023-02-01",
+          "local_return": null,
+          "reason": "missing eligible endpoint; gaps are not bridged",
+          "regime": null,
+          "start": "2023-01-01",
+          "value": null
+        },
+        {
+          "end": "2023-03-01",
+          "local_return": 0.0006114724493291313,
+          "reason": null,
+          "regime": null,
+          "start": "2023-02-01",
+          "value": 0.0006114724493291313
+        },
+        {
+          "end": "2023-04-01",
+          "local_return": -0.010333793006248926,
+          "reason": null,
+          "regime": null,
+          "start": "2023-03-01",
+          "value": -0.010333793006248926
+        },
+        {
+          "end": "2023-05-01",
+          "local_return": 0.019352833778465195,
+          "reason": null,
+          "regime": null,
+          "start": "2023-04-01",
+          "value": 0.019352833778465195
+        },
+        {
+          "end": "2023-06-01",
+          "local_return": 0.026962177815587296,
+          "reason": null,
+          "regime": null,
+          "start": "2023-05-01",
+          "value": 0.026962177815587296
+        },
+        {
+          "end": "2023-07-01",
+          "local_return": -0.004854207518722786,
+          "reason": null,
+          "regime": null,
+          "start": "2023-06-01",
+          "value": -0.004854207518722786
+        },
+        {
+          "end": "2023-08-01",
+          "local_return": -0.00845342780592584,
+          "reason": null,
+          "regime": null,
+          "start": "2023-07-01",
+          "value": -0.00845342780592584
+        },
+        {
+          "end": "2023-09-01",
+          "local_return": 0.028479045371412326,
+          "reason": null,
+          "regime": null,
+          "start": "2023-08-01",
+          "value": 0.028479045371412326
+        },
+        {
+          "end": "2023-10-01",
+          "local_return": 0.022510397875785237,
+          "reason": null,
+          "regime": null,
+          "start": "2023-09-01",
+          "value": 0.022510397875785237
+        },
+        {
+          "end": "2023-11-01",
+          "local_return": -0.017034937296988906,
+          "reason": null,
+          "regime": null,
+          "start": "2023-10-01",
+          "value": -0.017034937296988906
+        },
+        {
+          "end": "2023-12-01",
+          "local_return": 0.0032750243546451063,
+          "reason": null,
+          "regime": null,
+          "start": "2023-11-01",
+          "value": 0.0032750243546451063
+        },
+        {
+          "end": "2024-01-01",
+          "local_return": 0.037570708441865275,
+          "reason": null,
+          "regime": null,
+          "start": "2023-12-01",
+          "value": 0.037570708441865275
+        },
+        {
+          "end": "2024-02-01",
+          "local_return": 0.004284085114398151,
+          "reason": null,
+          "regime": null,
+          "start": "2024-01-01",
+          "value": 0.004284085114398151
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": -0.017294961143596743,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": -0.017294961143596743
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.021451111873248774,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.021451111873248774
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.02898182654126802,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.02898182654126802
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": -0.007640933499357461,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": -0.007640933499357461
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": -0.005931906026501732,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": -0.005931906026501732
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.026333197239155615,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.026333197239155615
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.02022706715300049,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.02022706715300049
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": -0.01064475998229375,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": -0.01064475998229375
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": -0.0003667900375063926,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": -0.0003667900375063926
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.03164000746976581,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.03164000746976581
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.0130387767923974,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.0130387767923974
+        },
+        {
+          "end": "2025-02-01",
+          "local_return": -0.017902162577989822,
+          "reason": null,
+          "regime": null,
+          "start": "2025-01-01",
+          "value": -0.017902162577989822
+        },
+        {
+          "end": "2025-03-01",
+          "local_return": 0.012399681654705397,
+          "reason": null,
+          "regime": null,
+          "start": "2025-02-01",
+          "value": 0.012399681654705397
+        },
+        {
+          "end": "2025-04-01",
+          "local_return": 0.035520911668639465,
+          "reason": null,
+          "regime": null,
+          "start": "2025-03-01",
+          "value": 0.035520911668639465
+        },
+        {
+          "end": "2025-05-01",
+          "local_return": -0.004458136362294196,
+          "reason": null,
+          "regime": null,
+          "start": "2025-04-01",
+          "value": -0.004458136362294196
+        },
+        {
+          "end": "2025-06-01",
+          "local_return": -0.013558088503337284,
+          "reason": null,
+          "regime": null,
+          "start": "2025-05-01",
+          "value": -0.013558088503337284
+        },
+        {
+          "end": "2025-07-01",
+          "local_return": 0.028706472922737092,
+          "reason": null,
+          "regime": null,
+          "start": "2025-06-01",
+          "value": 0.028706472922737092
+        },
+        {
+          "end": "2025-08-01",
+          "local_return": 0.02324032154215505,
+          "reason": null,
+          "regime": null,
+          "start": "2025-07-01",
+          "value": 0.02324032154215505
+        },
+        {
+          "end": "2025-09-01",
+          "local_return": -0.01394068142867566,
+          "reason": null,
+          "regime": null,
+          "start": "2025-08-01",
+          "value": -0.01394068142867566
+        },
+        {
+          "end": "2025-10-01",
+          "local_return": 0.0009487066040376746,
+          "reason": null,
+          "regime": null,
+          "start": "2025-09-01",
+          "value": 0.0009487066040376746
+        },
+        {
+          "end": "2025-11-01",
+          "local_return": 0.03073509651716755,
+          "reason": null,
+          "regime": null,
+          "start": "2025-10-01",
+          "value": 0.03073509651716755
+        },
+        {
+          "end": "2025-12-01",
+          "local_return": 0.01172786550877225,
+          "reason": null,
+          "regime": null,
+          "start": "2025-11-01",
+          "value": 0.01172786550877225
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2023-04-01",
+          "reason": "missing interval or nonfinite rolling calculation",
+          "start": "2023-01-01",
+          "value": null,
+          "window": 3
+        },
+        {
+          "end": "2023-05-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.009435917650884695,
+          "window": 3
+        },
+        {
+          "end": "2023-06-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.03601901127365337,
+          "window": 3
+        },
+        {
+          "end": "2023-07-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.04175524304438416,
+          "window": 3
+        },
+        {
+          "end": "2023-08-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.013337880738509167,
+          "window": 3
+        },
+        {
+          "end": "2023-09-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.014834624618259795,
+          "window": 3
+        },
+        {
+          "end": "2023-10-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.04274063522814209,
+          "window": 3
+        },
+        {
+          "end": "2023-11-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.033716057957780654,
+          "window": 3
+        },
+        {
+          "end": "2023-12-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.008383698132472972,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.023235939924044713,
+          "window": 3
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.0454283766271264,
+          "window": 3
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.023994127767494655,
+          "window": 3
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.008085455622121485,
+          "window": 3
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.03287668181815073,
+          "window": 3
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.04302359227967312,
+          "window": 3
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.015062260244038228,
+          "window": 3
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.012449460312490501,
+          "window": 3
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.040881651011329234,
+          "window": 3
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.03594685505900008,
+          "window": 3
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.008996769137801897,
+          "window": 3
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.02028407985198788,
+          "window": 3
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.04470800216868187,
+          "window": 3
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.02638193633625563,
+          "window": 3
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.00723967476941656,
+          "window": 3
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2025-01-01",
+          "value": 0.029593111517977277,
+          "window": 3
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2025-02-01",
+          "value": 0.04368730484099914,
+          "window": 3
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2025-03-01",
+          "value": 0.016927324897455742,
+          "window": 3
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2025-04-01",
+          "value": 0.010235244721709558,
+          "window": 3
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2025-05-01",
+          "value": 0.038342509138767245,
+          "window": 3
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2025-06-01",
+          "value": 0.03793978649139729,
+          "window": 3
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2025-07-01",
+          "value": 0.00993287606100779,
+          "window": 3
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2025-08-01",
+          "value": 0.017330179985208805,
+          "window": 3
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2025-09-01",
+          "value": 0.04381275256884165,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": "missing interval or nonfinite rolling calculation",
+          "start": "2023-01-01",
+          "value": null,
+          "window": 12
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.10542320864466337,
+          "window": 12
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.08564111757067061,
+          "window": 12
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.12050842880288437,
+          "window": 12
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.13109295576359226,
+          "window": 12
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.09298119634214119,
+          "window": 12
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.0917975464556342,
+          "window": 12
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.13010129631344536,
+          "window": 12
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.12103395427692432,
+          "window": 12
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.0846841452231164,
+          "window": 12
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.10307714386427702,
+          "window": 12
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.1342637714597481,
+          "window": 12
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.1074456653899416,
+          "window": 12
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.08298041277628121,
+          "window": 12
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.11570510151134039,
+          "window": 12
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.13107318641182286,
+          "window": 12
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.09431544743215547,
+          "window": 12
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.08779035551301839,
+          "window": 12
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.12569449385124343,
+          "window": 12
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.12230219089188754,
+          "window": 12
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.08471591198824413,
+          "window": 12
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.097426834387637,
+          "window": 12
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.13157140318048444,
+          "window": 12
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.10973044096887596,
+          "window": 12
+        }
+      ],
+      "symbol": "TEST-PASSIVE",
+      "unavailable": {
+        "annualized_return": "incomplete declared interval grid",
+        "annualized_volatility": "incomplete declared interval grid",
+        "earned_income_cash": "incomplete cash or distribution inputs",
+        "gross_paid_cash": "incomplete cash or distribution inputs",
+        "max_drawdown": "incomplete declared interval grid",
+        "net_paid_cash": "unknown tax/fees, eligible units, pay dates or exact cash FX",
+        "return_of_capital_cash": "incomplete cash or distribution inputs",
+        "sharpe_ratio": "incomplete declared interval grid",
+        "sortino_ratio": "incomplete declared interval grid",
+        "terminal_wealth": "missing initial price, exact FX, buy fee or FX fee",
+        "total_return": "incomplete declared interval grid",
+        "tracking_difference": "missing complete same-grid benchmark returns",
+        "tracking_error": "missing complete same-grid benchmark returns"
+      }
+    },
+    {
+      "asset_type": "etf",
+      "benchmark_id": "TEST-BENCH",
+      "cash_flows": [
+        {
+          "amount_per_unit": 0.8141120008059868,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2023-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": 813.2978888051808,
+          "net_cash": null,
+          "pay_date": "2023-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.7720584501801074,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2023-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": 771.2863917299273,
+          "net_cash": null,
+          "pay_date": "2023-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.8412118485241757,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2023-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": 840.3706366756516,
+          "net_cash": null,
+          "pay_date": "2023-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.7463427081999565,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2024-01-01",
+          "fx_rate": 1.0,
+          "gross_cash": 745.5963654917566,
+          "net_cash": null,
+          "pay_date": "2024-01-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.8650287840157117,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2024-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": 864.163755231696,
+          "net_cash": null,
+          "pay_date": "2024-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.7249012753228324,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2024-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": 724.1763740475096,
+          "net_cash": null,
+          "pay_date": "2024-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.8836655638536056,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2024-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": 882.781898289752,
+          "net_cash": null,
+          "pay_date": "2024-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.7094421637993377,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2025-01-01",
+          "fx_rate": 1.0,
+          "gross_cash": 708.7327216355384,
+          "net_cash": null,
+          "pay_date": "2025-01-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.8956375928404503,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2025-04-01",
+          "fx_rate": 1.0,
+          "gross_cash": 894.7419552476099,
+          "net_cash": null,
+          "pay_date": "2025-04-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.7011968375907138,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2025-07-01",
+          "fx_rate": 1.0,
+          "gross_cash": 700.4956407531231,
+          "net_cash": null,
+          "pay_date": "2025-07-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        },
+        {
+          "amount_per_unit": 0.8999911860107268,
+          "currency": "USD",
+          "distribution_type": "income",
+          "entitled_units": 999.0,
+          "ex_date": "2025-10-01",
+          "fx_rate": 1.0,
+          "gross_cash": 899.0911948247161,
+          "net_cash": null,
+          "pay_date": "2025-10-01",
+          "reason": "missing eligible units, pay-date FX, tax or distribution fee",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY-v1",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "paid"
+        }
+      ],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "expense_ratio": 0.006,
+      "expense_ratio_available_at": "2023-01-01T00:00:00Z",
+      "instrument_id": "TEST-ACTIVE",
+      "management_style": "active",
+      "metrics": {
+        "active_return": 0.09175462306310966,
+        "annualized_return": 0.12017224438264473,
+        "annualized_volatility": 0.06355506634772755,
+        "beta": 0.995006675880791,
+        "capm_alpha": 0.02401922672994351,
+        "earned_income_cash": 8844.73482273246,
+        "expense_ratio": 0.006,
+        "gross_paid_cash": 8844.73482273246,
+        "information_ratio": 1.58762316924707,
+        "max_drawdown": -0.019315288462945945,
+        "net_paid_cash": null,
+        "paid_distribution_yield": 0.02488627987177021,
+        "paid_income_yield": 0.02488627987177021,
+        "payout_cut_frequency": 0.5,
+        "payout_cv": 0.09120176745611638,
+        "return_of_capital_cash": 0.0,
+        "sharpe_ratio": 1.512244995732642,
+        "sortino_ratio": 3.4718218563708185,
+        "terminal_wealth": null,
+        "total_return": 0.3922114084445061
+      },
+      "name": "TEST ONLY TEST-ACTIVE",
+      "quality": [],
+      "quote_currency": "USD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2023-02-01",
+          "local_return": 0.03530195050887319,
+          "reason": null,
+          "regime": null,
+          "start": "2023-01-01",
+          "value": 0.03530195050887319
+        },
+        {
+          "end": "2023-03-01",
+          "local_return": 0.002772681672801758,
+          "reason": null,
+          "regime": null,
+          "start": "2023-02-01",
+          "value": 0.002772681672801758
+        },
+        {
+          "end": "2023-04-01",
+          "local_return": -0.008020638678153058,
+          "reason": null,
+          "regime": null,
+          "start": "2023-03-01",
+          "value": -0.008020638678153058
+        },
+        {
+          "end": "2023-05-01",
+          "local_return": 0.017688246432276733,
+          "reason": null,
+          "regime": null,
+          "start": "2023-04-01",
+          "value": 0.017688246432276733
+        },
+        {
+          "end": "2023-06-01",
+          "local_return": 0.023757603353399492,
+          "reason": null,
+          "regime": null,
+          "start": "2023-05-01",
+          "value": 0.023757603353399492
+        },
+        {
+          "end": "2023-07-01",
+          "local_return": -0.007203916316798953,
+          "reason": null,
+          "regime": null,
+          "start": "2023-06-01",
+          "value": -0.007203916316798953
+        },
+        {
+          "end": "2023-08-01",
+          "local_return": -0.012199254555089079,
+          "reason": null,
+          "regime": null,
+          "start": "2023-07-01",
+          "value": -0.012199254555089079
+        },
+        {
+          "end": "2023-09-01",
+          "local_return": 0.025864470887957847,
+          "reason": null,
+          "regime": null,
+          "start": "2023-08-01",
+          "value": 0.025864470887957847
+        },
+        {
+          "end": "2023-10-01",
+          "local_return": 0.02398818510336298,
+          "reason": null,
+          "regime": null,
+          "start": "2023-09-01",
+          "value": 0.02398818510336298
+        },
+        {
+          "end": "2023-11-01",
+          "local_return": -0.015900288555136033,
+          "reason": null,
+          "regime": null,
+          "start": "2023-10-01",
+          "value": -0.015900288555136033
+        },
+        {
+          "end": "2023-12-01",
+          "local_return": 0.006109703451810056,
+          "reason": null,
+          "regime": null,
+          "start": "2023-11-01",
+          "value": 0.006109703451810056
+        },
+        {
+          "end": "2024-01-01",
+          "local_return": 0.04281390132293916,
+          "reason": null,
+          "regime": null,
+          "start": "2023-12-01",
+          "value": 0.04281390132293916
+        },
+        {
+          "end": "2024-02-01",
+          "local_return": 0.008190435617310143,
+          "reason": null,
+          "regime": null,
+          "start": "2024-01-01",
+          "value": 0.008190435617310143
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": -0.014279352126223332,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": -0.014279352126223332
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.025220072612284872,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.025220072612284872
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.028399826406033668,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.028399826406033668
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": -0.010048981110096777,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": -0.010048981110096777
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": -0.008496463939714038,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": -0.008496463939714038
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.022344508614370096,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.022344508614370096
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.016870781036694815,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.016870781036694815
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": -0.01007718179782735,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": -0.01007718179782735
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": -0.0003490872455542693,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": -0.0003490872455542693
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.0335732265047779,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.0335732265047779
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.017377870774106796,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.017377870774106796
+        },
+        {
+          "end": "2025-02-01",
+          "local_return": -0.013910969461275569,
+          "reason": null,
+          "regime": null,
+          "start": "2025-01-01",
+          "value": -0.013910969461275569
+        },
+        {
+          "end": "2025-03-01",
+          "local_return": 0.016029468780506262,
+          "reason": null,
+          "regime": null,
+          "start": "2025-02-01",
+          "value": 0.016029468780506262
+        },
+        {
+          "end": "2025-04-01",
+          "local_return": 0.040347098089581035,
+          "reason": null,
+          "regime": null,
+          "start": "2025-03-01",
+          "value": 0.040347098089581035
+        },
+        {
+          "end": "2025-05-01",
+          "local_return": -0.003911187489462842,
+          "reason": null,
+          "regime": null,
+          "start": "2025-04-01",
+          "value": -0.003911187489462842
+        },
+        {
+          "end": "2025-06-01",
+          "local_return": -0.01497778557049212,
+          "reason": null,
+          "regime": null,
+          "start": "2025-05-01",
+          "value": -0.01497778557049212
+        },
+        {
+          "end": "2025-07-01",
+          "local_return": 0.026477415276288108,
+          "reason": null,
+          "regime": null,
+          "start": "2025-06-01",
+          "value": 0.026477415276288108
+        },
+        {
+          "end": "2025-08-01",
+          "local_return": 0.019326507690879513,
+          "reason": null,
+          "regime": null,
+          "start": "2025-07-01",
+          "value": 0.019326507690879513
+        },
+        {
+          "end": "2025-09-01",
+          "local_return": -0.017771319349969228,
+          "reason": null,
+          "regime": null,
+          "start": "2025-08-01",
+          "value": -0.017771319349969228
+        },
+        {
+          "end": "2025-10-01",
+          "local_return": 0.0005810062937707805,
+          "reason": null,
+          "regime": null,
+          "start": "2025-09-01",
+          "value": 0.0005810062937707805
+        },
+        {
+          "end": "2025-11-01",
+          "local_return": 0.02963444316496111,
+          "reason": null,
+          "regime": null,
+          "start": "2025-10-01",
+          "value": 0.02963444316496111
+        },
+        {
+          "end": "2025-12-01",
+          "local_return": 0.012605625361618022,
+          "reason": null,
+          "regime": null,
+          "start": "2025-11-01",
+          "value": 0.012605625361618022
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2023-04-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.029845706638473635,
+          "window": 3
+        },
+        {
+          "end": "2023-05-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.012324830229067274,
+          "window": 3
+        },
+        {
+          "end": "2023-06-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.03350964874869766,
+          "window": 3
+        },
+        {
+          "end": "2023-07-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.03436056407387489,
+          "window": 3
+        },
+        {
+          "end": "2023-08-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.003983429928494431,
+          "window": 3
+        },
+        {
+          "end": "2023-09-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.0060496027088696724,
+          "window": 3
+        },
+        {
+          "end": "2023-10-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.03765810898438615,
+          "window": 3
+        },
+        {
+          "end": "2023-11-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.033770272333639495,
+          "window": 3
+        },
+        {
+          "end": "2023-12-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.013863265227059607,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.032502837825928,
+          "window": 3
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.0577784687239522,
+          "window": 3
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.036342333167296514,
+          "window": 3
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.01885768948138633,
+          "window": 3
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.03928090763284375,
+          "window": 3
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.04374114070064783,
+          "window": 3
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.009415499541876926,
+          "window": 3
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.003471963305666126,
+          "window": 3
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.03075940082298323,
+          "window": 3
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.0291160987740835,
+          "window": 3
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.006272189855186738,
+          "window": 3
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.022800549889260946,
+          "window": 3
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.05116745117840549,
+          "window": 3
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.03690666375752394,
+          "window": 3
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.019306324637709427,
+          "window": 3
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2025-01-01",
+          "value": 0.04231909044211002,
+          "window": 3
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2025-02-01",
+          "value": 0.052889093075426885,
+          "window": 3
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2025-03-01",
+          "value": 0.02075695427873736,
+          "window": 3
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2025-04-01",
+          "value": 0.007148443031571139,
+          "window": 3
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2025-05-01",
+          "value": 0.03064414765808654,
+          "window": 3
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2025-06-01",
+          "value": 0.027721229576720408,
+          "window": 3
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2025-07-01",
+          "value": 0.0017934411178084364,
+          "window": 3
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2025-08-01",
+          "value": 0.011924073522133316,
+          "window": 3
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2025-09-01",
+          "value": 0.04321939429546173,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.1412732955235494,
+          "window": 12
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.11138670260085526,
+          "window": 12
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.09248769990273398,
+          "window": 12
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.12909639322517408,
+          "window": 12
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.1409805889565401,
+          "window": 12
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.10330306009089729,
+          "window": 12
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.10186664049666927,
+          "window": 12
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.1403993308688567,
+          "window": 12
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.13040152104165315,
+          "window": 12
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.09279606511926808,
+          "window": 12
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.11006493676037188,
+          "window": 12
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.14036609962205193,
+          "window": 12
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.11255060261914296,
+          "window": 12
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.08816142903622315,
+          "window": 12
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.12162008686327663,
+          "window": 12
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.1381694854588349,
+          "window": 12
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.10240964855900736,
+          "window": 12
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.09692093094639942,
+          "window": 12
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.13561325906543042,
+          "window": 12
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.132260884366189,
+          "window": 12
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.09368774808222713,
+          "window": 12
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.10546314058576267,
+          "window": 12
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.13862040305664625,
+          "window": 12
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.1155217605487604,
+          "window": 12
+        }
+      ],
+      "symbol": "TEST-ACTIVE",
+      "unavailable": {
+        "net_paid_cash": "unknown tax/fees, eligible units, pay dates or exact cash FX",
+        "terminal_wealth": "missing final price/FX or unknown net paid cash"
+      }
+    },
+    {
+      "asset_type": "stock",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "instrument_id": "3037.TW",
+      "management_style": "none",
+      "metrics": {
+        "annualized_return": 0.0679495164019841,
+        "annualized_volatility": 0.08317695791214365,
+        "earned_income_cash": 0.0,
+        "expense_ratio": null,
+        "gross_paid_cash": 0.0,
+        "max_drawdown": -0.11073471388200651,
+        "net_paid_cash": 0.0,
+        "paid_distribution_yield": 0.0,
+        "paid_income_yield": 0.0,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": 0.0,
+        "sharpe_ratio": 0.59418759879848,
+        "sortino_ratio": 0.9922871381873972,
+        "terminal_wealth": 120886.97003580666,
+        "total_return": 0.21129107120941315
+      },
+      "name": "TEST ONLY 3037.TW",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2023-02-01",
+          "local_return": 0.05069075918760646,
+          "reason": null,
+          "regime": null,
+          "start": "2023-01-01",
+          "value": 0.04515369292755578
+        },
+        {
+          "end": "2023-03-01",
+          "local_return": 0.016329217664868168,
+          "reason": null,
+          "regime": null,
+          "start": "2023-02-01",
+          "value": 0.011212649448103518
+        },
+        {
+          "end": "2023-04-01",
+          "local_return": -0.005339320940830561,
+          "reason": null,
+          "regime": null,
+          "start": "2023-03-01",
+          "value": -0.009918072818921986
+        },
+        {
+          "end": "2023-05-01",
+          "local_return": 0.02405758524452506,
+          "reason": null,
+          "regime": null,
+          "start": "2023-04-01",
+          "value": 0.019965529844260477
+        },
+        {
+          "end": "2023-06-01",
+          "local_return": 0.025047706855299667,
+          "reason": null,
+          "regime": null,
+          "start": "2023-05-01",
+          "value": 0.021729532457719136
+        },
+        {
+          "end": "2023-07-01",
+          "local_return": -0.01881980392078142,
+          "reason": null,
+          "regime": null,
+          "start": "2023-06-01",
+          "value": -0.021132031670531015
+        },
+        {
+          "end": "2023-08-01",
+          "local_return": -0.022268590600923344,
+          "reason": null,
+          "regime": null,
+          "start": "2023-07-01",
+          "value": -0.02362549989059448
+        },
+        {
+          "end": "2023-09-01",
+          "local_return": 0.010692514007151654,
+          "reason": null,
+          "regime": null,
+          "start": "2023-08-01",
+          "value": 0.010321733465250338
+        },
+        {
+          "end": "2023-10-01",
+          "local_return": -0.0028813356037435955,
+          "reason": null,
+          "regime": null,
+          "start": "2023-09-01",
+          "value": -0.002214600962335167
+        },
+        {
+          "end": "2023-11-01",
+          "local_return": -0.03666841739121052,
+          "reason": null,
+          "regime": null,
+          "start": "2023-10-01",
+          "value": -0.03504945390076675
+        },
+        {
+          "end": "2023-12-01",
+          "local_return": -0.014030712504079723,
+          "reason": null,
+          "regime": null,
+          "start": "2023-11-01",
+          "value": -0.011436334698578965
+        },
+        {
+          "end": "2024-01-01",
+          "local_return": 0.018921950086294492,
+          "reason": null,
+          "regime": null,
+          "start": "2023-12-01",
+          "value": 0.022472672460974286
+        },
+        {
+          "end": "2024-02-01",
+          "local_return": -0.003116781224852705,
+          "reason": null,
+          "regime": null,
+          "start": "2024-01-01",
+          "value": 0.0010779087572119206
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": -0.018209088838368137,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": -0.01352489970442694
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.021649702559818795,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.026911642950163905
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.04061789633845159,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.04616245215042225
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": 0.008676992756681212,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": 0.014016787742444636
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": 0.007994386537217402,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": 0.013080380745436049
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.04630805426372797,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.05111120034895511
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.038774421214020194,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.04287217964912471
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": -0.0006636217089720509,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": 0.0024677472616041474
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": 0.009582062784835976,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": 0.011792641718677332
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.03536443754757057,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.03655813206967773
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.005107330757574413,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.005175439730115805
+        },
+        {
+          "end": "2025-02-01",
+          "local_return": -0.027126243361253688,
+          "reason": null,
+          "regime": null,
+          "start": "2025-01-01",
+          "value": -0.02811773425433528
+        },
+        {
+          "end": "2025-03-01",
+          "local_return": -0.0021230360881491217,
+          "reason": null,
+          "regime": null,
+          "start": "2025-02-01",
+          "value": -0.004179740059272796
+        },
+        {
+          "end": "2025-04-01",
+          "local_return": 0.012288118835981576,
+          "reason": null,
+          "regime": null,
+          "start": "2025-03-01",
+          "value": 0.009237240093240784
+        },
+        {
+          "end": "2025-05-01",
+          "local_return": -0.024374573418059264,
+          "reason": null,
+          "regime": null,
+          "start": "2025-04-01",
+          "value": -0.028118908722505997
+        },
+        {
+          "end": "2025-06-01",
+          "local_return": -0.03297583434901474,
+          "reason": null,
+          "regime": null,
+          "start": "2025-05-01",
+          "value": -0.037327578042043896
+        },
+        {
+          "end": "2025-07-01",
+          "local_return": 0.0069742988145553575,
+          "reason": null,
+          "regime": null,
+          "start": "2025-06-01",
+          "value": 0.0019642155242973747
+        },
+        {
+          "end": "2025-08-01",
+          "local_return": 0.010942608593603742,
+          "reason": null,
+          "regime": null,
+          "start": "2025-07-01",
+          "value": 0.005638204466373642
+        },
+        {
+          "end": "2025-09-01",
+          "local_return": -0.02040086939618324,
+          "reason": null,
+          "regime": null,
+          "start": "2025-08-01",
+          "value": -0.025599799405459756
+        },
+        {
+          "end": "2025-10-01",
+          "local_return": -0.003755624564631077,
+          "reason": null,
+          "regime": null,
+          "start": "2025-09-01",
+          "value": -0.008893205163483575
+        },
+        {
+          "end": "2025-11-01",
+          "local_return": 0.03736256824691919,
+          "reason": null,
+          "regime": null,
+          "start": "2025-10-01",
+          "value": 0.03237776062099851
+        },
+        {
+          "end": "2025-12-01",
+          "local_return": 0.024164702444077868,
+          "reason": null,
+          "regime": null,
+          "start": "2025-11-01",
+          "value": 0.019793051377962056
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2023-04-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.04639049515242233,
+          "window": 3
+        },
+        {
+          "end": "2023-05-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.021172525183926538,
+          "window": 3
+        },
+        {
+          "end": "2023-06-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.031792993574877304,
+          "window": 3
+        },
+        {
+          "end": "2023-07-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.02010660292812516,
+          "window": 3
+        },
+        {
+          "end": "2023-08-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": -0.023490455952630662,
+          "window": 3
+        },
+        {
+          "end": "2023-09-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": -0.03439336542019156,
+          "window": 3
+        },
+        {
+          "end": "2023-10-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": -0.01573222092262294,
+          "window": 3
+        },
+        {
+          "end": "2023-11-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": -0.027248529306971636,
+          "window": 3
+        },
+        {
+          "end": "2023-12-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": -0.048197492498341266,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": -0.0246479308688089,
+          "window": 3
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.011868860652949342,
+          "window": 3
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.009731058134967219,
+          "window": 3
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.01411471208465298,
+          "window": 3
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.05978638093551569,
+          "window": 3
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.0893748675130599,
+          "window": 3
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.07470230095365538,
+          "window": 3
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.07978605354377288,
+          "window": 3
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.11051301006659431,
+          "window": 3
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.09887971049939526,
+          "window": 3
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.057774291481360596,
+          "window": 3
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.051370019380654774,
+          "window": 3
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.05420979820732752,
+          "window": 3
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.012626268473982849,
+          "window": 3
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": -0.0271710551523745,
+          "window": 3
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2025-01-01",
+          "value": -0.02323996331978706,
+          "window": 3
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2025-02-01",
+          "value": -0.0232411436824852,
+          "window": 3
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2025-03-01",
+          "value": -0.05575448531642313,
+          "window": 3
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2025-04-01",
+          "value": -0.06255914982402078,
+          "window": 3
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2025-05-01",
+          "value": -0.029998276717956185,
+          "window": 3
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2025-06-01",
+          "value": -0.018181208701590235,
+          "window": 3
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2025-07-01",
+          "value": -0.02882033082903801,
+          "window": 3
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2025-08-01",
+          "value": -0.002997014665540698,
+          "window": 3
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2025-09-01",
+          "value": 0.04344879652815492,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.024740787586393864,
+          "window": 12
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": -0.018474152082136763,
+          "window": 12
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": -0.042485465548793844,
+          "window": 12
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": -0.006867212977502701,
+          "window": 12
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.018640533804198167,
+          "window": 12
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.010951107058389642,
+          "window": 12
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.04628485719231845,
+          "window": 12
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.12637285388662,
+          "window": 12
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.16266222364773686,
+          "window": 12
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.1681182960689096,
+          "window": 12
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.22482286931411233,
+          "window": 12
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.2842876489349302,
+          "window": 12
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.2625612762353775,
+          "window": 12
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.2257396782571217,
+          "window": 12
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.23735145940930735,
+          "window": 12
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.21605513044143798,
+          "window": 12
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.1297107679573708,
+          "window": 12
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.07250828018612165,
+          "window": 12
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.06074003408227768,
+          "window": 12
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.014850477214936264,
+          "window": 12
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": -0.05178167768900954,
+          "window": 12
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": -0.06252782216876818,
+          "window": 12
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": -0.04345476761927758,
+          "window": 12
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": -0.05892573592292549,
+          "window": 12
+        }
+      ],
+      "symbol": "3037.TW",
+      "unavailable": {
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "payout_cut_frequency": "requires at least two complete observed pay-date payouts",
+        "payout_cv": "requires at least two complete observed pay-date payouts"
+      }
+    },
+    {
+      "asset_type": "fx",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "fx_base_currency": "USD",
+      "fx_quote_currency": "TWD",
+      "instrument_id": "TEST-USD-TWD",
+      "management_style": "none",
+      "metrics": {
+        "annualized_return": 0.0,
+        "annualized_volatility": 0.0,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": 0.0,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": -3.4641016151377544,
+        "terminal_wealth": null,
+        "total_return": 0.0
+      },
+      "name": "TEST ONLY TEST-USD-TWD",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2023-02-01",
+          "local_return": 0.005297848821201656,
+          "reason": null,
+          "regime": null,
+          "start": "2023-01-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-03-01",
+          "local_return": 0.005059834071060365,
+          "reason": null,
+          "regime": null,
+          "start": "2023-02-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-04-01",
+          "local_return": 0.004624619187957313,
+          "reason": null,
+          "regime": null,
+          "start": "2023-03-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-05-01",
+          "local_return": 0.004011954600945611,
+          "reason": null,
+          "regime": null,
+          "start": "2023-04-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-06-01",
+          "local_return": 0.0032476054495544915,
+          "reason": null,
+          "regime": null,
+          "start": "2023-05-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-07-01",
+          "local_return": 0.002362144665634114,
+          "reason": null,
+          "regime": null,
+          "start": "2023-06-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-08-01",
+          "local_return": 0.0013897426546054525,
+          "reason": null,
+          "regime": null,
+          "start": "2023-07-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-09-01",
+          "local_return": 0.0003669925426916798,
+          "reason": null,
+          "regime": null,
+          "start": "2023-08-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-10-01",
+          "local_return": -0.0006682144698162418,
+          "reason": null,
+          "regime": null,
+          "start": "2023-09-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-11-01",
+          "local_return": -0.001677768355060616,
+          "reason": null,
+          "regime": null,
+          "start": "2023-10-01",
+          "value": 0.0
+        },
+        {
+          "end": "2023-12-01",
+          "local_return": -0.0026243912218943954,
+          "reason": null,
+          "regime": null,
+          "start": "2023-11-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-01-01",
+          "local_return": -0.0034726819310814117,
+          "reason": null,
+          "regime": null,
+          "start": "2023-12-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-02-01",
+          "local_return": -0.0041901733575083755,
+          "reason": null,
+          "regime": null,
+          "start": "2024-01-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": -0.0047484109153262954,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": -0.0051240439491253564,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": -0.005299899456890023,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": -0.005265982822288184,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": -0.005020326427086164,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": -0.004569588910890321,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": -0.003929300747559705,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": -0.0031236605657687377,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": -0.002184814202726759,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": 0.0
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": -0.0011515943825782804,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": -6.775829357663632e-05,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-02-01",
+          "local_return": 0.001020175928738487,
+          "reason": null,
+          "regime": null,
+          "start": "2025-01-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-03-01",
+          "local_return": 0.0020653365409999402,
+          "reason": null,
+          "regime": null,
+          "start": "2025-02-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-04-01",
+          "local_return": 0.003022954981782844,
+          "reason": null,
+          "regime": null,
+          "start": "2025-03-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-05-01",
+          "local_return": 0.0038526681278725494,
+          "reason": null,
+          "regime": null,
+          "start": "2025-04-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-06-01",
+          "local_return": 0.004520482350765187,
+          "reason": null,
+          "regime": null,
+          "start": "2025-05-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-07-01",
+          "local_return": 0.005000261698603792,
+          "reason": null,
+          "regime": null,
+          "start": "2025-06-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-08-01",
+          "local_return": 0.005274664490342085,
+          "reason": null,
+          "regime": null,
+          "start": "2025-07-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-09-01",
+          "local_return": 0.0053355182050498495,
+          "reason": null,
+          "regime": null,
+          "start": "2025-08-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-10-01",
+          "local_return": 0.005183680129748236,
+          "reason": null,
+          "regime": null,
+          "start": "2025-09-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-11-01",
+          "local_return": 0.004828472499177394,
+          "reason": null,
+          "regime": null,
+          "start": "2025-10-01",
+          "value": 0.0
+        },
+        {
+          "end": "2025-12-01",
+          "local_return": 0.0042868021705078085,
+          "reason": null,
+          "regime": null,
+          "start": "2025-11-01",
+          "value": 0.0
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2023-04-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-05-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-06-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-07-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-08-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-09-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-10-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-11-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2023-12-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2025-01-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2025-02-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2025-03-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2025-04-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2025-05-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2025-06-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2025-07-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2025-08-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2025-09-01",
+          "value": 0.0,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.0,
+          "window": 12
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.0,
+          "window": 12
+        }
+      ],
+      "symbol": "TEST-USD-TWD",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sharpe_ratio": "zero volatility or fewer than two intervals",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    },
+    {
+      "asset_type": "benchmark",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "instrument_id": "TEST-BENCH",
+      "management_style": "none",
+      "metrics": {
+        "annualized_return": 0.0942840807963583,
+        "annualized_volatility": 0.06209434087239945,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": -0.018861560486786666,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": 1.166827548815607,
+        "sortino_ratio": 2.356013808294467,
+        "terminal_wealth": null,
+        "total_return": 0.3004567853813964
+      },
+      "name": "TEST ONLY TEST-BENCH",
+      "quality": [],
+      "quote_currency": "USD",
+      "return_basis": "total_return_index",
+      "returns": [
+        {
+          "end": "2023-02-01",
+          "local_return": 0.03179162026131177,
+          "reason": null,
+          "regime": null,
+          "start": "2023-01-01",
+          "value": 0.03179162026131177
+        },
+        {
+          "end": "2023-03-01",
+          "local_return": 0.0006114724493291313,
+          "reason": null,
+          "regime": null,
+          "start": "2023-02-01",
+          "value": 0.0006114724493291313
+        },
+        {
+          "end": "2023-04-01",
+          "local_return": -0.01614536705819336,
+          "reason": null,
+          "regime": null,
+          "start": "2023-03-01",
+          "value": -0.01614536705819336
+        },
+        {
+          "end": "2023-05-01",
+          "local_return": 0.019352833778465195,
+          "reason": null,
+          "regime": null,
+          "start": "2023-04-01",
+          "value": 0.019352833778465195
+        },
+        {
+          "end": "2023-06-01",
+          "local_return": 0.026962177815587296,
+          "reason": null,
+          "regime": null,
+          "start": "2023-05-01",
+          "value": 0.026962177815587296
+        },
+        {
+          "end": "2023-07-01",
+          "local_return": -0.010496867189838444,
+          "reason": null,
+          "regime": null,
+          "start": "2023-06-01",
+          "value": -0.010496867189838444
+        },
+        {
+          "end": "2023-08-01",
+          "local_return": -0.00845342780592584,
+          "reason": null,
+          "regime": null,
+          "start": "2023-07-01",
+          "value": -0.00845342780592584
+        },
+        {
+          "end": "2023-09-01",
+          "local_return": 0.028479045371412326,
+          "reason": null,
+          "regime": null,
+          "start": "2023-08-01",
+          "value": 0.028479045371412326
+        },
+        {
+          "end": "2023-10-01",
+          "local_return": 0.0169185143282653,
+          "reason": null,
+          "regime": null,
+          "start": "2023-09-01",
+          "value": 0.0169185143282653
+        },
+        {
+          "end": "2023-11-01",
+          "local_return": -0.017034937296988906,
+          "reason": null,
+          "regime": null,
+          "start": "2023-10-01",
+          "value": -0.017034937296988906
+        },
+        {
+          "end": "2023-12-01",
+          "local_return": 0.0032750243546451063,
+          "reason": null,
+          "regime": null,
+          "start": "2023-11-01",
+          "value": 0.0032750243546451063
+        },
+        {
+          "end": "2024-01-01",
+          "local_return": 0.03199482250356667,
+          "reason": null,
+          "regime": null,
+          "start": "2023-12-01",
+          "value": 0.03199482250356667
+        },
+        {
+          "end": "2024-02-01",
+          "local_return": 0.004284085114398151,
+          "reason": null,
+          "regime": null,
+          "start": "2024-01-01",
+          "value": 0.004284085114398151
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": -0.017294961143596743,
+          "reason": null,
+          "regime": null,
+          "start": "2024-02-01",
+          "value": -0.017294961143596743
+        },
+        {
+          "end": "2024-04-01",
+          "local_return": 0.01597645885055421,
+          "reason": null,
+          "regime": null,
+          "start": "2024-03-01",
+          "value": 0.01597645885055421
+        },
+        {
+          "end": "2024-05-01",
+          "local_return": 0.02898182654126802,
+          "reason": null,
+          "regime": null,
+          "start": "2024-04-01",
+          "value": 0.02898182654126802
+        },
+        {
+          "end": "2024-06-01",
+          "local_return": -0.007640933499357461,
+          "reason": null,
+          "regime": null,
+          "start": "2024-05-01",
+          "value": -0.007640933499357461
+        },
+        {
+          "end": "2024-07-01",
+          "local_return": -0.011209019195789871,
+          "reason": null,
+          "regime": null,
+          "start": "2024-06-01",
+          "value": -0.011209019195789871
+        },
+        {
+          "end": "2024-08-01",
+          "local_return": 0.026333197239155615,
+          "reason": null,
+          "regime": null,
+          "start": "2024-07-01",
+          "value": 0.026333197239155615
+        },
+        {
+          "end": "2024-09-01",
+          "local_return": 0.02022706715300049,
+          "reason": null,
+          "regime": null,
+          "start": "2024-08-01",
+          "value": 0.02022706715300049
+        },
+        {
+          "end": "2024-10-01",
+          "local_return": -0.015741666795838105,
+          "reason": null,
+          "regime": null,
+          "start": "2024-09-01",
+          "value": -0.015741666795838105
+        },
+        {
+          "end": "2024-11-01",
+          "local_return": -0.0003667900375063926,
+          "reason": null,
+          "regime": null,
+          "start": "2024-10-01",
+          "value": -0.0003667900375063926
+        },
+        {
+          "end": "2024-12-01",
+          "local_return": 0.03164000746976581,
+          "reason": null,
+          "regime": null,
+          "start": "2024-11-01",
+          "value": 0.03164000746976581
+        },
+        {
+          "end": "2025-01-01",
+          "local_return": 0.00801733143374661,
+          "reason": null,
+          "regime": null,
+          "start": "2024-12-01",
+          "value": 0.00801733143374661
+        },
+        {
+          "end": "2025-02-01",
+          "local_return": -0.017902162577989822,
+          "reason": null,
+          "regime": null,
+          "start": "2025-01-01",
+          "value": -0.017902162577989822
+        },
+        {
+          "end": "2025-03-01",
+          "local_return": 0.012399681654705397,
+          "reason": null,
+          "regime": null,
+          "start": "2025-02-01",
+          "value": 0.012399681654705397
+        },
+        {
+          "end": "2025-04-01",
+          "local_return": 0.030510724073675055,
+          "reason": null,
+          "regime": null,
+          "start": "2025-03-01",
+          "value": 0.030510724073675055
+        },
+        {
+          "end": "2025-05-01",
+          "local_return": -0.004458136362294196,
+          "reason": null,
+          "regime": null,
+          "start": "2025-04-01",
+          "value": -0.004458136362294196
+        },
+        {
+          "end": "2025-06-01",
+          "local_return": -0.013558088503337284,
+          "reason": null,
+          "regime": null,
+          "start": "2025-05-01",
+          "value": -0.013558088503337284
+        },
+        {
+          "end": "2025-07-01",
+          "local_return": 0.02375572939608439,
+          "reason": null,
+          "regime": null,
+          "start": "2025-06-01",
+          "value": 0.02375572939608439
+        },
+        {
+          "end": "2025-08-01",
+          "local_return": 0.02324032154215505,
+          "reason": null,
+          "regime": null,
+          "start": "2025-07-01",
+          "value": 0.02324032154215505
+        },
+        {
+          "end": "2025-09-01",
+          "local_return": -0.01394068142867566,
+          "reason": null,
+          "regime": null,
+          "start": "2025-08-01",
+          "value": -0.01394068142867566
+        },
+        {
+          "end": "2025-10-01",
+          "local_return": -0.0038441385243921378,
+          "reason": null,
+          "regime": null,
+          "start": "2025-09-01",
+          "value": -0.0038441385243921378
+        },
+        {
+          "end": "2025-11-01",
+          "local_return": 0.03073509651716755,
+          "reason": null,
+          "regime": null,
+          "start": "2025-10-01",
+          "value": 0.03073509651716755
+        },
+        {
+          "end": "2025-12-01",
+          "local_return": 0.01172786550877225,
+          "reason": null,
+          "regime": null,
+          "start": "2025-11-01",
+          "value": 0.01172786550877225
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2023-04-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.015753691665632452,
+          "window": 3
+        },
+        {
+          "end": "2023-05-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.003508250782334521,
+          "window": 3
+        },
+        {
+          "end": "2023-06-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.029935241654472033,
+          "window": 3
+        },
+        {
+          "end": "2023-07-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.03584829921614063,
+          "window": 3
+        },
+        {
+          "end": "2023-08-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.007592068581076639,
+          "window": 3
+        },
+        {
+          "end": "2023-09-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.009080325647746967,
+          "window": 3
+        },
+        {
+          "end": "2023-10-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.03703811698033155,
+          "window": 3
+        },
+        {
+          "end": "2023-11-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.02806289313000998,
+          "window": 3
+        },
+        {
+          "end": "2023-12-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.0028690703860085875,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.01773708876858726,
+          "window": 3
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.03981026372426011,
+          "window": 3
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.018491202124486295,
+          "window": 3
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.002682438265143139,
+          "window": 3
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.027340791375174645,
+          "window": 3
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.037433317624488094,
+          "window": 3
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.009673697374295687,
+          "window": 3
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.007074767761100498,
+          "window": 3
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.035356023238420686,
+          "window": 3
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.03060992008312069,
+          "window": 3
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.003798674156902271,
+          "window": 3
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.015027835514256127,
+          "window": 3
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.03952957833258197,
+          "window": 3
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.02129435141010161,
+          "window": 3
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.002246974484108266,
+          "window": 3
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2025-01-01",
+          "value": 0.024611604551714628,
+          "window": 3
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2025-02-01",
+          "value": 0.038637605574848966,
+          "window": 3
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2025-03-01",
+          "value": 0.012007099134007326,
+          "window": 3
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2025-04-01",
+          "value": 0.005373395661897096,
+          "window": 3
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2025-05-01",
+          "value": 0.03334539131081993,
+          "window": 3
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2025-06-01",
+          "value": 0.03294460680284339,
+          "window": 3
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2025-07-01",
+          "value": 0.005097012012097224,
+          "window": 3
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2025-08-01",
+          "value": 0.012458895407910786,
+          "window": 3
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2025-09-01",
+          "value": 0.038814661424775077,
+          "window": 3
+        },
+        {
+          "end": "2024-01-01",
+          "reason": null,
+          "start": "2023-01-01",
+          "value": 0.1104906024872443,
+          "window": 12
+        },
+        {
+          "end": "2024-02-01",
+          "reason": null,
+          "start": "2023-02-01",
+          "value": 0.08088495472040247,
+          "window": 12
+        },
+        {
+          "end": "2024-03-01",
+          "reason": null,
+          "start": "2023-03-01",
+          "value": 0.06154198774850106,
+          "window": 12
+        },
+        {
+          "end": "2024-04-01",
+          "reason": null,
+          "start": "2023-04-01",
+          "value": 0.09620022462982236,
+          "window": 12
+        },
+        {
+          "end": "2024-05-01",
+          "reason": null,
+          "start": "2023-05-01",
+          "value": 0.10655513186093124,
+          "window": 12
+        },
+        {
+          "end": "2024-06-01",
+          "reason": null,
+          "start": "2023-06-01",
+          "value": 0.06927016535383612,
+          "window": 12
+        },
+        {
+          "end": "2024-07-01",
+          "reason": null,
+          "start": "2023-07-01",
+          "value": 0.06850060448241369,
+          "window": 12
+        },
+        {
+          "end": "2024-08-01",
+          "reason": null,
+          "start": "2023-08-01",
+          "value": 0.10598702310451058,
+          "window": 12
+        },
+        {
+          "end": "2024-09-01",
+          "reason": null,
+          "start": "2023-09-01",
+          "value": 0.09711316139038284,
+          "window": 12
+        },
+        {
+          "end": "2024-10-01",
+          "reason": null,
+          "start": "2023-10-01",
+          "value": 0.06187738383320385,
+          "window": 12
+        },
+        {
+          "end": "2024-11-01",
+          "reason": null,
+          "start": "2023-11-01",
+          "value": 0.07988364801982217,
+          "window": 12
+        },
+        {
+          "end": "2024-12-01",
+          "reason": null,
+          "start": "2023-12-01",
+          "value": 0.11041454004723983,
+          "window": 12
+        },
+        {
+          "end": "2025-01-01",
+          "reason": null,
+          "start": "2024-01-01",
+          "value": 0.0846150358857849,
+          "window": 12
+        },
+        {
+          "end": "2025-02-01",
+          "reason": null,
+          "start": "2024-02-01",
+          "value": 0.06065414852958506,
+          "window": 12
+        },
+        {
+          "end": "2025-03-01",
+          "reason": null,
+          "start": "2024-03-01",
+          "value": 0.09270419897989735,
+          "window": 12
+        },
+        {
+          "end": "2025-04-01",
+          "reason": null,
+          "start": "2024-04-01",
+          "value": 0.10833610905029323,
+          "window": 12
+        },
+        {
+          "end": "2025-05-01",
+          "reason": null,
+          "start": "2024-05-01",
+          "value": 0.07231728207460209,
+          "window": 12
+        },
+        {
+          "end": "2025-06-01",
+          "reason": null,
+          "start": "2024-06-01",
+          "value": 0.06592335896181578,
+          "window": 12
+        },
+        {
+          "end": "2025-07-01",
+          "reason": null,
+          "start": "2024-07-01",
+          "value": 0.10361559421460265,
+          "window": 12
+        },
+        {
+          "end": "2025-08-01",
+          "reason": null,
+          "start": "2024-08-01",
+          "value": 0.10028982646261042,
+          "window": 12
+        },
+        {
+          "end": "2025-09-01",
+          "reason": null,
+          "start": "2024-09-01",
+          "value": 0.06344074906804553,
+          "window": 12
+        },
+        {
+          "end": "2025-10-01",
+          "reason": null,
+          "start": "2024-10-01",
+          "value": 0.07629541938194229,
+          "window": 12
+        },
+        {
+          "end": "2025-11-01",
+          "reason": null,
+          "start": "2024-11-01",
+          "value": 0.10978252014982104,
+          "window": 12
+        },
+        {
+          "end": "2025-12-01",
+          "reason": null,
+          "start": "2024-12-01",
+          "value": 0.08836211484656942,
+          "window": 12
+        }
+      ],
+      "symbol": "TEST-BENCH",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    }
+  ],
+  "methodology": {
+    "capm_alpha": "OLS excess-return intercept * periods_per_year; beta requires varying benchmark",
+    "cash": "buy at first grid close; entitlement captured ex-date before same-day pay-date reinvestment; paid cash within grid window",
+    "correlation": "pairwise common declared intervals; minimum 3; chronological floor(70%) train / remainder OOS; no driver promotion",
+    "currency": "exact-date direct/inverse spot; no triangulation, carry or leverage",
+    "expense_ratio": "point-in-time disclosure only; NAV fees are not deducted again",
+    "fees": "proportional deductions once per named transaction; FX fee on initial foreign purchase and paid cash conversion; reinvestment fee on pay-date purchase",
+    "paid_yield": "365-day paid per-unit base-currency payouts / ending split-adjusted market price in base currency; paid_income excludes ROC and unknown classification",
+    "payout_statistics": "CV population stdev / mean of observed pay-date per-unit base-currency payouts; cuts / adjacent observed payouts, including ROC",
+    "price_total_return": "(end split-adjusted price + interval ex-date payouts) / start price - 1; no intra-interval reinvestment assumed",
+    "regimes": "fresh records whose economic as_of and availability UTC date both equal interval start; available by midnight start; no label carry; delayed legacy records may have no segments; explicit instrument.market must match; stale source flags preserved",
+    "return_grid": "declared adjacent intervals; consecutive monthly calendar months or daily gaps <=14 calendar days; producer verifies exchange sessions; CAGR uses elapsed days/365.25; no filling or gap bridging",
+    "sharpe": "arithmetic mean excess period return / sample stdev * sqrt(periods_per_year); compounded annual risk-free conversion",
+    "sortino": "all-interval root mean square negative excess return; arithmetic mean excess numerator",
+    "taxes": "uniform user withholding scenario applied to all payouts; no capital-gain liquidation tax inferred",
+    "total_return_index": "index ratios already include distributions; no additions",
+    "tracking_difference": "fund compounded total return minus benchmark compounded total return over full grid",
+    "volatility": "sample standard deviation * sqrt(periods_per_year)"
+  },
+  "objective": "income",
+  "quality": [],
+  "schema_version": "1.0.0"
+}

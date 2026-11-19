@@ -1,0 +1,39 @@
+name: Multi-asset Research
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-research-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Install virtual display and research fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb tk fonts-noto-cjk
+      - name: Validate contracts, adapters and public frozen outputs
+        run: |
+          python contract_tests/validate_contracts.py
+          xvfb-run -a python -m unittest discover -s tests -p 'test_multi_asset*.py' -v
+      - name: Render verified synthetic fixtures
+        run: xvfb-run -a --server-args='-screen 0 1600x1050x24' python scripts/multi_asset_ui_smoke.py --frozen
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: multi-asset-research-preview-TEST-ONLY
+          path: |
+            artifacts/multi-asset-*.png
+            artifacts/multi-asset-test-only-*.json
+          if-no-files-found: error
