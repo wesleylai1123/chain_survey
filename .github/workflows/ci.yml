@@ -20,13 +20,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Run unit tests
+      - name: Install test display dependencies
+        timeout-minutes: 15
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb tk fonts-noto-cjk
+      - name: Run unit tests
+        timeout-minutes: 10
+        shell: bash
+        run: |
           set -o pipefail
-          xvfb-run -a python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
+          xvfb-run -a python -u - <<'PY' 2>&1 | tee test-results.txt
+          import faulthandler
+          import unittest
+
+          faulthandler.dump_traceback_later(180, repeat=True)
+          suite = unittest.defaultTestLoader.discover('tests')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          faulthandler.cancel_dump_traceback_later()
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
       - name: Upload test log
         if: always()
         uses: actions/upload-artifact@v4
