@@ -9,6 +9,8 @@ import queue
 import threading
 import tkinter as tk
 from tkinter import filedialog, ttk
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -16,6 +18,8 @@ from matplotlib.figure import Figure
 from core.multi_asset.adapters import load_csv_bundle, load_request, validate_request
 from core.multi_asset.context import build_research_context
 from core.multi_asset.service import run_research
+from core.multi_asset.official_capture import capture_official_data, load_capture
+from app.official_data_view import OfficialDataView
 
 ROOT = Path(__file__).resolve().parents[1]
 LABELS = {
@@ -53,6 +57,8 @@ class MultiAssetLab(tk.Tk):
         self.request = self.result = self.context = self.lineage = None
         self.generation = 0
         self.pending = queue.Queue()
+        self.source_pending = queue.Queue()
+        self.source_busy = False
         self.busy = False
         self.tables, self.details = {}, {}
         self.status = tk.StringVar(value='載入有來源與發布時間的研究資料，開始比較股票、ETF 與 FX。')
@@ -82,6 +88,8 @@ class MultiAssetLab(tk.Tk):
         toolbar = ttk.Frame(body)
         toolbar.pack(fill='x')
         ttk.Button(toolbar, text='載入研究資料…', command=self.load_file).pack(side='left', padx=(0, 14))
+        self.source_button = ttk.Button(toolbar, text='擷取官方資料…', command=self.open_source_dialog)
+        self.source_button.pack(side='left', padx=(0, 14))
         ttk.Label(toolbar, text='投資目標').pack(side='left')
         self.objective_control = ttk.Combobox(toolbar, textvariable=self.objective, state='readonly', width=15,
             values=('accumulation', 'income'))
@@ -135,6 +143,10 @@ class MultiAssetLab(tk.Tk):
         self._table(pages['evidence'], 'evidence', ['指標 / 情境', '時間分類', '相對目標', '狀態 / 來源'], height=15)
         self._text(pages['evidence'], 'evidence', height=8)
         self._text(pages['quality'], 'quality', height=30)
+        self.official = OfficialDataView(self.book)
+        self.book.add(self.official, text='官方原始資料')
+        self.tables['official'] = self.official.tree
+        self.source_banner = self.official.banner
 
     def _table(self, parent, key, columns, height):
         frame = ttk.Frame(parent)
@@ -176,6 +188,7 @@ class MultiAssetLab(tk.Tk):
         self.ax.clear()
         self.ax.set_ylabel('Reinvested wealth (100)')
         self.canvas.draw_idle()
+        self.official.clear()
 
     def set_request(self, request, lineage):
         validate_request(request)
@@ -192,6 +205,9 @@ class MultiAssetLab(tk.Tk):
             self.updating_settings = False
         self._clear()
         self.status.set(f"已載入 {len(request['instruments'])} 個資產；請執行比較。缺漏資料會保留並標示。")
+        self.official.render(self.request, self.lineage)
+        if request.get('adapter_lineage', {}).get('kind') == 'TAIWAN_OFFICIAL_AS_ACQUIRED':
+            self.status.set('已載入官方歷史快照：ETF 原始價格未調整，配息分類與總報酬不推估。詳見「官方原始資料」。')
 
     def load_file(self):
         path = filedialog.askopenfilename(title='載入研究 JSON 或 CSV bundle manifest', filetypes=[('Research JSON', '*.json')])
@@ -199,7 +215,8 @@ class MultiAssetLab(tk.Tk):
             return
         try:
             metadata = json.loads(Path(path).read_text(encoding='utf-8-sig'))
-            loader = load_csv_bundle if 'request' in metadata and 'files' in metadata else load_request
+            loader = load_capture if metadata.get('contract') == 'TaiwanOfficialCaptureV1' else (
+                load_csv_bundle if 'request' in metadata and 'files' in metadata else load_request)
             self.set_request(*loader(path))
         except Exception as exc:
             self.request = self.result = self.context = None
@@ -208,7 +225,11 @@ class MultiAssetLab(tk.Tk):
             self.status.set(f'無法載入：{exc}')
 
     def settings_changed(self, event=None):
-        if self.request is None or self.updating_settings:
+        if self.updating_settings:
+            return
+        if self.request is None:
+            if self.source_busy:
+                self.generation += 1
             return
         changes = dict(objective=self.objective.get(), base_currency=self.currency.get().strip(), as_of=self.cutoff.get().strip())
         if any(self.request.get(k) != v for k, v in changes.items()):
@@ -217,12 +238,13 @@ class MultiAssetLab(tk.Tk):
             self.generation += 1
             self._clear()
             self.status.set('設定已變更；請重新執行比較。')
+            self.official.render(self.request, self.lineage)
 
     def calculate(self):
         if self.request is None:
             self.status.set('請先載入研究資料。')
             return
-        if self.busy:
+        if self.busy or self.source_busy:
             return
         self.settings_changed()
         try:
@@ -257,6 +279,7 @@ class MultiAssetLab(tk.Tk):
             self.result = None
             self._clear()
             self.status.set(f'計算未完成：{error}')
+            self.official.render(self.request, self.lineage)
         else:
             self.render_result(result)
 
@@ -342,6 +365,71 @@ class MultiAssetLab(tk.Tk):
             'quality': result.get('quality'), 'methodology': result.get('methodology'),
             'instruments': [{k: r[k] for k in ('instrument_id', 'quality', 'unavailable')} for r in result['instruments']]})
         self.status.set(f"比較完成  ·  {len(result['instruments'])} 個資產  ·  {self.request['objective']}  ·  {self.request['base_currency']}  ·  缺值與假設請見「資料品質」。")
+        self.official.render(self.request, self.lineage)
+
+    def open_source_dialog(self):
+        if self.busy or self.source_busy:
+            self.status.set('目前工作尚未完成；請稍候再擷取官方資料。')
+            return
+        dialog = tk.Toplevel(self)
+        dialog.title('台股 ETF / USD-TWD 官方資料')
+        dialog.geometry('590x330')
+        frame = ttk.Frame(dialog, padding=18)
+        frame.pack(fill='both', expand=True)
+        today = datetime.now(ZoneInfo('Asia/Taipei')).date()
+        symbols = tk.StringVar(value='0050,00981A')
+        start = tk.StringVar(value=(today-timedelta(days=90)).isoformat())
+        end = tk.StringVar(value=(today-timedelta(days=1)).isoformat())
+        currency = tk.StringVar(value=self.currency.get() if self.currency.get() in {'TWD', 'USD'} else 'TWD')
+        for row, (label, variable, choices) in enumerate([
+            ('比較範例代號', symbols, ('0050,00981A', '0050', '00981A')),
+            ('起日 YYYY-MM-DD', start, None), ('迄日 YYYY-MM-DD', end, None),
+            ('報告幣別', currency, ('TWD', 'USD'))]):
+            ttk.Label(frame, text=label).grid(row=row, column=0, sticky='w', pady=5)
+            widget = ttk.Combobox(frame, textvariable=variable, values=choices, state='readonly') if choices else ttk.Entry(frame, textvariable=variable)
+            widget.grid(row=row, column=1, sticky='ew', padx=(12, 0))
+        frame.columnconfigure(1, weight=1)
+        ttk.Label(frame, text='來源：證交所與中央銀行。原始價格未調整，配息所得分類未知；不推估總報酬或稅後收益。擷取會保存原始回應及取得時間，最多 24 個月。', wraplength=540, justify='left').grid(row=4, column=0, columnspan=2, sticky='w', pady=14)
+        def begin():
+            args = (symbols.get().split(','), start.get(), end.get(), currency.get())
+            dialog.destroy()
+            self.start_source_capture(*args)
+        ttk.Button(frame, text='擷取並保存官方快照', command=begin).grid(row=5, column=0, columnspan=2, sticky='e')
+
+    def start_source_capture(self, symbols, start, end, currency):
+        if self.busy or self.source_busy:
+            return
+        generation = self.generation
+        self.source_busy = True
+        self.source_button.configure(state='disabled')
+        self.run_button.configure(state='disabled')
+        self.status.set('擷取官方資料中；如已有資料，仍顯示上一份快照。原始回應會逐筆保存。')
+        def worker():
+            try:
+                manifest = capture_official_data(symbols, start, end, ROOT/'artifacts/official-data', base_currency=currency)
+                request, lineage = load_capture(manifest)
+                self.source_pending.put((generation, request, lineage, None))
+            except Exception as exc:
+                self.source_pending.put((generation, None, None, str(exc)))
+        threading.Thread(target=worker, daemon=True).start()
+        self.after(80, self._poll_source)
+
+    def _poll_source(self):
+        try:
+            generation, request, lineage, error = self.source_pending.get_nowait()
+        except queue.Empty:
+            self.after(80, self._poll_source)
+            return
+        self.source_busy = False
+        self.source_button.configure(state='normal')
+        self.run_button.configure(state='normal')
+        if generation != self.generation:
+            self.status.set('資料或設定已變更，已略過舊的官方擷取結果；快照仍已保存在資料夾。')
+        elif error:
+            self.status.set(f'官方資料擷取失敗，保留原有資料與最後成功快照：{error}')
+        else:
+            self.set_request(request, lineage)
+            self.book.select(self.official)
 
 
 def launch_multi_asset_lab():

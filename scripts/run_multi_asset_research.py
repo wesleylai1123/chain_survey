@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from core.multi_asset.adapters import load_csv_bundle, load_request
 from core.multi_asset.context import build_research_context
 from core.multi_asset.service import run_research
+from core.multi_asset.official_capture import load_capture
 
 
 def main():
@@ -18,11 +19,16 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine-repo', type=Path)
-    parser.add_argument('--csv-bundle', action='store_true')
+    formats = parser.add_mutually_exclusive_group()
+    formats.add_argument('--csv-bundle', action='store_true')
+    formats.add_argument('--official-capture', action='store_true')
     args = parser.parse_args()
     if args.input.resolve() == args.output.resolve():
         parser.error('Input and output must be different files')
-    request, lineage = (load_csv_bundle if args.csv_bundle else load_request)(args.input)
+    if args.official_capture and args.output.resolve().is_relative_to(args.input.resolve().parent):
+        parser.error('Output must be outside the immutable capture directory')
+    loader = load_capture if args.official_capture else (load_csv_bundle if args.csv_bundle else load_request)
+    request, lineage = loader(args.input)
     context = build_research_context(request)
     result = run_research(request, args.engine_repo)
     if any((args.input.parent / row['path']).resolve() == args.output.resolve()

@@ -1,5 +1,7 @@
 # 跨資產與 ETF 研究
 
+已新增[台股 ETF／USD-TWD 官方擷取與離線重播](taiwan-official-data.md)：介面點「擷取官方資料」，或載入官方 capture manifest。官方原始資料與已驗證調整資料分開處理，尚未確認調整時總報酬保持未知。
+
 這是新增的獨立研究流程。ABF 既有資料、指標定義、驗證門檻及操作入口沒有被替換。
 
 ## 三個 repo 的現況與分工
@@ -43,7 +45,7 @@ CSV bundle manifest 格式：
 
 `request` 必須包含所有 required 欄位（可先放空 observations/distributions/fx_rates 陣列）。CSV 欄名直接對應該集合 schema；數字空格與時間空格轉成 null，不以檔案修改時間替代。JSON/CSV 的原始 SHA256 均保留；CSV 必須位於 manifest 所在目錄內。CLI 加 `--csv-bundle`。不同供應商的欄名、調整方式與單位必須由 adapter 明確轉換後才能使用。
 
-只有明確標示 **SYNTHETIC TEST ONLY** 的合約範例與 `tests/fixtures/multi_asset` 可用於離線介面驗證；它們並非真實市場績效。畫面截圖同樣標示 TEST ONLY。**本次未宣稱已接通可靠的完整即時市場 feed。**
+`tests/fixtures/multi_asset` 與標示 **SYNTHETIC TEST ONLY** 的合約範例是合成測試資料。`tests/fixtures/taiwan_official` 則保存真實官方回應與來源證據，兩者畫面明確區別。官方擷取已接通歷史原始報價、分配公告與 USD/TWD；完整調整後 total-return feed 尚待補齊。
 
 ## 計算與限制
 

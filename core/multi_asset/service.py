@@ -11,17 +11,16 @@ import tempfile
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-from core.multi_asset.adapters import _finite, validate_request
+from core.multi_asset.adapters import _finite, validate_request, schema_path
 
 
 def validate_result(result, request, input_sha256):
     _finite(result)
-    schema_path = Path(__file__).resolve().parents[2] / 'contracts/multi-asset-result/v1/schema.json'
-    schema = json.loads(schema_path.read_text(encoding='utf-8'))
+    schema = json.loads(schema_path('multi-asset-result', request.get('schema_version')).read_text(encoding='utf-8'))
     errors = list(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(result))
     if errors:
         raise ValueError(f'Invalid service response at {list(errors[0].path)}: {errors[0].message}')
-    expected = dict(contract='MultiAssetResultV1', schema_version='1.0.0',
+    expected = dict(contract='MultiAssetResultV1', schema_version=request['schema_version'],
         as_of=request['as_of'], base_currency=request['base_currency'],
         objective=request['objective'], input_sha256=input_sha256)
     for key, value in expected.items():

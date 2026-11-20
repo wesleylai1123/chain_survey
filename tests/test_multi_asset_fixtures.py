@@ -12,6 +12,11 @@ FIXTURES = Path(__file__).parent/'fixtures/multi_asset'
 
 
 class FrozenFixtureTests(unittest.TestCase):
+    def test_contract_validator_checks_additive_version_examples(self):
+        from contract_tests.validate_contracts import validate_contracts
+        checks = validate_contracts()
+        self.assertTrue(any(name == 'valid-raw-prices-test-only.json' for _, name, _ in checks))
+
     def test_frozen_results_bind_to_exact_synthetic_requests(self):
         request = make_request()
         for name in ('accumulation', 'income', 'missing'):

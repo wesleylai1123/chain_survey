@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import shutil
 import unittest
 
 from core.multi_asset.service import run_research, validate_result
@@ -48,6 +49,18 @@ class MultiAssetIntegrationTests(unittest.TestCase):
         self.assertEqual(expected, (ENGINE/'contracts/multi-asset/v1/schema.json').read_bytes())
         result_schema = (ROOT/'contracts/multi-asset-result/v1/schema.json').read_bytes()
         self.assertEqual(result_schema, (ENGINE/'contracts/multi-asset-result/v1/schema.json').read_bytes())
+        for contract in ('multi-asset', 'multi-asset-result'):
+            self.assertEqual((ROOT/f'contracts/{contract}/v1.1/schema.json').read_bytes(),
+                             (ENGINE/f'contracts/{contract}/v1.1/schema.json').read_bytes())
+
+    def test_official_raw_fixture_never_claims_total_return(self):
+        request = json.loads((ROOT/'contracts/multi-asset/v1.1/examples/valid-raw-prices-test-only.json').read_text(encoding='utf-8'))
+        result = run_research(request, ENGINE)
+        self.assertEqual(result['schema_version'], '1.1.0')
+        raw = next(r for r in result['instruments'] if r['return_basis'] == 'unadjusted_price')
+        self.assertIsNone(raw['metrics']['total_return'])
+        self.assertIsNone(raw['metrics']['gross_paid_cash'])
+        self.assertIn('total_return', raw['unavailable'])
 
     def test_response_boundary_rejects_missing_provenance_and_malformed_records(self):
         request = make_request()
@@ -116,6 +129,24 @@ class MultiAssetIntegrationTests(unittest.TestCase):
             command[command.index('--output')+1] = str(source)
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
             self.assertEqual(source.read_bytes(), original)
+
+    def test_main_cli_verifies_official_capture_and_cannot_overwrite_it(self):
+        fixture = ROOT/'tests/fixtures/taiwan_official/capture'
+        with tempfile.TemporaryDirectory() as directory:
+            frozen = Path(directory)/'capture'
+            shutil.copytree(fixture, frozen)
+            target = Path(directory)/'report.json'
+            command = [sys.executable, str(ROOT/'scripts/run_multi_asset_research.py'),
+                '--official-capture', '--input', str(frozen/'manifest.json'), '--output', str(target),
+                '--engine-repo', str(ENGINE)]
+            done = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            report = json.loads(target.read_text(encoding='utf-8'))
+            self.assertEqual(report['result']['schema_version'], '1.1.0')
+            original = (frozen/'request.json').read_bytes()
+            command[command.index('--output')+1] = str(frozen/'request.json')
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            self.assertEqual((frozen/'request.json').read_bytes(), original)
 
 
 if __name__ == '__main__':

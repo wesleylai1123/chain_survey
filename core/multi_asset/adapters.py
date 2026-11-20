@@ -12,6 +12,13 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / 'contracts/multi-asset/v1/schema.json'
+SCHEMA_VERSIONS = {'1.0.0': 'v1', '1.1.0': 'v1.1'}
+
+
+def schema_path(kind, version):
+    if version not in SCHEMA_VERSIONS:
+        raise ValueError(f'Unsupported schema version: {version}')
+    return ROOT / 'contracts' / kind / SCHEMA_VERSIONS[version] / 'schema.json'
 
 
 def timestamp(value):
@@ -43,7 +50,7 @@ def _finite(value):
 
 def validate_request(request):
     _finite(request)
-    schema = json.loads(SCHEMA.read_text(encoding='utf-8'))
+    schema = json.loads(schema_path('multi-asset', request.get('schema_version')).read_text(encoding='utf-8'))
     errors = sorted(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(request), key=lambda e: str(e.path))
     if errors:
         raise ValueError(f'Invalid request at {list(errors[0].path)}: {errors[0].message}')

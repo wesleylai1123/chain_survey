@@ -43,6 +43,20 @@ def request_fixture():
 
 
 class AdapterTests(unittest.TestCase):
+    def test_versioned_raw_prices_are_accepted_without_relabeling(self):
+        request = request_fixture()
+        request['schema_version'] = '1.1.0'
+        request['instruments'][0]['return_basis'] = 'unadjusted_price'
+        validate_request(request)
+        self.assertEqual(request['instruments'][0]['return_basis'], 'unadjusted_price')
+
+    def test_unknown_schema_version_is_rejected_before_path_resolution(self):
+        for version in ('1.2.0', '../../v1', None):
+            request = request_fixture()
+            request['schema_version'] = version
+            with self.assertRaises(ValueError):
+                validate_request(request)
+
     def test_load_hashes_exact_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'request.json'

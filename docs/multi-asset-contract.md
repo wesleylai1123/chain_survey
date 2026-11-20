@@ -1,5 +1,7 @@
 # MultiAssetResearchV1 (1.0.0)
 
+The additive 1.1.0 schema in `contracts/multi-asset/v1.1` uses the same contract name and adds `unadjusted_price`. The matching result schema is in `contracts/multi-asset-result/v1.1`. Consumers choose a whitelisted version before validating. Unadjusted non-FX observations retain source facts but cannot produce total/rolling return, investment cash or benchmark performance even if completeness flags are true. All 1.0.0 schema bytes and fixtures remain unchanged. See [official data behavior](taiwan-official-data.md).
+
 This additive JSON interface does not change ResearchSignalV1, MarketRegimeV1 or BacktestResultV1. Producer: chain_survey. Numerical service: invest_backtest. No cross-repository Python imports.
 
 Required request keys: `contract="MultiAssetResearchV1"`, `schema_version="1.0.0"`, `as_of` (timezone-aware cutoff), `base_currency`, `objective` (`accumulation`/`income`), `periods_per_year` (12 or 252), `period_grid` (sorted unique ISO dates), `risk_free_rate` (annual decimal or null), `rolling_windows` (integer array), `instruments`, `observations`, `distributions`, `fx_rates`, `regimes`, `cash_flow_assumptions`.
