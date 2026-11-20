@@ -15,20 +15,20 @@
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O"
     },
     "moea_export_orders_info_comm": {
-      "sha256": "44d2cc9c49022808967e38597208ff02d8d7960f3ffbffa7f14aee33ad41986c",
-      "latest_snapshot": "raw/moea_export_orders_info_comm/20261119T084400Z-44d2cc9c4902.json",
-      "collected_at": "2026-10-28T00:31:49.035730+00:00",
-      "fetch_collected_at": "2026-11-19T08:44:00.707321+00:00",
-      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.9..M&startTime=1984-M1&endTime=2026-M9",
-      "observation_sha256": "6e3a9142061c156ea8d79a80a97108e017611ba8c96b83bc339a9a53253c2875"
+      "sha256": "4d654224b17077c689f156817bccde2cfca6edbf8b5ea0ad43c3a26427519f06",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261120T082934Z-4d654224b170.json",
+      "collected_at": "2026-11-20T08:29:34.832591+00:00",
+      "fetch_collected_at": "2026-11-20T08:29:34.832591+00:00",
+      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.9..M&startTime=1984-M1&endTime=2026-M10",
+      "observation_sha256": "223db773ffcbf954df075ce98538a880045d9697ebc1e8f29daacba035559e58"
     },
     "moea_export_orders_electronics": {
-      "sha256": "a006a33f7a176c15686af5bcf6e86a5a097d7f7f8dbb9c99d63d960b5595e7ff",
-      "latest_snapshot": "raw/moea_export_orders_electronics/20261119T084406Z-a006a33f7a17.json",
-      "collected_at": "2026-10-28T00:31:52.990680+00:00",
-      "fetch_collected_at": "2026-11-19T08:44:06.061470+00:00",
-      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M9",
-      "observation_sha256": "9ee5a1bea1db0958065928889ec887277606b614082ab537f67289a3fb5fd567"
+      "sha256": "ac84212e82b1a1ae586d1743f0a12ec1329ad1e058b0db75625b351d5726a7e3",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261120T082938Z-ac84212e82b1.json",
+      "collected_at": "2026-11-20T08:29:38.586550+00:00",
+      "fetch_collected_at": "2026-11-20T08:29:38.586550+00:00",
+      "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M10",
+      "observation_sha256": "51fc4ee3f8d0f22b092607e4fe13543ed0368831e200bad2c47e336eb38a77c5"
     },
     "tpca_monthly_industry": {
       "sha256": "98deb503bb8a67c24ee75d0eaa7c3e47bda918adbefec84dfe7405572d6ed4fe",
