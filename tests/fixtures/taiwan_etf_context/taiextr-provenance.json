@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "acquired_at": "2026-11-20T23:42:44.097828+00:00",
+  "source_url": "https://openapi.twse.com.tw/v1/indicesReport/MFI94U",
+  "sha256": "c2954d5d473eaa51363de3a3f7a570bc7975512275b99add0d7ac6c08e990449",
+  "bytes": 831
+}
