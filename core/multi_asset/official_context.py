@@ -183,7 +183,10 @@ def _latest(rows, cutoff, fields):
 
 
 def _positive(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+    try:
+        return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+    except OverflowError:
+        return False
 
 
 def _grid(request):
@@ -236,24 +239,36 @@ def valuation_rows(request):
             price, price_status = _latest(prices.get((instrument_id, period), []), cutoff, ['value', 'currency'])
             reason = _valuation_reason(nav, nav_status, price, price_status,
                                        instrument.get('quote_currency'), period, grid)
+            premium_discount = None
+            if reason == 'AVAILABLE':
+                try:
+                    premium_discount = price['value'] / nav['nav'] - 1
+                except OverflowError:
+                    pass
+                if premium_discount is None or not math.isfinite(premium_discount):
+                    premium_discount, reason = None, 'CALCULATION_NONFINITE'
             result.append(dict(instrument_id=instrument_id, period=period, nav=nav.get('nav'),
                                close=price.get('value'), currency=nav.get('currency'),
-                               premium_discount=price['value'] / nav['nav'] - 1 if reason == 'AVAILABLE' else None,
+                               premium_discount=premium_discount,
                                reason=reason, nav_source_url=nav.get('source_url'),
                                price_source_url=price.get('source_url')))
     return result
 
 
 def reference_rows(request):
-    """Report supplied ranges and actual cutoff-usable coverage on the grid."""
+    """Report source ranges and matching canonical-input coverage for declared references."""
     context = _context(request)
     if context is None:
         return []
-    identities = {row['instrument_id'] for row in reference_instruments()}
+    supported = {row['instrument_id'] for row in reference_instruments()}
+    identities = {row['instrument_id'] for row in _records(request.get('instruments'))
+                  if isinstance(row.get('instrument_id'), str) and row['instrument_id'] in supported
+                  and row.get('asset_type') == 'benchmark' and row.get('return_basis') == 'total_return_index'}
     groups = _groups(context['index_observations'], identities)
+    canonical = _groups(request.get('observations'), identities)
     grid, cutoff = _grid(request), request.get('as_of')
     result = []
-    for instrument_id in sorted({identity for identity, _ in groups}):
+    for instrument_id in sorted(identities):
         dates = sorted(period for identity, period in groups if identity == instrument_id)
         usable, any_available, source_urls = 0, False, set()
         for period in dates:
@@ -261,15 +276,21 @@ def reference_rows(request):
             if isinstance(row.get('source_url'), str):
                 source_urls.add(row['source_url'])
             any_available |= status == 'AVAILABLE'
-            if period in grid and status == 'AVAILABLE' and _positive(row.get('value')):
+            observation, observation_status = _latest(canonical.get((instrument_id, period), []), cutoff, ['value'])
+            if (period in grid and status == observation_status == 'AVAILABLE'
+                    and _positive(row.get('value')) and _positive(observation.get('value'))
+                    and row['value'] == observation['value']):
                 usable += 1
-        if usable == len(grid) and grid:
+        if not dates:
+            reason = 'NO_SUPPLIED_OBSERVATIONS'
+        elif usable == len(grid) and grid:
             reason = 'AVAILABLE'
         elif usable:
             reason = 'PARTIAL_COVERAGE'
         else:
             reason = 'NO_USABLE_OBSERVATIONS' if any_available else 'UNAVAILABLE_AS_OF'
-        result.append(dict(instrument_id=instrument_id, supplied_start=dates[0], supplied_end=dates[-1],
+        result.append(dict(instrument_id=instrument_id, supplied_start=dates[0] if dates else None,
+                           supplied_end=dates[-1] if dates else None,
                            available_count=usable, grid_count=len(grid), reason=reason,
                            source_url=next(iter(source_urls)) if len(source_urls) == 1 else None))
     return result

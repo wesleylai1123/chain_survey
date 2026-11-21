@@ -59,12 +59,20 @@ def nav_row(period='2026-11-20', nav=84.67, currency='TWD'):
 
 
 def request(nav=None, indices=None):
-    return dict(as_of='2026-11-21T00:00:00Z', period_grid=['2026-11-19', '2026-11-20'],
+    result = dict(as_of='2026-11-21T00:00:00Z', period_grid=['2026-11-19', '2026-11-20'],
                 instruments=[dict(instrument_id='0050.TW', asset_type='etf', quote_currency='TWD')],
                 observations=[observation()],
                 adapter_lineage=dict(etf_context=dict(schema_version='1.0.0',
                     nav_observations=nav if nav is not None else [nav_row()],
                     index_observations=indices or [])))
+    supplied = {r.get('instrument_id') for r in (indices or [])
+                if isinstance(r, dict) and isinstance(r.get('instrument_id'), str)}
+    for instrument in context.reference_instruments():
+        if instrument['instrument_id'] in supplied:
+            result['instruments'].append(instrument)
+            result['observations'].extend({key: value for key, value in row.items() if key != 'price_index'}
+                for row in indices if isinstance(row, dict) and row.get('instrument_id') == instrument['instrument_id'])
+    return result
 
 
 class OfficialContextTests(unittest.TestCase):
@@ -283,6 +291,30 @@ class OfficialContextTests(unittest.TestCase):
             req['observations'][0]['value'] = value
             self.assertIsNone(context.valuation_rows(req)[0]['premium_discount'])
 
+    def test_finite_positive_inputs_cannot_emit_nonfinite_valuation_ratio(self):
+        # Test-only numerical boundary; these values are not financial source data.
+        req = request([nav_row(nav=1e-308)])
+        req['observations'][0]['value'] = 1e308
+        row = context.valuation_rows(req)[0]
+        self.assertEqual((row['nav'], row['close']), (1e-308, 1e308))
+        self.assertIsNone(row['premium_discount'])
+        self.assertEqual(row['reason'], 'CALCULATION_NONFINITE')
+
+    def test_huge_json_integers_are_unusable_without_helper_overflow(self):
+        # Test-only JSON integer outside the floating-point range.
+        huge = json.loads('1' + '0'*400)
+        req = request([nav_row(nav=huge)])
+        row = context.valuation_rows(req)[0]
+        self.assertIsNone(row['premium_discount'])
+        self.assertEqual(row['reason'], 'NAV_INVALID')
+        req = request()
+        req['observations'][0]['value'] = huge
+        self.assertEqual(context.valuation_rows(req)[0]['reason'], 'PRICE_INVALID')
+        indices = context.parse_index(*fixture('tai50'), 'index_tai50')
+        indices[-1]['value'] = huge
+        req = request(indices=indices)
+        self.assertEqual(context.reference_rows(req)[0]['available_count'], 1)
+
     def test_valuation_latest_eligible_vintage_ignores_future_revision(self):
         req = request()
         older = nav_row(nav=80)
@@ -340,6 +372,51 @@ class OfficialContextTests(unittest.TestCase):
         self.assertEqual(context.reference_rows(req)[0]['available_count'], 1)
         next(r for r in indices if r['period'] == '2026-11-19')['value'] = None
         self.assertEqual(context.reference_rows(req)[0]['available_count'], 0)
+
+    def test_reference_coverage_requires_matching_canonical_observation(self):
+        indices = context.parse_index(*fixture('tai50'), 'index_tai50')
+        req = request(indices=indices)
+        self.assertEqual(context.reference_rows(req)[0]['available_count'], 2)
+        req['observations'] = [r for r in req['observations']
+                               if not (r['instrument_id'] == 'TWSE.TAI50.TR' and r['period'] == '2026-11-20')]
+        row = context.reference_rows(req)[0]
+        self.assertEqual((row['available_count'], row['grid_count'], row['reason']), (1, 2, 'PARTIAL_COVERAGE'))
+        self.assertEqual((row['supplied_start'], row['supplied_end']), ('2026-11-02', '2026-11-20'))
+
+    def test_reference_source_disagreement_is_not_usable_canonical_coverage(self):
+        indices = context.parse_index(*fixture('tai50'), 'index_tai50')
+        req = request(indices=indices)
+        next(r for r in req['observations'] if r['instrument_id'] == 'TWSE.TAI50.TR'
+             and r['period'] == '2026-11-20')['value'] = 1
+        row = context.reference_rows(req)[0]
+        self.assertEqual((row['available_count'], row['reason']), (1, 'PARTIAL_COVERAGE'))
+
+    def test_reference_canonical_vintages_must_be_available_and_nonconflicting(self):
+        indices = context.parse_index(*fixture('tai50'), 'index_tai50')
+        req = request(indices=indices)
+        latest = next(r for r in req['observations'] if r['instrument_id'] == 'TWSE.TAI50.TR'
+                      and r['period'] == '2026-11-20')
+        latest['acquired_at'] = '2026-11-22T00:00:00Z'
+        self.assertEqual(context.reference_rows(req)[0]['available_count'], 1)
+        latest['acquired_at'] = indices[-1]['acquired_at']
+        req['observations'].append(dict(latest, value=1))
+        self.assertEqual(context.reference_rows(req)[0]['available_count'], 1)
+
+    def test_declared_reference_instruments_with_empty_source_remain_visible(self):
+        req = request(indices=[])
+        req['instruments'].extend(context.reference_instruments())
+        rows = context.reference_rows(req)
+        self.assertEqual([row['instrument_id'] for row in rows], ['TWSE.TAI50.TR', 'TWSE.TAIEX.TR'])
+        for row in rows:
+            self.assertEqual((row['available_count'], row['grid_count'], row['reason']),
+                             (0, 2, 'NO_SUPPLIED_OBSERVATIONS'))
+            for field in ('supplied_start', 'supplied_end', 'source_url'):
+                self.assertIsNone(row[field])
+
+    def test_source_only_reference_is_not_a_declared_research_instrument(self):
+        req = request(indices=context.parse_index(*fixture('tai50'), 'index_tai50'))
+        req['instruments'] = [row for row in req['instruments'] if row['asset_type'] != 'benchmark']
+        self.assertEqual(context.reference_rows(req), [])
 
     def test_optional_context_absent_old_unsupported_and_malformed_are_safe(self):
         for value in (None, {}, [], 'old', {'schema_version': '9.0.0'},
