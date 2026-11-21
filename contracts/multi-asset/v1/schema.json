@@ -1,0 +1,633 @@
+{
+  "type": "object",
+  "properties": {
+    "contract": {
+      "const": "MultiAssetResearchV1"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "base_currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "objective": {
+      "enum": [
+        "accumulation",
+        "income"
+      ]
+    },
+    "periods_per_year": {
+      "enum": [
+        12,
+        252
+      ]
+    },
+    "period_grid": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "risk_free_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": -1
+    },
+    "rolling_windows": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "symbol": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_type": {
+            "enum": [
+              "stock",
+              "etf",
+              "fx",
+              "benchmark"
+            ]
+          },
+          "exchange": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "quote_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "domicile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "management_style": {
+            "enum": [
+              "passive",
+              "active",
+              "none"
+            ]
+          },
+          "benchmark_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "return_basis": {
+            "enum": [
+              "split_adjusted_price",
+              "total_return_index"
+            ]
+          },
+          "distributions_complete": {
+            "type": "boolean"
+          },
+          "corporate_actions_complete": {
+            "type": "boolean"
+          },
+          "expense_ratio": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "expense_ratio_available_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fx_base_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "fx_quote_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "instrument_id",
+          "symbol",
+          "name",
+          "asset_type",
+          "exchange",
+          "quote_currency",
+          "domicile",
+          "management_style",
+          "benchmark_id",
+          "return_basis",
+          "distributions_complete",
+          "corporate_actions_complete"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "acquired_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://[^/ ]+"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "instrument_id",
+          "period",
+          "value",
+          "published_at",
+          "acquired_at",
+          "source_url",
+          "snapshot_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "distributions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ex_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "pay_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "amount_per_unit": {
+            "type": "number",
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "distribution_type": {
+            "enum": [
+              "income",
+              "capital_gain",
+              "return_of_capital",
+              "unknown"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "acquired_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://[^/ ]+"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "instrument_id",
+          "ex_date",
+          "pay_date",
+          "amount_per_unit",
+          "currency",
+          "distribution_type",
+          "published_at",
+          "acquired_at",
+          "source_url",
+          "snapshot_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "fx_rates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "base_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "quote_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "rate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "acquired_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://[^/ ]+"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "period",
+          "base_currency",
+          "quote_currency",
+          "rate",
+          "published_at",
+          "acquired_at",
+          "source_url",
+          "snapshot_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "regimes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "cash_flow_assumptions": {
+      "type": "object",
+      "properties": {
+        "initial_capital": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "withholding_tax_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "distribution_fee_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "fx_fee_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "buy_fee_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "reinvest_fee_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        }
+      },
+      "required": [
+        "initial_capital",
+        "withholding_tax_rate",
+        "distribution_fee_rate",
+        "fx_fee_rate",
+        "buy_fee_rate",
+        "reinvest_fee_rate"
+      ],
+      "additionalProperties": false
+    },
+    "holdings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "security_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "weight": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "sector": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "currency": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "factors": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "security_id",
+                "weight",
+                "sector",
+                "currency",
+                "factors"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "acquired_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://[^/ ]+"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "instrument_id",
+          "period",
+          "positions",
+          "published_at",
+          "acquired_at",
+          "source_url",
+          "snapshot_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "indicator_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relative_to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "driver_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scenario": {
+            "enum": [
+              "UPSIDE",
+              "DOWNSIDE"
+            ]
+          },
+          "status": {
+            "enum": [
+              "INSUFFICIENT",
+              "CANDIDATE",
+              "VALIDATED"
+            ]
+          },
+          "evidence_group": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "acquired_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://[^/ ]+"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "instrument_id",
+          "indicator_id",
+          "relative_to",
+          "driver_id",
+          "model_id",
+          "scenario",
+          "status",
+          "evidence_group",
+          "note",
+          "published_at",
+          "acquired_at",
+          "source_url",
+          "snapshot_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "adapter_lineage": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "contract",
+    "schema_version",
+    "as_of",
+    "base_currency",
+    "objective",
+    "periods_per_year",
+    "period_grid",
+    "risk_free_rate",
+    "rolling_windows",
+    "instruments",
+    "observations",
+    "distributions",
+    "fx_rates",
+    "regimes",
+    "cash_flow_assumptions"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chain-survey.local/contracts/multi-asset/v1",
+  "title": "MultiAssetResearchV1"
+}

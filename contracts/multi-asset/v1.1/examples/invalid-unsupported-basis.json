@@ -1,0 +1,87 @@
+{
+  "as_of": "2025-01-02T00:00:00Z",
+  "base_currency": "TWD",
+  "cash_flow_assumptions": {
+    "buy_fee_rate": 0.0,
+    "distribution_fee_rate": 0.0,
+    "fx_fee_rate": 0.0,
+    "initial_capital": 1000.0,
+    "reinvest_fee_rate": 0.0,
+    "withholding_tax_rate": 0.0
+  },
+  "contract": "MultiAssetResearchV1",
+  "distributions": [
+    {
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "amount_per_unit": 5,
+      "currency": "TWD",
+      "distribution_type": "unknown",
+      "ex_date": "2024-02-01",
+      "instrument_id": "TEST-RAW",
+      "pay_date": "2024-03-01",
+      "published_at": "2024-04-01T00:00:00Z",
+      "snapshot_id": "TEST-ONLY",
+      "source_url": "https://example.org/synthetic-test-only"
+    }
+  ],
+  "fx_rates": [],
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "instrument_id": "TEST-RAW",
+      "management_style": "none",
+      "name": "SYNTHETIC TEST ONLY",
+      "quote_currency": "TWD",
+      "return_basis": "adjusted_close",
+      "symbol": "TEST-RAW"
+    }
+  ],
+  "objective": "income",
+  "observations": [
+    {
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "instrument_id": "TEST-RAW",
+      "period": "2024-01-01",
+      "published_at": "2024-04-01T00:00:00Z",
+      "snapshot_id": "TEST-ONLY",
+      "source_url": "https://example.org/synthetic-test-only",
+      "value": 100
+    },
+    {
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "instrument_id": "TEST-RAW",
+      "period": "2024-02-01",
+      "published_at": "2024-04-01T00:00:00Z",
+      "snapshot_id": "TEST-ONLY",
+      "source_url": "https://example.org/synthetic-test-only",
+      "value": 50
+    },
+    {
+      "acquired_at": "2024-04-01T00:00:00Z",
+      "instrument_id": "TEST-RAW",
+      "period": "2024-03-01",
+      "published_at": "2024-04-01T00:00:00Z",
+      "snapshot_id": "TEST-ONLY",
+      "source_url": "https://example.org/synthetic-test-only",
+      "value": 55
+    }
+  ],
+  "period_grid": [
+    "2024-01-01",
+    "2024-02-01",
+    "2024-03-01"
+  ],
+  "periods_per_year": 12,
+  "regimes": [],
+  "risk_free_rate": 0.0,
+  "rolling_windows": [
+    1,
+    2
+  ],
+  "schema_version": "1.1.0"
+}

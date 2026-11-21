@@ -1,0 +1,157 @@
+{
+  "as_of": "2025-01-02T00:00:00Z",
+  "base_currency": "TWD",
+  "contract": "MultiAssetResultV1",
+  "correlations": [],
+  "input_sha256": "cf75810cc7309182fddafa5053dd71d32fde9e7389487416b34a659cfc32bd02",
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "cash_flows": [
+        {
+          "amount_per_unit": 5,
+          "currency": "TWD",
+          "distribution_type": "unknown",
+          "entitled_units": null,
+          "ex_date": "2024-02-01",
+          "fx_rate": null,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2024-03-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "reinvested_units": null,
+          "snapshot_id": "TEST-ONLY",
+          "source_url": "https://example.org/synthetic-test-only",
+          "status": "unavailable"
+        }
+      ],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": "TEST",
+      "instrument_id": "TEST-RAW",
+      "management_style": "none",
+      "metrics": {
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null
+      },
+      "name": "SYNTHETIC TEST ONLY",
+      "quality": [
+        {
+          "code": "coverage",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2024-02-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2024-01-01"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2024-03-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2024-02-01"
+        }
+      ],
+      "quote_currency": "TWD",
+      "return_basis": "unadjusted_price",
+      "returns": [
+        {
+          "end": "2024-02-01",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2024-01-01",
+          "value": null
+        },
+        {
+          "end": "2024-03-01",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2024-02-01",
+          "value": null
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2024-02-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2024-01-01",
+          "value": null,
+          "window": 1
+        },
+        {
+          "end": "2024-03-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2024-02-01",
+          "value": null,
+          "window": 1
+        },
+        {
+          "end": "2024-03-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2024-01-01",
+          "value": null,
+          "window": 2
+        }
+      ],
+      "symbol": "TEST-RAW",
+      "unavailable": {
+        "annualized_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_volatility": "unadjusted prices do not establish complete split/distribution adjustments",
+        "earned_income_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "max_drawdown": "unadjusted prices do not establish complete split/distribution adjustments",
+        "net_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_distribution_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_income_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cut_frequency": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cv": "unadjusted prices do not establish complete split/distribution adjustments",
+        "return_of_capital_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sharpe_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sortino_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "terminal_wealth": "unadjusted prices do not establish complete split/distribution adjustments"
+      }
+    }
+  ],
+  "methodology": {
+    "capm_alpha": "OLS excess-return intercept * periods_per_year; beta requires varying benchmark",
+    "cash": "buy at first grid close; entitlement captured ex-date before same-day pay-date reinvestment; paid cash within grid window; unadjusted investment prices retain distribution facts but do not establish investment units or cash; spot FX remains a carry-free reference",
+    "correlation": "pairwise common declared intervals; minimum 3; chronological floor(70%) train / remainder OOS; no driver promotion",
+    "currency": "exact-date direct/inverse spot; no triangulation, carry or leverage",
+    "expense_ratio": "point-in-time disclosure only; NAV fees are not deducted again",
+    "fees": "proportional deductions once per named transaction; FX fee on initial foreign purchase and paid cash conversion; reinvestment fee on pay-date purchase",
+    "paid_yield": "365-day paid per-unit base-currency payouts / ending split-adjusted market price in base currency; paid_income excludes ROC and unknown classification",
+    "payout_statistics": "CV population stdev / mean of observed pay-date per-unit base-currency payouts; cuts / adjacent observed payouts, including ROC",
+    "price_total_return": "(end split-adjusted price + interval ex-date payouts) / start price - 1; no intra-interval reinvestment assumed; unadjusted investment prices cannot establish total returns, rolling returns or benchmark comparison, regardless of claimed coverage",
+    "regimes": "fresh records whose economic as_of and availability UTC date both equal interval start; available by midnight start; no label carry; delayed legacy records may have no segments; explicit instrument.market must match; stale source flags preserved",
+    "return_grid": "declared adjacent intervals; consecutive monthly calendar months or daily gaps <=14 calendar days; producer verifies exchange sessions; CAGR uses elapsed days/365.25; no filling or gap bridging",
+    "sharpe": "arithmetic mean excess period return / sample stdev * sqrt(periods_per_year); compounded annual risk-free conversion",
+    "sortino": "all-interval root mean square negative excess return; arithmetic mean excess numerator",
+    "taxes": "uniform user withholding scenario applied to all payouts; no capital-gain liquidation tax inferred",
+    "total_return_index": "index ratios already include distributions; no additions",
+    "tracking_difference": "fund compounded total return minus benchmark compounded total return over full grid",
+    "volatility": "sample standard deviation * sqrt(periods_per_year)"
+  },
+  "objective": "income",
+  "quality": [],
+  "schema_version": "1.1.0"
+}
