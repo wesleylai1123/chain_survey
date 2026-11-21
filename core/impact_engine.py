@@ -68,6 +68,18 @@ def _matches_rule(row: pd.Series, match: dict[str, str]) -> bool:
     return True
 
 
+def _typed_edge(source, source_type, relation, target, target_type, source_dataset) -> tuple[str, ...]:
+    return tuple(map(str, (source, source_type, relation, target, target_type, source_dataset)))
+
+
+def _edge_identity(row, product_evidence: bool) -> tuple[str, ...]:
+    if not product_evidence:
+        return (str(row["source"]), str(row["relation"]), str(row["target"]))
+    return _typed_edge(*(row[key] for key in (
+        "source", "source_type", "relation", "target", "target_type", "source_dataset"
+    )))
+
+
 def _company_multiplier(company_name: str, companies: pd.DataFrame, event: dict) -> float:
     row = companies.loc[companies["name"] == company_name]
     if row.empty:
@@ -98,7 +110,7 @@ def _seed_row(
     start_lag: int,
     reason: str,
     path: str,
-    last_edge: tuple[str, str, str] | None,
+    last_edge: tuple[str, ...] | None,
     fundamental_multiplier: float,
     fundamental_signal: float,
     seed_source: str,
@@ -132,12 +144,18 @@ def _build_edge_seed_impacts(
     edges: pd.DataFrame,
     companies: pd.DataFrame,
     signal_lookup: dict[str, dict[str, float | str | None]],
+    *,
+    product_evidence: bool = False,
 ) -> list[dict]:
     seeds: list[dict] = []
     severity = float(event.get("severity", 1.0))
 
     for rule in event.get("seed_rules", []):
         match = rule.get("match", {})
+        if product_evidence and match.get("relation") in {"supplier_of", "customer_of"}:
+            if not ({"source_type", "target_type"} & match.keys()):
+                match = {"source_type": "company", "target_type": "company",
+                         "source_dataset": "curated", **match}
         sentiment = str(rule.get("sentiment", "negative")).lower()
         sign = 1.0 if sentiment == "positive" else -1.0
         impact_on = rule.get("impact_on", "target")
@@ -168,7 +186,7 @@ def _build_edge_seed_impacts(
                     start_lag=start_lag,
                     reason=reason,
                     path=f"seed[{row['source']} -> {row['relation']} -> {row['target']}]",
-                    last_edge=None if allow_backflow else (str(row["source"]), str(row["relation"]), str(row["target"])),
+                    last_edge=None if allow_backflow else _edge_identity(row, product_evidence),
                     fundamental_multiplier=fundamental_multiplier,
                     fundamental_signal=fundamental_signal,
                     seed_source="edge_rule",
@@ -262,11 +280,12 @@ def _walk_event(
     relation_rules = _merged_relation_rules(event)
     traversal_limit = max_layers or int(event.get("max_layers", 3))
 
-    seeds = _build_edge_seed_impacts(event, edges, companies, signal_lookup)
+    seeds = _build_edge_seed_impacts(event, edges, companies, signal_lookup, product_evidence=product_evidence)
     seeds.extend(_build_macro_seed_impacts(event, companies, signal_lookup))
     if product_evidence:
         for seed in seeds:
             seed["trail"] = ((seed["node_type"], seed["node"]),)
+            seed["edges"] = ()
 
     queue = deque(seeds)
     seen_best: dict[tuple, float] = {}
@@ -291,7 +310,7 @@ def _walk_event(
         else:
             related = edges[(edges["source"] == node) | (edges["target"] == node)]
         for _, edge in related.iterrows():
-            edge_key = (str(edge["source"]), str(edge["relation"]), str(edge["target"]))
+            edge_key = _edge_identity(edge, product_evidence)
             if edge_key == current.get("last_edge"):
                 continue
 
@@ -316,8 +335,8 @@ def _walk_event(
                 next_path = f"{current['path']} => {edge['target']} <- {relation} <- {edge['source']}"
 
             if product_evidence:
-                # A company-wide shock cannot flow into an entire product catalogue.
-                if node_type == "company" and next_type == "product" and relation == "produces":
+                # Product signals need a product or market path, or an explicit product seed.
+                if node_type == "company" and next_type == "product":
                     continue
                 if (next_type, next_node) in current["trail"]:
                     continue
@@ -358,7 +377,10 @@ def _walk_event(
                     "macro_factor_id": current.get("macro_factor_id"),
                     "exposure_direction": current.get("exposure_direction"),
                     "exposure_rationale": current.get("exposure_rationale"),
-                    **({"trail": (*current["trail"], (next_type, next_node))} if product_evidence else {}),
+                    **({
+                        "trail": (*current["trail"], (next_type, next_node)),
+                        "edges": (*current["edges"], edge_key),
+                    } if product_evidence else {}),
                 }
             )
 
@@ -374,7 +396,7 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
         row = companies.loc[companies["name"] == node]
         impacts.append({
             "company": node,
-            "direction": current["direction"],
+            "direction": "positive" if current["signed_score"] > 0 else "negative",
             "impact_score": abs(current["signed_score"]),
             "signed_score": current["signed_score"],
             "layer": current["layer"],

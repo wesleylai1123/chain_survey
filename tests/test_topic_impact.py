@@ -1,9 +1,34 @@
 import unittest
+from unittest.mock import patch
+
+import pandas as pd
 
 from core import topic_impact
 
 
 class TopicImpactTests(unittest.TestCase):
+    def test_analyst_mapping_cannot_inherit_unrelated_dependency_score(self):
+        mappings = pd.DataFrame([{
+            "source_company": "聯發科", "source_product": "Dimensity",
+            "related_company": "台積電", "direction": "upstream",
+            "relation": "supplier_of", "weight": 0.01, "rationale": "Custom test mapping",
+        }])
+        with patch.object(topic_impact, "get_managed_mappings_for_product", return_value=mappings):
+            report = topic_impact.analyze_topic("聯發科", "全球智慧手機需求轉弱")
+        links = {r["link"]: r for r in report["chain"] if r["company"] == "台積電" and r["product"] == "Dimensity"}
+        self.assertIsNone(links["分析師設定"]["score"])
+        self.assertAlmostEqual(links["3nm/4nm Wafer 生產商（產品依賴）"]["score"], -0.3848, delta=0.03)
+
+    def test_analyst_mapping_does_not_convert_company_fx_to_product_exposure(self):
+        mappings = pd.DataFrame([{
+            "source_company": "聯發科", "source_product": "ASIC",
+            "related_company": "台積電", "direction": "upstream",
+            "relation": "supplier_of", "weight": 0.85, "rationale": "Custom test mapping",
+        }])
+        with patch.object(topic_impact, "get_managed_mappings_for_product", return_value=mappings):
+            report = topic_impact.analyze_topic("聯發科", "美元兌新台幣升值")
+        self.assertTrue(all(row["score"] is None for row in report["products"]))
+
     def test_ai_topic_identifies_direct_asic_exposure(self):
         report = topic_impact.analyze_topic("聯發科", "AI 基礎建設資本支出加速")
         products = {row["product"]: row for row in report["products"]}

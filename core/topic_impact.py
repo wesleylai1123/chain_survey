@@ -13,7 +13,7 @@ from core.data_loader import (
     load_product_relationships,
 )
 from core.fundamental_signals import get_company_signal_lookup
-from core.impact_engine import _walk_event, get_event
+from core.impact_engine import _typed_edge, _walk_event, get_event
 from core.product_supply_chain_service import get_managed_mappings_for_product
 
 
@@ -66,15 +66,23 @@ def _revenue_mix(company: str) -> dict[str, tuple[float, str]]:
     return {product: (mix, period) for product, (_, mix, period) in latest.items()}
 
 
+def _managed_edge(edge) -> tuple:
+    if edge.direction == "upstream":
+        ends = (edge.related_company, "company", edge.relation, edge.source_product, "product")
+    else:
+        ends = (edge.source_product, "product", edge.relation, edge.related_company, "company")
+    return _typed_edge(*ends, "analyst_managed")
+
+
 def _chain_rows(company, owned, producers, mappings, paths):
     rows = []
 
-    def add(partner, role, product, link, rationale=""):
+    def add(partner, role, product, link, rationale="", hops=()):
         if partner == company:
             return
         candidates = paths.get(("company", partner), [])
-        if product is not None:
-            candidates = [p for p in candidates if ("product", product) in p["trail"]]
+        if hops:
+            candidates = [p for p in candidates if p["edges"][-len(hops):] == hops]
         best = min(candidates, key=_rank, default=None)
         summary = _scores(candidates)
         rows.append({
@@ -101,15 +109,19 @@ def _chain_rows(company, owned, producers, mappings, paths):
     for edge in load_product_relationships().itertuples(index=False):
         if edge.relation != "depends_on":
             continue
-        if edge.source_product in owned:
-            for partner in producers.get(edge.target_product, []):
-                add(partner, "上游", edge.source_product, f"{edge.target_product} 生產商（產品依賴）")
-        if edge.target_product in owned:
-            for partner in producers.get(edge.source_product, []):
-                add(partner, "下游", edge.target_product, f"{edge.source_product} 生產商（產品依賴）")
+        dependency = _typed_edge(edge.source_product, "product", edge.relation, edge.target_product, "product", "curated")
+        for role, product, linked_product in (
+            ("上游", edge.source_product, edge.target_product),
+            ("下游", edge.target_product, edge.source_product),
+        ):
+            if product not in owned:
+                continue
+            for partner in producers.get(linked_product, []):
+                produces = _typed_edge(partner, "company", "produces", linked_product, "product", "curated")
+                add(partner, role, product, f"{linked_product} 生產商（產品依賴）", hops=(dependency, produces))
     for edge in mappings.itertuples(index=False):
         add(edge.related_company, "上游" if edge.direction == "upstream" else "下游",
-            edge.source_product, "分析師設定", str(edge.rationale))
+            edge.source_product, "分析師設定", str(edge.rationale), hops=(_managed_edge(edge),))
 
     return sorted(rows, key=lambda row: (row["product"] or "", row["role"], row["company"], row["link"]))
 
@@ -131,16 +143,10 @@ def analyze_topic(company: str, event_name: str) -> dict:
     # mappings configured for the selected company.
     mappings = get_managed_mappings_for_product(company)
     loaded_edges = load_edges()
-    edges = loaded_edges[loaded_edges["source_dataset"] != "analyst_managed"].copy()
+    edges = loaded_edges[loaded_edges["source_dataset"] != "analyst_managed"].reset_index(drop=True)
+    columns = ("source", "source_type", "relation", "target", "target_type", "source_dataset")
     for edge in mappings.itertuples(index=False):
-        if edge.direction == "upstream":
-            ends = (edge.related_company, "company", edge.source_product, "product")
-        else:
-            ends = (edge.source_product, "product", edge.related_company, "company")
-        edges.loc[len(loaded_edges) + len(edges)] = {
-            **dict(zip(("source", "source_type", "target", "target_type"), ends)),
-            "relation": edge.relation, "weight": edge.weight, "source_dataset": "analyst_managed",
-        }
+        edges.loc[len(edges)] = {**dict(zip(columns, _managed_edge(edge))), "weight": edge.weight}
 
     paths = defaultdict(list)
     for path in _walk_event(event, edges, companies, get_company_signal_lookup(), product_evidence=True):
