@@ -66,6 +66,25 @@ chain_survey remains the main research workspace.
 
 ## What is implemented today
 
+### Correlation research workspace
+
+`./run.sh` (macOS/Linux) or `.\run.ps1` (Windows) opens **相關性研究**.
+The workspace compares monthly industry and company observations using
+Pearson or Spearman, calendar-month lead/lag, chronological half-samples
+and 12-observation rolling correlations. The scan links each result to
+its aligned observations and source timestamps.
+
+The default data comes from the local historical panel or the local Git
+reference for `evidence-data`. For a single-branch clone, fetch the panel
+reference with `git fetch origin evidence-data:refs/remotes/origin/evidence-data`
+or import the panel CSV. The CSV needs `metric_id`, `period` (YYYY-MM),
+`published_at`, `change_pct`, `source`, `source_url` and
+`knowledge_time_method`.
+
+**研究工具** opens the existing CSV correlation lab, ABF lab, cross-company
+validation, ETF research and Company Explorer. Exported samples carry
+publication-time methods, including proxies when used.
+
 ### Topic impact analysis
 
 Open **題材影響分析** in the main desktop window (`./run.sh` or `.\run.ps1`).

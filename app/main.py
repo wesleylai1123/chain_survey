@@ -73,9 +73,15 @@ def main() -> None:
         launch_correlation_lab()
         return
 
-    from app.gui_app import launch_app
+    if "--company-explorer" in sys.argv:
+        from app.gui_app import launch_app
 
-    launch_app()
+        launch_app()
+        return
+
+    from app.research_workspace import launch_research_workspace
+
+    launch_research_workspace()
 
 
 if __name__ == "__main__":
