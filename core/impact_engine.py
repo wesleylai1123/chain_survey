@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Iterator
 
 import pandas as pd
 
@@ -249,22 +250,26 @@ def _empty_result() -> pd.DataFrame:
     return pd.DataFrame(columns=RESULT_COLUMNS)
 
 
-def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFrame:
-    event = get_event(event_name)
-    edges = load_edges().copy()
-    companies = load_companies()[["name", "sector", "industry"]].copy()
-    signal_lookup = get_company_signal_lookup()
+def _walk_event(
+    event: dict,
+    edges: pd.DataFrame,
+    companies: pd.DataFrame,
+    signal_lookup: dict,
+    max_layers: int | None = None,
+    *,
+    product_evidence: bool = False,
+) -> Iterator[dict]:
     relation_rules = _merged_relation_rules(event)
     traversal_limit = max_layers or int(event.get("max_layers", 3))
 
     seeds = _build_edge_seed_impacts(event, edges, companies, signal_lookup)
     seeds.extend(_build_macro_seed_impacts(event, companies, signal_lookup))
-    if not seeds:
-        return _empty_result()
+    if product_evidence:
+        for seed in seeds:
+            seed["trail"] = ((seed["node_type"], seed["node"]),)
 
     queue = deque(seeds)
-    impacts: list[dict] = []
-    seen_best: dict[tuple[str, int], float] = {}
+    seen_best: dict[tuple, float] = {}
 
     while queue:
         current = queue.popleft()
@@ -273,36 +278,18 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
         signed_score = float(current["signed_score"])
         layer = int(current["layer"])
 
-        if node_type == "company":
-            row = companies.loc[companies["name"] == node]
-            sector = row.iloc[0]["sector"] if not row.empty else None
-            industry = row.iloc[0]["industry"] if not row.empty else None
-            impacts.append(
-                {
-                    "company": node,
-                    "direction": "positive" if signed_score > 0 else "negative",
-                    "impact_score": round(abs(signed_score), 4),
-                    "signed_score": round(signed_score, 4),
-                    "layer": layer,
-                    "cumulative_lag": current["cumulative_lag"],
-                    "path": current["path"],
-                    "reason": current["reason"],
-                    "sector": sector,
-                    "industry": industry,
-                    "fundamental_signal": current.get("fundamental_signal", 0.0),
-                    "fundamental_multiplier": current.get("fundamental_multiplier", 1.0),
-                    "seed_source": current.get("seed_source", "edge_rule"),
-                    "macro_factor": current.get("macro_factor"),
-                    "macro_factor_id": current.get("macro_factor_id"),
-                    "exposure_direction": current.get("exposure_direction"),
-                    "exposure_rationale": current.get("exposure_rationale"),
-                }
-            )
+        yield current
 
         if layer >= traversal_limit:
             continue
 
-        related = edges[(edges["source"] == node) | (edges["target"] == node)]
+        if product_evidence:
+            related = edges[
+                ((edges["source"] == node) & (edges["source_type"] == node_type))
+                | ((edges["target"] == node) & (edges["target_type"] == node_type))
+            ]
+        else:
+            related = edges[(edges["source"] == node) | (edges["target"] == node)]
         for _, edge in related.iterrows():
             edge_key = (str(edge["source"]), str(edge["relation"]), str(edge["target"]))
             if edge_key == current.get("last_edge"):
@@ -313,7 +300,7 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
             if config is None:
                 continue
 
-            if node == edge["source"]:
+            if node == edge["source"] and (not product_evidence or node_type == edge["source_type"]):
                 next_node = edge["target"]
                 next_type = edge["target_type"]
                 decay = float(config["forward_decay"])
@@ -328,6 +315,13 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
                 relation_sign = float(config["reverse_sign"])
                 next_path = f"{current['path']} => {edge['target']} <- {relation} <- {edge['source']}"
 
+            if product_evidence:
+                # A company-wide shock cannot flow into an entire product catalogue.
+                if node_type == "company" and next_type == "product" and relation == "produces":
+                    continue
+                if (next_type, next_node) in current["trail"]:
+                    continue
+
             next_score = signed_score * float(edge.get("weight", 1.0)) * decay * relation_sign
             fundamental_multiplier = 1.0
             fundamental_signal = 0.0
@@ -341,9 +335,10 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
 
             next_layer = layer + 1
             state_key = (str(next_node), next_layer)
-            if abs(next_score) <= abs(seen_best.get(state_key, 0.0)):
-                continue
-            seen_best[state_key] = abs(next_score)
+            if not product_evidence:
+                if abs(next_score) <= abs(seen_best.get(state_key, 0.0)):
+                    continue
+                seen_best[state_key] = abs(next_score)
 
             queue.append(
                 {
@@ -363,8 +358,39 @@ def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFra
                     "macro_factor_id": current.get("macro_factor_id"),
                     "exposure_direction": current.get("exposure_direction"),
                     "exposure_rationale": current.get("exposure_rationale"),
+                    **({"trail": (*current["trail"], (next_type, next_node))} if product_evidence else {}),
                 }
             )
+
+
+def simulate_event(event_name: str, max_layers: int | None = None) -> pd.DataFrame:
+    event = get_event(event_name)
+    companies = load_companies()[["name", "sector", "industry"]].copy()
+    impacts: list[dict] = []
+    for current in _walk_event(event, load_edges(), companies, get_company_signal_lookup(), max_layers):
+        if current["node_type"] != "company":
+            continue
+        node = current["node"]
+        row = companies.loc[companies["name"] == node]
+        impacts.append({
+            "company": node,
+            "direction": current["direction"],
+            "impact_score": abs(current["signed_score"]),
+            "signed_score": current["signed_score"],
+            "layer": current["layer"],
+            "cumulative_lag": current["cumulative_lag"],
+            "path": current["path"],
+            "reason": current["reason"],
+            "sector": row.iloc[0]["sector"] if not row.empty else None,
+            "industry": row.iloc[0]["industry"] if not row.empty else None,
+            "fundamental_signal": current["fundamental_signal"],
+            "fundamental_multiplier": current["fundamental_multiplier"],
+            "seed_source": current["seed_source"],
+            "macro_factor": current["macro_factor"],
+            "macro_factor_id": current["macro_factor_id"],
+            "exposure_direction": current["exposure_direction"],
+            "exposure_rationale": current["exposure_rationale"],
+        })
 
     result = pd.DataFrame(impacts)
     if result.empty:
