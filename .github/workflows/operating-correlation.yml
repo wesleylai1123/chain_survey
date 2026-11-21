@@ -1,0 +1,97 @@
+name: Operating Correlation Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore canonical free evidence history
+        run: |
+          git fetch origin evidence-data
+          git checkout origin/evidence-data -- data/history
+          test -s data/history/free_industry_history_panel.csv
+          test -s data/history/free_industry_history_coverage.csv
+
+      - name: Run operating correlation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_operating_correlation_engine.py' -v | tee operating-correlation-test-results.txt
+
+      - name: Validate upstream history contract
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          panel=pd.read_csv('data/history/free_industry_history_panel.csv')
+          coverage=pd.read_csv('data/history/free_industry_history_coverage.csv')
+          assert len(panel) >= 200
+          assert panel['source_id'].nunique() >= 3
+          assert panel['metric_id'].nunique() >= 10
+          assert not panel.duplicated(['source_id','metric_id','period']).any()
+          published=pd.to_datetime(panel['published_at'],utc=True)
+          period=pd.to_datetime(panel['period_date'],utc=True)
+          assert (published>=period).all()
+          assert coverage.loc[coverage.source_id=='mops_abf_monthly_revenue','observations'].min() >= 24
+          assert coverage.loc[coverage.source_id=='tpca_public_industry','observations'].min() >= 24
+          tf=coverage[coverage.source_id=='trendforce_public_dram']
+          assert len(tf) >= 1
+          print('UPSTREAM_HISTORY_CONTRACT_OK',len(panel),panel['metric_id'].nunique(),panel['period'].nunique())
+          print('TRENDFORCE_CORRELATION_ELIGIBLE', bool((tf['observations']>=18).any()))
+          PY
+
+      - name: Run lead-lag operating correlations
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_operating_correlations.py 2>&1 | tee operating-correlation-results.txt
+
+      - name: Validate correlation output
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          r=pd.read_csv('artifacts/operating_correlation_results.csv')
+          assert len(r) > 0
+          assert r['sample_size'].min() >= 18
+          assert r['lag_months'].between(0,6).all()
+          assert r['spearman'].between(-1,1).all()
+          assert r['pearson'].between(-1,1).all()
+          assert r['sign_stability'].between(0,1).all()
+          # TrendForce must not appear until it has enough observations.
+          assert not r['feature'].astype(str).str.contains('dram_',case=False).any()
+          print('OPERATING_CORRELATION_VALID',len(r))
+          print(r.head(10).to_string(index=False))
+          PY
+
+      - name: Render correlation charts
+        run: |
+          python scripts/render_operating_correlation_charts.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: operating-correlation-preview
+          path: |
+            artifacts/operating_correlation_results.csv
+            artifacts/operating-correlation-best-lags.png
+            artifacts/operating-correlation-heatmap.png
+            operating-correlation-test-results.txt
+            operating-correlation-results.txt
+          if-no-files-found: error

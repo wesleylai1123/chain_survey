@@ -1,0 +1,775 @@
+from __future__ import annotations
+
+import sys
+import json
+import tkinter as tk
+from pathlib import Path
+from tkinter import ttk
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
+from core.indicator_taxonomy import indicator_table
+from core.directional_indicator_engine import scenario_transmission
+from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
+from core.abf_data_coverage import audit_abf_data_coverage
+from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_financial_evidence import reconcile_financial_evidence
+from core.abf_data_provenance import build_abf_data_provenance
+from core.abf_model_audit import build_abf_model_audit
+from core.abf_transform_validation import compare_abf_transforms
+from app.abf_semantics_view import build_semantics_tab
+from app.abf_company_survey_view import CompanySurveyView
+from core.abf_company_survey import build_company_survey
+from datetime import datetime, timezone
+
+HISTORY = ROOT / "data" / "history" / "free_industry_history_panel.csv"
+FACTOR = ROOT / "artifacts" / "factor_validation_dataset.csv"
+OPERATING = ROOT / "data" / "abf_operating_observations.csv"
+COMPANY_FACTS = ROOT / "data" / "abf_company_research_evidence.json"
+SEMANTICS_AUDIT = ROOT / "artifacts" / "abf_semantics_validation.json"
+
+BG = "#F3F6FA"
+CARD = "#FFFFFF"
+TEXT = "#172033"
+MUTED = "#667085"
+BORDER = "#D8E0EA"
+NAVY = "#0F172A"
+BLUE = "#2563EB"
+BLUE_SOFT = "#EAF2FF"
+TEAL = "#0F766E"
+TEAL_SOFT = "#E8F7F3"
+AMBER = "#B45309"
+AMBER_SOFT = "#FFF4E5"
+GREEN = "#15803D"
+GREEN_SOFT = "#ECFDF3"
+RED = "#B42318"
+RED_SOFT = "#FEF3F2"
+SLATE_SOFT = "#EEF2F6"
+
+
+class AbfResearchLab(tk.Tk):
+    def __init__(self) -> None:
+        super().__init__()
+        self.title("ABF Research Lab")
+        self.geometry("1600x980")
+        self.minsize(1320, 820)
+        self.configure(bg=BG)
+        self.as_of = datetime.now(timezone.utc).isoformat()
+        self.indicators = indicator_table()
+        history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
+        self.comparisons,self.comparison_details=compare_abf_transforms(
+            history,as_of=self.as_of,iterations=199)
+        self.sensitivity = self._load_sensitivity()
+        self.scenarios = self._load_scenarios()
+        self.factor = pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+        primary_financial=ROOT/'data/abf_quarterly_financial_evidence.json'
+        if primary_financial.exists():
+            self.factor=reconcile_financial_evidence(self.factor,json.loads(primary_financial.read_text(encoding='utf-8')),as_of=self.as_of)
+        history = pd.read_csv(HISTORY) if HISTORY.exists() else pd.DataFrame()
+        operating = pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
+        self.coverage = audit_abf_data_coverage(history, self.factor, operating_observations=operating)
+        self.provenance = build_abf_data_provenance(self.coverage, history, self.factor, operating)
+        self.margin_scan = scan_revenue_to_margin(self.factor) if not self.factor.empty else pd.DataFrame()
+        self.model_audit = build_abf_model_audit(self.sensitivity, self.margin_scan, self.scenarios,comparisons=self.comparisons)
+        self.company_report = self._load_company_report()
+        self._configure_style()
+        self._build()
+
+    def _load_company_report(self) -> dict:
+        """Read the canonical audit used by the CLI without estimating new statistics."""
+        audit = json.loads(SEMANTICS_AUDIT.read_text(encoding='utf-8')) if SEMANTICS_AUDIT.exists() else {}
+        facts = json.loads(COMPANY_FACTS.read_text(encoding='utf-8')) if COMPANY_FACTS.exists() else []
+        return build_company_survey(audit, self.factor, facts, as_of=self.as_of)
+
+    def _load_scenarios(self) -> pd.DataFrame:
+        if not HISTORY.exists():
+            return pd.DataFrame()
+        history = pd.read_csv(HISTORY)
+        table, _ = validate_abf_scenarios(
+            history,
+            config=ScenarioValidationConfig(
+                bootstrap_iterations=500,
+                permutation_iterations=500,
+            ),
+        )
+        return table
+
+    def _scenario_status(self, scenario: str) -> str:
+        rows=self.comparisons[self.comparisons['scenario']==scenario]
+        if rows.empty or not rows['data_status'].eq('AVAILABLE').any():
+            return 'UNAVAILABLE'
+        for status in ('eligible','support-only'):
+            if rows['eligibility'].eq(status).any():
+                return status.upper()
+        return 'REJECT'
+
+    def _configure_style(self) -> None:
+        style = ttk.Style(self)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+        style.configure("Research.TNotebook", background=BG, borderwidth=0)
+        style.configure(
+            "Research.TNotebook.Tab",
+            background="#E8EDF4",
+            foreground=MUTED,
+            padding=(8, 9),
+            font=("Segoe UI", 9, "bold"),
+            borderwidth=0,
+        )
+        style.map(
+            "Research.TNotebook.Tab",
+            background=[("selected", CARD)],
+            foreground=[("selected", TEXT)],
+        )
+
+    def _load_sensitivity(self) -> pd.DataFrame:
+        if not HISTORY.exists():
+            return pd.DataFrame()
+        history = pd.read_csv(HISTORY)
+        return estimate_company_revenue_sensitivities(
+            history,
+            config=SensitivityConfig(bootstrap_iterations=500),
+        )
+
+    def _card(self, parent, *, bg: str = CARD, padx: int = 16, pady: int = 14) -> tk.Frame:
+        outer = tk.Frame(parent, bg=BORDER, bd=0, highlightthickness=0)
+        inner = tk.Frame(outer, bg=bg, bd=0)
+        inner.pack(fill="both", expand=True, padx=1, pady=1)
+        inner.configure(padx=padx, pady=pady)
+        return outer
+
+    def _inner(self, card: tk.Frame) -> tk.Frame:
+        return card.winfo_children()[0]
+
+    def _pill(self, parent, text: str, fg: str, bg: str) -> tk.Label:
+        return tk.Label(
+            parent,
+            text=text,
+            fg=fg,
+            bg=bg,
+            font=("Segoe UI", 9, "bold"),
+            padx=10,
+            pady=4,
+        )
+
+    def _metric_card(self, parent, title: str, value: str, note: str, accent: str, soft: str) -> tk.Frame:
+        card = self._card(parent)
+        body = self._inner(card)
+        tk.Frame(body, bg=accent, height=4).pack(fill="x", pady=(0, 12))
+        tk.Label(body, text=title, bg=CARD, fg=MUTED, font=("Segoe UI", 9, "bold")).pack(anchor="w")
+        tk.Label(body, text=value, bg=CARD, fg=TEXT, font=("Segoe UI", 17, "bold")).pack(anchor="w", pady=(4, 3))
+        tk.Label(body, text=note, bg=CARD, fg=MUTED, font=("Segoe UI", 9), wraplength=300, justify="left").pack(anchor="w")
+        return card
+
+    def _build(self) -> None:
+        shell = tk.Frame(self, bg=BG)
+        shell.pack(fill="both", expand=True)
+
+        self._build_header(shell)
+        self._build_overview(shell)
+
+        content = tk.Frame(shell, bg=BG)
+        content.pack(fill="both", expand=True, padx=24, pady=(0, 20))
+
+        self.book = ttk.Notebook(content, style="Research.TNotebook")
+        self.book.pack(fill="both", expand=True)
+
+        company_research = tk.Frame(self.book, bg=BG)
+        self.book.add(company_research, text='Company Research')
+        self.company_view = CompanySurveyView(company_research, self.company_report)
+        self.company_view.pack(fill='both', expand=True)
+        timing = tk.Frame(self.book, bg=BG)
+        scenarios = tk.Frame(self.book, bg=BG)
+        coverage = tk.Frame(self.book, bg=BG)
+        provenance = tk.Frame(self.book, bg=BG)
+        margin = tk.Frame(self.book, bg=BG)
+        sensitivity = tk.Frame(self.book, bg=BG)
+        audit = tk.Frame(self.book, bg=BG)
+        flow = tk.Frame(self.book, bg=BG)
+        semantics=tk.Frame(self.book,bg=BG)
+        self.book.add(semantics,text='Semantics & Stability')
+        self.book.add(timing, text="Indicator Timing")
+        self.book.add(scenarios, text="Scenario Evidence")
+        self.book.add(coverage, text="Data Coverage")
+        self.book.add(provenance, text="Source & Lineage")
+        self.book.add(margin, text="Revenue → GM")
+        self.book.add(sensitivity, text="Revenue Sensitivity")
+        self.book.add(audit, text="Model Audit")
+        self.book.add(flow, text="Driver → Sensitivity → Model")
+
+        self._build_timing_tab(timing)
+        self.comparison_tree=build_semantics_tab(semantics,self.comparisons,self.comparison_details)
+        self._build_scenario_tab(scenarios)
+        self._build_coverage_tab(coverage)
+        self._build_provenance_tab(provenance)
+        self._build_margin_tab(margin)
+        self._build_sensitivity_tab(sensitivity)
+        self._build_model_audit_tab(audit)
+        self._build_flow_tab(flow)
+
+    def _build_header(self, parent) -> None:
+        header = tk.Frame(parent, bg=NAVY, padx=24, pady=18)
+        header.pack(fill="x")
+        left = tk.Frame(header, bg=NAVY)
+        left.pack(side="left", fill="x", expand=True)
+        tk.Label(
+            left,
+            text="ABF Fundamental Research",
+            bg=NAVY,
+            fg="#FFFFFF",
+            font=("Segoe UI", 20, "bold"),
+        ).pack(anchor="w")
+        tk.Label(
+            left,
+            text="Point-in-time evidence → validated leading driver → operating sensitivity → financial confirmation",
+            bg=NAVY,
+            fg="#CBD5E1",
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", pady=(4, 0))
+
+        right = tk.Frame(header, bg=NAVY)
+        right.pack(side="right")
+        self._pill(right, "ABF REFERENCE MODEL", "#DBEAFE", "#1E3A8A").pack(anchor="e")
+
+    def _build_overview(self, parent) -> None:
+        row = tk.Frame(parent, bg=BG)
+        row.pack(fill="x", padx=24, pady=16)
+        for i in range(4):
+            row.grid_columnconfigure(i, weight=1, uniform="overview")
+
+        basket = None
+        if not self.sensitivity.empty:
+            basket_rows = self.sensitivity[self.sensitivity["ticker"] == "ABF"]
+            if not basket_rows.empty:
+                basket = basket_rows.iloc[0]
+
+        sample_note = "Real point-in-time history"
+        sample_value = "—"
+        if basket is not None:
+            sample_value = str(int(basket["sample_size"]))
+            sample_note = "Matched monthly observations"
+
+        magnitude = "Candidate"
+        magnitude_note = "Exploratory fit; requires Company × Product evidence"
+        if basket is not None and bool(basket.get("magnitude_validation_pass", False)):
+            magnitude = "Support only"
+            magnitude_note = "Company-total proxy; product calibration pending"
+
+        lead_note = f"UPSIDE {self._scenario_status('UPSIDE')} · DOWNSIDE {self._scenario_status('DOWNSIDE')}"
+        cards = [
+            ("Leading relation", "PCB YoY ↕ ABF", lead_note, BLUE, BLUE_SOFT),
+            ("Revenue magnitude", magnitude, magnitude_note, AMBER, AMBER_SOFT),
+            ("Financial chain", "Revenue → GM → EPS", "GM = gross margin; downstream calibration pending", TEAL, TEAL_SOFT),
+            ("Research sample", sample_value, sample_note, GREEN, GREEN_SOFT),
+        ]
+        for i, args in enumerate(cards):
+            card = self._metric_card(row, *args)
+            card.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 6, 0 if i == 3 else 6))
+
+    def _timing_bucket(self, parent, title: str, subtitle: str, rows: pd.DataFrame, accent: str, soft: str) -> tk.Frame:
+        card = self._card(parent)
+        body = self._inner(card)
+        head = tk.Frame(body, bg=CARD)
+        head.pack(fill="x")
+        self._pill(head, title, accent, soft).pack(side="left")
+        tk.Label(head, text=subtitle, bg=CARD, fg=MUTED, font=("Segoe UI", 9)).pack(side="left", padx=(10, 0))
+
+        tk.Frame(body, bg=BORDER, height=1).pack(fill="x", pady=12)
+
+        for idx, (_, row) in enumerate(rows.iterrows()):
+            item = tk.Frame(body, bg=CARD)
+            item.pack(fill="x", pady=(0, 12))
+            tk.Label(item, text=row["name"], bg=CARD, fg=TEXT, font=("Segoe UI", 11, "bold")).pack(anchor="w")
+            relative = str(row["relative_to"]).replace("_", " ")
+            lag = "lag not calibrated" if pd.isna(row["lag_value"]) else f"lag {int(row['lag_value'])} {row['lag_unit']}"
+            tk.Label(
+                item,
+                text=f"vs {relative}  ·  {lag}",
+                bg=CARD,
+                fg=MUTED,
+                font=("Segoe UI", 9),
+            ).pack(anchor="w", pady=(2, 3))
+            status_fg, status_bg = (GREEN, GREEN_SOFT) if row["evidence_status"] == "VALIDATED" else (MUTED, SLATE_SOFT)
+            self._pill(item, str(row["evidence_status"]), status_fg, status_bg).pack(anchor="w")
+
+            cases = tk.Frame(item, bg=CARD)
+            cases.pack(fill="x", pady=(7, 0))
+            pos = tk.Frame(cases, bg=GREEN_SOFT, padx=8, pady=6)
+            pos.pack(fill="x", pady=(0, 4))
+            tk.Label(pos, text="▲ Beneficial", bg=GREEN_SOFT, fg=GREEN, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            tk.Label(pos, text=str(row.get("positive_case","")), bg=GREEN_SOFT, fg=TEXT, font=("Segoe UI", 8), wraplength=360, justify="left").pack(anchor="w")
+            neg = tk.Frame(cases, bg=RED_SOFT, padx=8, pady=6)
+            neg.pack(fill="x")
+            tk.Label(neg, text="▼ Adverse", bg=RED_SOFT, fg=RED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            tk.Label(neg, text=str(row.get("negative_case","")), bg=RED_SOFT, fg=TEXT, font=("Segoe UI", 8), wraplength=360, justify="left").pack(anchor="w")
+
+            if idx != len(rows) - 1:
+                tk.Frame(body, bg="#EEF2F6", height=1).pack(fill="x", pady=(0, 12))
+        return card
+
+    def _build_timing_tab(self, parent) -> None:
+        intro = tk.Frame(parent, bg=BG)
+        intro.pack(fill="x", padx=18, pady=(18, 12))
+        tk.Label(intro, text="When does each signal become useful?", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="Timing is target-relative: the same metric can be coincident for today's revenue state and leading for a future margin target.",
+            bg=BG,
+            fg=MUTED,
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", pady=(4, 0))
+
+        grid = tk.Frame(parent, bg=BG)
+        grid.pack(fill="both", expand=True, padx=18, pady=(0, 18))
+        for i in range(3):
+            grid.grid_columnconfigure(i, weight=1, uniform="timing")
+        grid.grid_rowconfigure(0, weight=1)
+
+        specs = [
+            ("LEADING", "Early warning", BLUE, BLUE_SOFT),
+            ("COINCIDENT", "Current-state confirmation", TEAL, TEAL_SOFT),
+            ("LAGGING", "Financial confirmation", AMBER, AMBER_SOFT),
+        ]
+        for i, (klass, subtitle, accent, soft) in enumerate(specs):
+            rows = self.indicators[self.indicators["timing_class"] == klass].reset_index(drop=True)
+            card = self._timing_bucket(grid, klass, subtitle, rows, accent, soft)
+            card.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 7, 0 if i == 2 else 7))
+
+    def _scenario_source_card(self, parent, row: pd.Series, scenario: str) -> tk.Frame:
+        validated = str(row["status"]) == "VALIDATED"
+        accent = GREEN if validated else AMBER
+        soft = GREEN_SOFT if validated else AMBER_SOFT
+        card = self._card(parent)
+        body = self._inner(card)
+
+        top = tk.Frame(body, bg=CARD)
+        top.pack(fill="x")
+        tk.Label(top, text=str(row["source_name"]), bg=CARD, fg=TEXT, font=("Segoe UI", 11, "bold")).pack(side="left")
+        self._pill(top, str(row["status"]), accent, soft).pack(side="right")
+
+        tk.Label(body, text=str(row.get("role","")), bg=CARD, fg=MUTED, font=("Segoe UI", 9), wraplength=560, justify="left").pack(anchor="w", pady=(4, 10))
+
+        stats = tk.Frame(body, bg=CARD)
+        stats.pack(fill="x")
+        values = [
+            ("N", str(int(row["sample_size"]))),
+            ("Spearman", "—" if pd.isna(row["spearman"]) else f"{float(row['spearman']):+.2f}"),
+            ("Hit rate", "—" if pd.isna(row["target_direction_hit_rate"]) else f"{float(row['target_direction_hit_rate'])*100:.0f}%"),
+            ("OOS", "—" if pd.isna(row["oos_spearman"]) else f"{float(row['oos_spearman']):+.2f}"),
+            ("FDR q", "—" if pd.isna(row.get("fdr_q")) else f"{float(row['fdr_q']):.3f}"),
+        ]
+        for i, (label, value) in enumerate(values):
+            box = tk.Frame(stats, bg=SLATE_SOFT, padx=8, pady=7)
+            box.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 3, 0 if i == len(values)-1 else 3))
+            stats.grid_columnconfigure(i, weight=1)
+            tk.Label(box, text=label, bg=SLATE_SOFT, fg=MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            fg = RED if label in {"OOS","FDR q"} and not validated else TEXT
+            tk.Label(box, text=value, bg=SLATE_SOFT, fg=fg, font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(2,0))
+
+        transform = f"{row.get('feature_transform','LEVEL')} → {row.get('target_transform','LEVEL')}"
+        trigger = f"{row.get('feature_trigger','')} → {row.get('target_trigger','')}"
+        tk.Label(
+            body,
+            text=f"Transform: {transform}   |   Trigger: {trigger}   |   Lead: {int(row['lag_months'])}M",
+            bg=CARD, fg=MUTED, font=("Segoe UI", 8)
+        ).pack(anchor="w", pady=(9,0))
+        coverage=f"{row.get('first_period','?')} → {row.get('last_period','?')}"
+        tk.Label(
+            body,
+            text=f"Source history: {coverage} · URLs {int(row.get('source_url_count',0))} · PIT: {row.get('knowledge_time_methods','')}",
+            bg=CARD, fg=MUTED, font=("Segoe UI", 8), wraplength=620, justify="left"
+        ).pack(anchor="w", pady=(3,0))
+        return card
+
+    def _build_scenario_tab(self, parent) -> None:
+        intro = tk.Frame(parent, bg=BG)
+        intro.pack(fill="x", padx=18, pady=(18, 12))
+        tk.Label(intro, text="Exploratory basket subsets · independent upside / downside", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="These basket statistics are exploratory. Use Semantics & Stability for Company × Product eligibility, stricter PIT, transform comparison and independent OOS evidence.",
+            bg=BG, fg=MUTED, font=("Segoe UI", 10), wraplength=1450, justify="left"
+        ).pack(anchor="w", pady=(4,0))
+
+        if self.scenarios.empty:
+            empty = self._card(parent)
+            empty.pack(fill="x", padx=18)
+            tk.Label(self._inner(empty), text="Scenario validation results are unavailable.", bg=CARD, fg=MUTED, font=("Segoe UI", 11)).pack(anchor="w")
+            return
+
+        grid = tk.Frame(parent, bg=BG)
+        grid.pack(fill="both", expand=True, padx=18, pady=(0,18))
+        for i in range(2):
+            grid.grid_columnconfigure(i, weight=1, uniform="scenario")
+
+        for col, scenario in enumerate(("UPSIDE","DOWNSIDE")):
+            side = tk.Frame(grid, bg=BG)
+            side.grid(row=0, column=col, sticky="nsew", padx=(0 if col==0 else 7, 7 if col==0 else 0))
+            accent, soft = (GREEN, GREEN_SOFT) if scenario=="UPSIDE" else (RED, RED_SOFT)
+            head = self._card(side, bg=soft)
+            head.pack(fill="x", pady=(0,8))
+            hb = self._inner(head)
+            tk.Label(hb, text=scenario, bg=soft, fg=accent, font=("Segoe UI", 13, "bold")).pack(anchor="w")
+            tk.Label(
+                hb,
+                text="Acceleration / positive operating outcome" if scenario=="UPSIDE" else "Deceleration / negative operating outcome",
+                bg=soft, fg=TEXT, font=("Segoe UI", 9)
+            ).pack(anchor="w", pady=(2,0))
+
+            rows=self.scenarios[self.scenarios["scenario"]==scenario].reset_index(drop=True)
+            for _,row in rows.iterrows():
+                card=self._scenario_source_card(side,row,scenario)
+                card.pack(fill="x", pady=5)
+
+    def _build_coverage_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="What data do we actually have?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="AVAILABLE = usable history; PROXY = usable but not exact; INSUFFICIENT = connected but too short; MISSING = no historical dataset connected.",
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+        tk.Label(intro, text='Calibration dataset coverage only. Reviewed document facts appear separately in Company Research; historical publication proof may remain unavailable.',
+            bg=BG, fg=MUTED, font=('Segoe UI', 9), wraplength=1400, justify='left').pack(anchor='w', pady=(4, 0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("layer","label","importance","status","detail","source")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={"layer":150,"label":310,"importance":90,"status":160,"detail":430,"source":300}
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        tree.pack(fill="both",expand=True)
+        order={"MISSING":0,"INSUFFICIENT_HISTORY":1,"PROXY":2,"NOT_CONNECTED":3,"AVAILABLE":4}
+        data=self.coverage.copy()
+        data["_order"]=data["status"].map(order).fillna(9)
+        data=data.sort_values(["_order","importance","layer"])
+        for _,r in data.iterrows():
+            tree.insert("", "end", values=(r["layer"],r["label"],r["importance"],r["status"],r["detail"],r["source"]))
+
+    def _build_provenance_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Can this data be trusted and reproduced?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text=(
+                "Source class, directness, point-in-time method, observed span and continuity are shown separately. "
+                "Official does not automatically mean model-eligible: proxies remain SUPPORT_ONLY and event data remain EVENT_STUDY_ONLY."
+            ),
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=(
+            "data_id","need_level","status","source_class","directness","model_eligibility",
+            "observation_count","first_period","last_period","gap_count","continuity",
+            "knowledge_time_method","actual_source_hosts","best_source","acquisition_method"
+        )
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={
+            "data_id":190,"need_level":85,"status":145,"source_class":155,"directness":135,
+            "model_eligibility":175,"observation_count":90,"first_period":100,"last_period":100,
+            "gap_count":75,"continuity":145,"knowledge_time_method":220,"actual_source_hosts":210,
+            "best_source":280,"acquisition_method":360
+        }
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        vs=ttk.Scrollbar(frame,orient="vertical",command=tree.yview)
+        hs=ttk.Scrollbar(frame,orient="horizontal",command=tree.xview)
+        tree.configure(yscrollcommand=vs.set,xscrollcommand=hs.set)
+        tree.grid(row=0,column=0,sticky="nsew")
+        vs.grid(row=0,column=1,sticky="ns")
+        hs.grid(row=1,column=0,sticky="ew")
+        frame.grid_rowconfigure(0,weight=1)
+        frame.grid_columnconfigure(0,weight=1)
+
+        order={"PAID_SOURCE_REQUIRED":0,"NOT_YET_ELIGIBLE":1,"SUPPORT_ONLY":2,"EVENT_STUDY_ONLY":3,"VALIDATE_BEFORE_USE":4,"CALIBRATION_ELIGIBLE":5}
+        data=self.provenance.copy()
+        data["_order"]=data["model_eligibility"].map(order).fillna(9)
+        data=data.sort_values(["_order","need_level","data_id"])
+        for _,r in data.iterrows():
+            tree.insert("", "end", values=tuple(r.get(col,"") for col in cols))
+
+        note=self._card(parent,bg=SLATE_SOFT)
+        note.pack(fill="x",padx=18,pady=(0,18))
+        body=self._inner(note)
+        tk.Label(body,text="Verification rule",bg=SLATE_SOFT,fg=TEXT,font=("Segoe UI",10,"bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "To verify a metric: compare Actual Source Hosts / URLs with Best Source, inspect the PIT method, "
+                "then check first/last period and gap count. A proxy can support a thesis but cannot silently replace a direct series."
+            ),
+            bg=SLATE_SOFT,fg=MUTED,font=("Segoe UI",9),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+    def _build_margin_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Does revenue lead gross-margin improvement?",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="This scan uses point-in-time factor-data. For ABF company quarters with verified filings, exact official filing timestamps are used; any remaining proxy method is shown in the result metadata.",
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        if self.margin_scan.empty:
+            card=self._card(parent,bg=AMBER_SOFT)
+            card.pack(fill="x",padx=18)
+            tk.Label(self._inner(card),text="factor-data is not connected locally; Revenue → GM scan unavailable.",bg=AMBER_SOFT,fg=AMBER,font=("Segoe UI",11,"bold")).pack(anchor="w")
+            return
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("feature","target","lag","timing","n","rho","oos","cross","fdr","status")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=20)
+        widths={"feature":190,"target":190,"lag":60,"timing":100,"n":60,"rho":90,"oos":90,"cross":100,"fdr":90,"status":120}
+        for col in cols:
+            tree.heading(col,text=col.title())
+            tree.column(col,width=widths[col],anchor="center")
+        tree.pack(fill="both",expand=True)
+        for _,r in self.margin_scan.iterrows():
+            tree.insert("", "end", values=(
+                r["feature"],r["target"],int(r["lag_quarters"]),r["timing_class"],int(r["sample_size"]),
+                "—" if pd.isna(r["spearman"]) else f"{float(r['spearman']):+.2f}",
+                "—" if pd.isna(r["oos_spearman"]) else f"{float(r['oos_spearman']):+.2f}",
+                f"{float(r['cross_company_sign_share'])*100:.0f}%",
+                "—" if pd.isna(r["fdr_q"]) else f"{float(r['fdr_q']):.3f}",
+                r["status"],
+            ))
+
+    def _company_sensitivity_card(self, parent, row: pd.Series) -> tk.Frame:
+        status = str(row["sensitivity_status"])
+        validated = status == "MAGNITUDE_VALIDATED"
+        accent = GREEN if validated else AMBER
+        soft = GREEN_SOFT if validated else AMBER_SOFT
+
+        card = self._card(parent)
+        body = self._inner(card)
+        top = tk.Frame(body, bg=CARD)
+        top.pack(fill="x")
+        tk.Label(top, text=str(row["company"]), bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(side="left")
+        self._pill(top, "EXPLORATORY PROXY FIT", AMBER, AMBER_SOFT).pack(side="right")
+
+        tk.Label(
+            body,
+            text=f"β  {float(row['beta']):+.2f}",
+            bg=CARD,
+            fg=TEXT,
+            font=("Segoe UI", 22, "bold"),
+        ).pack(anchor="w", pady=(14, 2))
+        upside = scenario_transmission(float(row["beta"]), 10.0)
+        downside = scenario_transmission(float(row["beta"]), -10.0)
+        tk.Label(
+            body,
+            text=f"Illustrative +10ppt shock → linear fit {upside:+.1f}ppt (not upside validation)",
+            bg=CARD,
+            fg=GREEN,
+            font=("Segoe UI", 9, "bold"),
+        ).pack(anchor="w")
+        tk.Label(
+            body,
+            text=f"Illustrative -10ppt shock → linear fit {downside:+.1f}ppt (not downside validation)",
+            bg=CARD,
+            fg=RED,
+            font=("Segoe UI", 9, "bold"),
+        ).pack(anchor="w", pady=(2,0))
+
+        stats = tk.Frame(body, bg=CARD)
+        stats.pack(fill="x", pady=(14, 0))
+        values = [
+            ("95% CI", f"{float(row['beta_ci_low']):+.2f} ~ {float(row['beta_ci_high']):+.2f}"),
+            ("In-sample R²", f"{float(row['r2']):.2f}"),
+            ("OOS R²", f"{float(row['oos_r2']):.2f}"),
+        ]
+        for i, (label, value) in enumerate(values):
+            box = tk.Frame(stats, bg=SLATE_SOFT, padx=10, pady=8)
+            box.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 4, 0 if i == len(values)-1 else 4))
+            stats.grid_columnconfigure(i, weight=1)
+            tk.Label(box, text=label, bg=SLATE_SOFT, fg=MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            fg = RED if label == "OOS R²" and float(row["oos_r2"]) < 0 else TEXT
+            tk.Label(box, text=value, bg=SLATE_SOFT, fg=fg, font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(2, 0))
+        return card
+
+    def _build_sensitivity_tab(self, parent) -> None:
+        intro = tk.Frame(parent, bg=BG)
+        intro.pack(fill="x", padx=18, pady=(18, 12))
+        tk.Label(intro, text="Exploratory revenue sensitivity · company-total proxy", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="Direction and magnitude are separate claims. A positive relationship can be directionally valid while its exact beta remains unstable out-of-sample.",
+            bg=BG,
+            fg=MUTED,
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", pady=(4, 0))
+
+        if self.sensitivity.empty:
+            empty = self._card(parent)
+            empty.pack(fill="x", padx=18)
+            tk.Label(
+                self._inner(empty),
+                text="Historical panel not available. Restore evidence-data history to calculate real sensitivity.",
+                bg=CARD, fg=MUTED, font=("Segoe UI", 11)
+            ).pack(anchor="w")
+            return
+
+        grid = tk.Frame(parent, bg=BG)
+        grid.pack(fill="x", padx=18)
+        for i in range(2):
+            grid.grid_columnconfigure(i, weight=1, uniform="sens")
+        for idx, (_, row) in enumerate(self.sensitivity.iterrows()):
+            card = self._company_sensitivity_card(grid, row)
+            card.grid(row=idx // 2, column=idx % 2, sticky="nsew", padx=(0 if idx % 2 == 0 else 7, 7 if idx % 2 == 0 else 0), pady=7)
+
+        note = self._card(parent, bg=RED_SOFT)
+        note.pack(fill="x", padx=18, pady=(12, 18))
+        body = self._inner(note)
+        tk.Label(body, text="How to read OOS R²", bg=RED_SOFT, fg=RED, font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "OOS = Out-of-Sample: data the beta was not fitted on. "
+                "If OOS R² is below 0, the fixed beta predicts unseen data worse than simply using the test-period average. "
+                "These company-total fits remain exploratory. Company × ABF direction and magnitude require their own evidence gates."
+            ),
+            bg=RED_SOFT, fg=TEXT, font=("Segoe UI", 10), wraplength=1450, justify="left"
+        ).pack(anchor="w", pady=(5, 0))
+
+    def _build_model_audit_tab(self, parent) -> None:
+        intro=tk.Frame(parent,bg=BG)
+        intro.pack(fill="x",padx=18,pady=(18,12))
+        tk.Label(intro,text="Driver / correlation / sensitivity rationality audit",bg=BG,fg=TEXT,font=("Segoe UI",16,"bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text=(
+                "Configured driver weights, empirical correlation and financial sensitivities are different claims. "
+                "This table states what each component is allowed to mean and whether it can be used in the model today."
+            ),
+            bg=BG,fg=MUTED,font=("Segoe UI",10),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+        frame=tk.Frame(parent,bg=BG)
+        frame.pack(fill="both",expand=True,padx=18,pady=(0,18))
+        cols=("type","component","feature","target","lag","metric","assessment","model_use","weight_beta","evidence","why")
+        tree=ttk.Treeview(frame,columns=cols,show="headings",height=22)
+        widths={
+            "type":95,"component":220,"feature":210,"target":220,"lag":65,"metric":250,
+            "assessment":190,"model_use":220,"weight_beta":110,"evidence":260,"why":520
+        }
+        for col in cols:
+            tree.heading(col,text=col.replace("_"," ").title())
+            tree.column(col,width=widths[col],anchor="w")
+        vs=ttk.Scrollbar(frame,orient="vertical",command=tree.yview)
+        hs=ttk.Scrollbar(frame,orient="horizontal",command=tree.xview)
+        tree.configure(yscrollcommand=vs.set,xscrollcommand=hs.set)
+        tree.grid(row=0,column=0,sticky="nsew")
+        vs.grid(row=0,column=1,sticky="ns")
+        hs.grid(row=1,column=0,sticky="ew")
+        frame.grid_rowconfigure(0,weight=1)
+        frame.grid_columnconfigure(0,weight=1)
+
+        for _,r in self.model_audit.iterrows():
+            tree.insert("", "end", values=(
+                r["component_type"],r["component"],r["input_or_feature"],r["target"],r["lag"],r["metric"],
+                r["assessment"],r["model_use"],r["weight_or_beta"],r["empirical_evidence"],r["why"]
+            ))
+
+        note=self._card(parent,bg=AMBER_SOFT)
+        note.pack(fill="x",padx=18,pady=(0,18))
+        body=self._inner(note)
+        tk.Label(body,text="Current ABF interpretation",bg=AMBER_SOFT,fg=AMBER,font=("Segoe UI",10,"bold")).pack(anchor="w")
+        tk.Label(
+            body,
+            text=(
+                "Exploratory basket relation: TPCA PCB Revenue YoY → company-total revenue at +1M. "
+                "Revenue betas are magnitude candidates because current OOS R² is negative. "
+                "Revenue → GM relations are research candidates, not causal or calibrated margin betas. "
+                "Driver weights remain configured assumptions. Cost / supply pressure needs refinement before calibration."
+            ),
+            bg=AMBER_SOFT,fg=TEXT,font=("Segoe UI",9),wraplength=1450,justify="left"
+        ).pack(anchor="w",pady=(4,0))
+
+    def _flow_card(self, parent, step: str, title: str, detail: str, status: str, accent: str, soft: str) -> tk.Frame:
+        card = self._card(parent)
+        body = self._inner(card)
+        top = tk.Frame(body, bg=CARD)
+        top.pack(fill="x")
+        tk.Label(top, text=step, bg=CARD, fg=accent, font=("Segoe UI", 9, "bold")).pack(side="left")
+        self._pill(top, status, accent, soft).pack(side="right")
+        tk.Label(body, text=title, bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(12, 6))
+        tk.Label(body, text=detail, bg=CARD, fg=MUTED, font=("Segoe UI", 9), wraplength=280, justify="left").pack(anchor="w")
+        return card
+
+    def _build_flow_tab(self, parent) -> None:
+        intro = tk.Frame(parent, bg=BG)
+        intro.pack(fill="x", padx=18, pady=(18, 12))
+        tk.Label(intro, text="What each layer is responsible for", bg=BG, fg=TEXT, font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        tk.Label(
+            intro,
+            text="Indicator observes. Driver summarizes economic state. Sensitivity estimates transmission magnitude. The industry model decides where that transmission belongs.",
+            bg=BG, fg=MUTED, font=("Segoe UI", 10)
+        ).pack(anchor="w", pady=(4, 0))
+
+        row = tk.Frame(parent, bg=BG)
+        row.pack(fill="x", padx=18)
+        for i in range(7):
+            row.grid_columnconfigure(i, weight=1 if i % 2 == 0 else 0)
+
+        up_state = self._scenario_status("UPSIDE")
+        down_state = self._scenario_status("DOWNSIDE")
+        indicator_status = f"UP {up_state} / DOWN {down_state}"
+        blocks = [
+            ("01 · INDICATOR", "TPCA PCB Revenue YoY", "Industry proxy with explicit PIT limitations. Each scenario owns its validation result.", indicator_status, BLUE, BLUE_SOFT),
+            ("02 · DRIVER", "ABF End Demand", "Economic state: improving or deteriorating? Confidence comes from evidence breadth and quality.", "STATE", TEAL, TEAL_SOFT),
+            ("03 · SENSITIVITY", "Revenue β", "Exploratory company-total fit. Product direction and magnitude remain uncalibrated.", "PROXY ONLY", AMBER, AMBER_SOFT),
+            ("04 · MODEL", "Revenue → GM → EPS", "Structural routing: Revenue = Volume × ASP; GM depends on utilization, pricing, mix, yield and cost.", "STRUCTURAL", NAVY, SLATE_SOFT),
+        ]
+        for i, block in enumerate(blocks):
+            card = self._flow_card(row, *block)
+            col = i * 2
+            card.grid(row=0, column=col, sticky="nsew")
+            if i < len(blocks) - 1:
+                tk.Label(row, text="→", bg=BG, fg="#98A2B3", font=("Segoe UI", 18, "bold")).grid(row=0, column=col + 1, padx=8)
+
+        status = self._card(parent)
+        status.pack(fill="both", expand=True, padx=18, pady=(16, 18))
+        body = self._inner(status)
+        tk.Label(body, text="ABF calibration ladder", bg=CARD, fg=TEXT, font=("Segoe UI", 13, "bold")).pack(anchor="w")
+        tk.Label(body, text="What is proven today vs what remains research work", bg=CARD, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=(3, 12))
+
+        ladder = [
+            ("Upside leading case", "Own evidence subset / OOS / bootstrap / permutation", up_state, GREEN if up_state=="VALIDATED" else AMBER, GREEN_SOFT if up_state=="VALIDATED" else AMBER_SOFT),
+            ("Downside leading case", "Independently validated; may use different sources", down_state, GREEN if down_state=="VALIDATED" else AMBER, GREEN_SOFT if down_state=="VALIDATED" else AMBER_SOFT),
+            ("Revenue magnitude", "Exact beta / impact size; current OOS R² is below zero", "CANDIDATE", AMBER, AMBER_SOFT),
+            ("Revenue → GM", "Does monthly revenue lead gross-margin expansion?", "NOT CALIBRATED", MUTED, SLATE_SOFT),
+            ("GM → EPS", "How margin improvement propagates to earnings", "NOT CALIBRATED", MUTED, SLATE_SOFT),
+        ]
+        for idx, (name, desc, state, accent, soft) in enumerate(ladder):
+            line = tk.Frame(body, bg=CARD)
+            line.pack(fill="x", pady=6)
+            tk.Label(line, text=f"{idx+1:02d}", bg=CARD, fg="#98A2B3", font=("Segoe UI", 10, "bold"), width=4).pack(side="left")
+            text = tk.Frame(line, bg=CARD)
+            text.pack(side="left", fill="x", expand=True)
+            tk.Label(text, text=name, bg=CARD, fg=TEXT, font=("Segoe UI", 10, "bold")).pack(anchor="w")
+            tk.Label(text, text=desc, bg=CARD, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w")
+            self._pill(line, state, accent, soft).pack(side="right")
+
+
+def launch_abf_research_lab() -> None:
+    AbfResearchLab().mainloop()
+
+
+if __name__ == "__main__":
+    launch_abf_research_lab()

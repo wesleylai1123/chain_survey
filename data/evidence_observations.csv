@@ -1,0 +1,11 @@
+evidence_id,theme,dimension,chain,evidence_group,indicator,as_of_date,signal,source_type,reliability,half_life_days,source,notes
+demo_01,AI Infrastructure,buyer_commitment,Cloud,cloud_capex,Cloud infrastructure capital commitment,2026-09-01,0.70,synthetic_demo,0.75,180,Illustrative demo,Replace with filing-backed evidence
+demo_02,AI Infrastructure,buyer_commitment,Cloud,cloud_capex,Repeated media report of same capex,2026-09-03,0.85,synthetic_demo,0.35,30,Illustrative demo,Same evidence_group demonstrates deduplication
+demo_03,AI Infrastructure,orders_backlog,Compute,gpu_orders,AI accelerator order momentum,2026-09-05,0.65,synthetic_demo,0.65,60,Illustrative demo,Not a real forecast
+demo_04,AI Infrastructure,physical_throughput,Compute,gpu_shipments,AI accelerator physical shipment trend,2026-09-10,0.70,synthetic_demo,0.75,90,Illustrative demo,Not a real forecast
+demo_05,AI Infrastructure,physical_throughput,HBM,hbm_shipments,HBM physical shipment trend,2026-09-10,0.62,synthetic_demo,0.75,90,Illustrative demo,Not a real forecast
+demo_06,AI Infrastructure,physical_throughput,Networking,network_shipments,800G/1.6T shipment trend,2026-09-08,0.55,synthetic_demo,0.70,90,Illustrative demo,Not a real forecast
+demo_07,AI Infrastructure,market_tightness,Foundry,advanced_capacity,Advanced-node capacity tightness,2026-09-09,0.45,synthetic_demo,0.65,75,Illustrative demo,Not a real forecast
+demo_08,AI Infrastructure,market_tightness,ABF,abf_leadtime,ABF lead-time and utilization signal,2026-09-07,0.35,synthetic_demo,0.60,60,Illustrative demo,Not a real forecast
+demo_09,AI Infrastructure,financial_confirmation,Foundry,foundry_revenue,Advanced semiconductor revenue confirmation,2026-08-31,0.40,synthetic_demo,0.70,120,Illustrative demo,Lagging confirmation only
+demo_10,AI Infrastructure,orders_backlog,Cooling,cooling_orders,Liquid-cooling order momentum,2026-09-11,-0.20,synthetic_demo,0.55,60,Illustrative demo,Conflicting evidence example

@@ -1,0 +1,27 @@
+data_id,need_level,model_role,best_source,alternate_source,data_form,directness,current_status,collection_action
+pcb_revenue_yoy,CORE,leading_demand,tpca_industry_history,,monthly_numeric,DIRECT,AVAILABLE,keep existing TPCA backfill
+rigid_pcb_export_yoy,SUPPORTING,leading_demand,tpca_industry_history,customs_trade,monthly_numeric,DIRECT,AVAILABLE,keep TPCA and add customs cross-check
+pcb_material_revenue_yoy,SUPPORTING,leading_demand,tpca_industry_history,moea_glass_industry,monthly_numeric,DIRECT,AVAILABLE,keep TPCA
+ccl_import_export,SUPPORTING,leading_demand,tpca_industry_history,customs_trade,monthly_numeric,DIRECT,AVAILABLE,keep TPCA
+company_monthly_revenue,CORE,coincident,twse_monthly_3037;twse_monthly_3189;twse_monthly_8046,kinsus_monthly;nypcb_ir,monthly_numeric,DIRECT,AVAILABLE,keep TWSE structured feed
+quarterly_margin_history,CORE,financial_confirmation,TWSE/MOPS financial statements,FinMind-derived factor panel,quarterly_numeric,DIRECT,AVAILABLE,keep factor pipeline
+company_inventory_history,SUPPORTING,downside_confirmation,TWSE/MOPS balance sheet,annual reports,quarterly_numeric,DIRECT,AVAILABLE,keep factor pipeline
+quarterly_exact_filing_time,CORE,point_in_time,MOPS document upload timestamps,,event_timestamp,DIRECT,AVAILABLE,keep 78 verified company-quarters
+abf_product_mix_history,CORE,product_bridge,company investor presentations / WebPro,MOPS annual reports,quarterly_or_event_numeric,DIRECT,MISSING,backfill 3037/3189/8046 IR PDFs and videos
+ic_substrate_revenue_mix_history,SUPPORTING,product_bridge,company investor presentations,nypcb_ir;kinsus_ir,quarterly_or_annual_numeric,PROXY,INSUFFICIENT_HISTORY,expand beyond current 3037 four observations
+abf_asp_history,CORE,pricing,company investor-call pricing commentary,major information / secondary discovery,event_or_numeric,PARTIAL,MISSING,collect PRICE_UP PRICE_DOWN PRICE_STABLE and exact ASP only when explicitly disclosed
+abf_volume_history,CORE,volume,nypcb annual report ABF expansion production volume,kinsus ESG total wafer input;company annual reports,annual_numeric,PROXY_OR_PARTIAL,MISSING,create separate direct ABF project volume and company-level production proxy series
+abf_utilization_history,CORE,margin_driver,company investor presentations / WebPro,MOPS investor materials,quarterly_range_or_event,DIRECT,MISSING,backfill utilization exact/range/full events
+abf_capacity_history,SUPPORTING,supply,nypcb annual reports / ABF roadmap; company annual reports,TWSE major info,dated_event_and_numeric,DIRECT,MISSING,extract expansion completion investment and production-volume fields
+abf_backlog_orders,CORE,leading_demand,company investor presentations / Q&A,TWSE major info,event_or_numeric,DIRECT_WHEN_DISCLOSED,MISSING,collect order visibility/backlog events
+abf_lead_time,SUPPORTING,market_tightness,company investor presentations; Ajinomoto IR,secondary discovery,event_or_numeric,PARTIAL,MISSING,event-study only unless repeated numeric weeks/months disclosed
+order_cancellation,CORE,downside_leading,company investor presentations; annual-report market analysis,TWSE major info,event,DIRECT_WHEN_DISCLOSED,MISSING,extract order-cut/customer-cut-inventory statements
+customer_inventory_correction,CORE,downside_leading,company investor presentations; annual reports,TWSE major info,event,DIRECT_WHEN_DISCLOSED,MISSING,extract inventory-correction/de-stocking statements
+abf_raw_material_cost,SUPPORTING,margin_driver,moea_glass_cloth_product;moea_glass_industry,fred_copper;worldbank_copper;ajinomoto_abf_ir,monthly_numeric_and_event,PROXY,MISSING,split into glass-cloth tightness copper price and ABF-film supplier signals
+product_level_inventory,SUPPORTING,downside_confirmation,company investor presentations / annual reports,company inventory total,event_or_numeric,PARTIAL,MISSING,use only explicit product inventory; otherwise keep company inventory as proxy
+consensus_eps,CORE,expectation_gap,TEJ/Bloomberg/FactSet/LSEG,twse_forecast_attainment;twse_forecast_variance,point_in_time_numeric,DIRECT_PAID_OR_PROXY,MISSING,do not synthesize analyst consensus; add free company-forecast proxy separately
+company_guidance_history,SUPPORTING,leading_demand,company investor presentations / WebPro,TWSE major info,event_or_numeric,DIRECT,MISSING,backfill guidance/outlook with publication time
+glass_cloth_tightness,SUPPORTING,upstream_supply,moea_glass_cloth_product,customs_trade,monthly_numeric,DIRECT,NOT_YET_MODELED,add derived inventory-to-sales and implied-price series
+copper_price,SUPPORTING,raw_material_cost,fred_copper,worldbank_copper,monthly_numeric,MACRO_PROXY,NOT_YET_MODELED,add monthly series and lag tests
+abf_film_demand,SUPPORTING,upstream_supply,ajinomoto_abf_ir,ajinomoto_results,quarterly_or_event_numeric,DIRECT_SUPPLIER,NOT_YET_MODELED,extract application mix sales growth and capacity events
+company_forecast_attainment,SUPPORTING,expectation_gap,twse_forecast_attainment,twse_forecast_variance,quarterly_numeric,COMPANY_EXPECTATION_PROXY,NOT_YET_MODELED,use as free expectation-gap proxy separate from analyst consensus

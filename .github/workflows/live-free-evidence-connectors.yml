@@ -1,0 +1,142 @@
+name: Live Free Evidence Connectors
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.workflow, github.run_id) || 'evidence-data-writer' }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    env:
+      RESEARCH_PIPELINE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout application code
+        uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Checkout persistent evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: evidence-data
+          path: evidence-data
+          fetch-depth: 1
+
+      - name: Restore persisted live snapshots and continuity baseline
+        shell: bash
+        run: |
+          mkdir -p code/persistent/free_evidence code/baseline/live
+          if [ -d evidence-data/persistent/free_evidence ]; then
+            cp -a evidence-data/persistent/free_evidence/. code/persistent/free_evidence/
+          fi
+          if [ -d evidence-data/persistent/baselines/live ]; then
+            cp -a evidence-data/persistent/baselines/live/. code/baseline/live/
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: code
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run live connector tests
+        working-directory: code
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_live_free_evidence_connectors.py' -v | tee live-free-evidence-tests.txt
+          python -m unittest discover -s tests -p 'test_live_free_evidence_source_registry.py' -v | tee live-free-evidence-registry-tests.txt
+          python -m unittest discover -s tests -p 'test_moea_official_fallback.py' -v | tee moea-official-fallback-tests.txt
+
+      - name: Collect latest public snapshots
+        working-directory: code
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/collect_free_evidence.py | tee live-free-evidence-collection.txt
+
+      - name: Validate live research pipeline
+        working-directory: code
+        run: |
+          python scripts/validate_research_pipeline.py --pipeline live --output artifacts/live_pipeline_validation.json
+
+      - name: Validate live continuity against last-known-good baseline
+        working-directory: code
+        run: |
+          python scripts/validate_pipeline_continuity.py             --pipeline live             --baseline-dir baseline/live             --output artifacts/live_pipeline_continuity.json
+
+      - name: Build live pipeline run manifest
+        working-directory: code
+        run: |
+          python scripts/build_pipeline_run_manifest.py             --run-id "$RESEARCH_PIPELINE_RUN_ID"             --pipeline live_free_evidence             --input data/free_evidence_sources.json             --input data/company_product_relationships.csv             --input data/company_master.csv             --output artifacts/free_evidence_latest.csv             --output artifacts/free_evidence_collection_status.json             --output artifacts/live_pipeline_validation.json             --output artifacts/live_pipeline_continuity.json             --validation-json artifacts/live_pipeline_validation.json             --validation-json artifacts/live_pipeline_continuity.json             --output-manifest artifacts/live_pipeline_run_manifest.json
+
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk
+
+      - name: Render provenance dashboard
+        working-directory: code
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1800x1000x24" python scripts/free_evidence_ui_smoke.py | tee live-free-evidence-ui-smoke-results.txt
+          grep -q "FREE_EVIDENCE_UI_SMOKE_OK" live-free-evidence-ui-smoke-results.txt
+
+      - name: Upload live evidence preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-free-evidence-preview
+          path: |
+            code/artifacts/free-evidence-dashboard.png
+            code/artifacts/free_evidence_latest.csv
+            code/artifacts/free_evidence_collection_status.json
+            code/artifacts/live_pipeline_validation.json
+            code/artifacts/live_pipeline_continuity.json
+            code/artifacts/live_pipeline_run_manifest.json
+            code/persistent/free_evidence/manifest.json
+            code/persistent/free_evidence/raw/moea_export_orders_*/**
+            code/live-free-evidence-tests.txt
+            code/live-free-evidence-registry-tests.txt
+            code/live-free-evidence-collection.txt
+            code/moea-official-fallback-tests.txt
+            code/live-free-evidence-ui-smoke-results.txt
+          if-no-files-found: warn
+
+      - name: Persist changed raw snapshots to evidence-data
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          rm -rf evidence-data/persistent/free_evidence
+          mkdir -p evidence-data/persistent
+          cp -a code/persistent/free_evidence evidence-data/persistent/free_evidence
+          mkdir -p evidence-data/persistent/run_manifests/live evidence-data/persistent/baselines/live
+          cp code/artifacts/live_pipeline_run_manifest.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.json"
+          cp code/artifacts/live_pipeline_validation.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.validation.json"
+          cp code/artifacts/live_pipeline_continuity.json "evidence-data/persistent/run_manifests/live/$RESEARCH_PIPELINE_RUN_ID.continuity.json"
+          cp code/artifacts/free_evidence_latest.csv evidence-data/persistent/baselines/live/free_evidence_latest.csv
+          cp code/artifacts/free_evidence_collection_status.json evidence-data/persistent/baselines/live/free_evidence_collection_status.json
+          cd evidence-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persistent/free_evidence persistent/run_manifests/live persistent/baselines/live
+          if git diff --cached --quiet; then
+            echo "No new live snapshot"
+          else
+            git commit -m "data: update live free evidence snapshots"
+            git push origin evidence-data
+          fi

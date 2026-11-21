@@ -5,8 +5,72 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from app.gui_app import launch_app
+
+def main() -> None:
+    if "--free-evidence" in sys.argv:
+        from app.free_evidence_dashboard import launch_free_evidence_dashboard
+
+        launch_free_evidence_dashboard()
+        return
+
+    if "--industry-driver" in sys.argv:
+        from app.industry_driver_lab import launch_industry_driver_lab
+
+        launch_industry_driver_lab()
+        return
+
+    if "--demand-evidence" in sys.argv:
+        from app.demand_evidence_lab import launch_demand_evidence_lab
+
+        launch_demand_evidence_lab()
+        return
+
+    if "--abf-research" in sys.argv:
+        from app.abf_research_lab import launch_abf_research_lab
+
+        launch_abf_research_lab()
+        return
+
+    if "--turnaround" in sys.argv:
+        from app.turnaround_radar import launch_turnaround_radar
+
+        launch_turnaround_radar()
+        return
+
+    if "--collection-progress" in sys.argv:
+        from app.collection_progress_dashboard import launch_collection_progress_dashboard
+
+        launch_collection_progress_dashboard()
+        return
+
+    if "--factor-robustness" in sys.argv:
+        from app.factor_robustness_lab import launch_factor_robustness_lab
+
+        launch_factor_robustness_lab()
+        return
+
+    if "--factor-validation" in sys.argv:
+        from app.factor_validation_lab import launch_factor_validation_lab
+
+        launch_factor_validation_lab()
+        return
+
+    if "--panel-correlation" in sys.argv:
+        from app.panel_correlation_lab import launch_panel_correlation_lab
+
+        launch_panel_correlation_lab()
+        return
+
+    if "--correlation" in sys.argv:
+        from app.correlation_lab import launch_correlation_lab
+
+        launch_correlation_lab()
+        return
+
+    from app.gui_app import launch_app
+
+    launch_app()
 
 
 if __name__ == "__main__":
-    launch_app()
+    main()

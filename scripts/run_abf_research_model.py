@@ -1,0 +1,152 @@
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+ROOT=Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+from core.abf_sensitivity_engine import SensitivityConfig, estimate_company_revenue_sensitivities
+from core.indicator_taxonomy import indicator_table
+from core.abf_data_coverage import audit_abf_data_coverage
+from core.abf_margin_transmission import scan_revenue_to_margin
+from core.abf_financial_evidence import reconcile_financial_evidence
+from core.abf_data_provenance import build_abf_data_provenance
+from core.abf_model_audit import build_abf_model_audit
+from core.scenario_evidence_validation import ScenarioValidationConfig, validate_abf_scenarios
+from scripts.run_abf_semantics_validation import main as run_semantics_validation
+from scripts.run_abf_company_survey import export_company_survey
+from datetime import datetime, timezone
+
+HISTORY=ROOT/"data"/"history"/"free_industry_history_panel.csv"
+FACTOR=ROOT/"artifacts"/"factor_validation_dataset.csv"
+OPERATING=ROOT/"data"/"abf_operating_observations.csv"
+FACTS=ROOT/"data"/"abf_company_research_evidence.json"
+FINANCIAL_EVIDENCE=ROOT/'data/abf_quarterly_financial_evidence.json'
+OUT=ROOT/"artifacts"
+
+
+def main() -> None:
+    as_of = datetime.now(timezone.utc).isoformat()
+    run_semantics_validation(['--as-of', as_of])
+    history=pd.read_csv(HISTORY)
+    factor=pd.read_csv(FACTOR) if FACTOR.exists() else pd.DataFrame()
+    if FINANCIAL_EVIDENCE.exists():
+        factor=reconcile_financial_evidence(factor,json.loads(FINANCIAL_EVIDENCE.read_text(encoding='utf-8')),as_of=as_of)
+    operating=pd.read_csv(OPERATING,dtype={"stock_id":str}) if OPERATING.exists() else pd.DataFrame()
+    coverage=audit_abf_data_coverage(history,factor,operating_observations=operating)
+    provenance=build_abf_data_provenance(coverage,history,factor,operating)
+    margin_scan=scan_revenue_to_margin(factor) if not factor.empty else pd.DataFrame()
+    sensitivities=estimate_company_revenue_sensitivities(
+        history,
+        config=SensitivityConfig(),
+    )
+    indicators=indicator_table()
+    scenario_table,scenario_details=validate_abf_scenarios(
+        history,
+        config=ScenarioValidationConfig(),
+    )
+
+    audited=json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8'))
+    model_audit=build_abf_model_audit(sensitivities,margin_scan,scenario_table,comparisons=pd.DataFrame(audited['comparisons']))
+    facts = json.loads(FACTS.read_text(encoding='utf-8')) if FACTS.exists() else []
+    company_survey = export_company_survey(audited, factor, facts, as_of=as_of, output_dir=OUT,
+        input_paths={'audit': OUT/'abf_semantics_validation.json', 'factor': FACTOR, 'facts': FACTS,
+                     'quarterly_financial_evidence':FINANCIAL_EVIDENCE})
+
+    OUT.mkdir(parents=True,exist_ok=True)
+    sensitivities.to_csv(OUT/"abf_revenue_sensitivity.csv",index=False)
+    indicators.to_csv(OUT/"abf_indicator_timing.csv",index=False)
+    coverage.to_csv(OUT/"abf_data_coverage.csv",index=False)
+    provenance.to_csv(OUT/"abf_data_provenance.csv",index=False)
+    model_audit.to_csv(OUT/"abf_model_audit.csv",index=False)
+    margin_scan.to_csv(OUT/"abf_revenue_to_margin_scan.csv",index=False)
+    scenario_table.to_csv(OUT/"abf_scenario_validation.csv",index=False)
+    scenario_json={}
+    for key,value in scenario_details.items():
+        item=dict(value)
+        cross=item.get("cross_company")
+        if isinstance(cross,pd.DataFrame):
+            item["cross_company"]=cross.where(pd.notna(cross),None).to_dict("records")
+        scenario_json[key]=item
+    (OUT/"abf_scenario_validation_details.json").write_text(
+        json.dumps(scenario_json,ensure_ascii=False,indent=2,default=str)+"\n",
+        encoding="utf-8",
+    )
+
+    basket=sensitivities[sensitivities["ticker"]=="ABF"].iloc[0]
+    revenue_status='PROXY_RESEARCH_ONLY_NOT_PRODUCT_CALIBRATED'
+
+    snapshot={
+        "schema_version":"ABFResearchSnapshotV2",
+        'company_survey':company_survey,
+        'audited_semantics':json.loads((OUT/'abf_semantics_validation.json').read_text(encoding='utf-8')),
+        'legacy_fit_policy':'Basket fits below are exploratory; audited Company × Product eligibility controls model use.',
+        "industry_model_id":"ic_substrate_abf_bt",
+        "leading_indicator":{
+            "indicator_id":"tpca_pcb_revenue_yoy",
+            "timing_class":"LEADING",
+            "relative_to":"abf_revenue_yoy_basket",
+            "candidate_lag_months":1,
+            'eligibility':'reject',
+            'evidence_status':'DERIVED'
+        },
+        "driver":{
+            "driver_id":"end_demand",
+            "meaning":"Compute / networking end-demand state",
+            "scenario_validation":scenario_table.where(pd.notna(scenario_table),None).to_dict("records")
+        },
+        "sensitivity":{
+            "model_type":"exploratory_linear_beta_v1",
+            'model_use':'DO_NOT_USE_AS_ABF_PRODUCT_FORECAST',
+            "source_units":"TPCA PCB Revenue YoY percentage points",
+            "target_units":"ABF company revenue YoY percentage points",
+            "rows":sensitivities.where(pd.notna(sensitivities),None).to_dict("records")
+        },
+        "data_coverage":{
+            'scope':'Calibration dataset only; reviewed document facts are shown separately in Company Research and may lack historical publication proof.',
+            "available":int((coverage["status"]=="AVAILABLE").sum()),
+            "proxy":int((coverage["status"]=="PROXY").sum()),
+            "missing":int((coverage["status"]=="MISSING").sum()),
+            "insufficient":int((coverage["status"]=="INSUFFICIENT_HISTORY").sum()),
+            "not_connected":int((coverage["status"]=="NOT_CONNECTED").sum())
+        },
+        "data_provenance":{"rows":provenance.where(pd.notna(provenance),None).to_dict("records")},
+        "model_audit":{"rows":model_audit.where(pd.notna(model_audit),None).to_dict("records")},
+        "margin_transmission":{
+            "rows":margin_scan.where(pd.notna(margin_scan),None).to_dict("records")
+        },
+        "downstream":{
+            "revenue":revenue_status,
+            "gross_margin":"NOT_YET_CALIBRATED",
+            "operating_margin":"NOT_YET_CALIBRATED",
+            "eps":"NOT_YET_CALIBRATED"
+        },
+        "interaction":{
+            "indicator":"Observed point-in-time metric. Timing class is relative to a target.",
+            "driver":"Economic state inferred from one or more indicators. A driver score is not itself a financial beta.",
+            "sensitivity":"Empirical translation from a validated observable driver metric into a downstream operating metric.",
+            "model":"Structural industry equations that determine where each driver and sensitivity belongs in the revenue/margin/EPS chain."
+        }
+    }
+    (OUT/"abf_research_snapshot.json").write_text(json.dumps(snapshot,ensure_ascii=False,indent=2,default=str)+"\n",encoding="utf-8")
+    print("ABF_RESEARCH_MODEL_OK",len(sensitivities),len(indicators),len(scenario_table),len(coverage),len(margin_scan))
+    print("ABF_DATA_COVERAGE")
+    print(coverage[["layer","label","status","detail"]].to_string(index=False))
+    print("ABF_DATA_PROVENANCE")
+    print(provenance[["data_id","status","source_class","directness","model_eligibility","observation_count","first_period","last_period","gap_count","continuity","knowledge_time_method","actual_source_hosts"]].to_string(index=False))
+    print("ABF_MODEL_AUDIT")
+    print(model_audit[["component_type","component","assessment","model_use","metric","empirical_evidence"]].to_string(index=False))
+    if not margin_scan.empty:
+        print("ABF_REVENUE_TO_MARGIN")
+        print(margin_scan[["feature","target","lag_quarters","sample_size","spearman","oos_spearman","cross_company_sign_share","fdr_q","status"]].to_string(index=False))
+    print(scenario_table[["scenario","source_name","sample_size","spearman","target_direction_hit_rate","oos_spearman","status"]].to_string(index=False))
+    print(sensitivities[["company","beta","beta_ci_low","beta_ci_high","r2","oos_r2","impact_per_10ppt_driver"]].to_string(index=False))
+
+
+if __name__=="__main__":
+    main()

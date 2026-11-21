@@ -36,6 +36,16 @@
       "description": "產品與市場暴露關係"
     },
     {
+      "dataset_id": "product_financials",
+      "file": "data/product_financials.csv",
+      "description": "產品層級營收、營收占比、毛利率與毛利，含來源與信心分數"
+    },
+    {
+      "dataset_id": "product_operating_metrics",
+      "file": "data/product_operating_metrics.csv",
+      "description": "產品層級 ASP、volume、utilization、capacity、inventory、backlog 等營運驅動因子"
+    },
+    {
       "dataset_id": "event_templates",
       "file": "data/event_templates.json",
       "description": "事件模板"
@@ -89,6 +99,36 @@
       "dataset_id": "claim_outcomes",
       "file": "data/claim_outcomes.csv",
       "description": "聲明與實際財報的對帳結果"
+    },
+    {
+      "dataset_id": "industry_driver_models",
+      "file": "data/industry_driver_models.json",
+      "description": "產業驅動公式、證據映射與產品經濟橋接模型"
+    },
+    {
+      "dataset_id": "point_in_time_evidence_raw",
+      "file": "data/point_in_time_evidence_raw.csv",
+      "description": "真實官方/公司證據原始值，含 period_date、published_at、來源與轉換前數值"
+    },
+    {
+      "dataset_id": "evidence_observations_real",
+      "file": "data/evidence_observations_real.csv",
+      "description": "由真實 point-in-time evidence 建立的可重現證據表"
+    },
+    {
+      "dataset_id": "free_industry_evidence_snapshot",
+      "file": "data/free_industry_evidence_snapshot.csv",
+      "description": "TPCA 與 TrendForce 公開免費產業證據快照"
+    },
+    {
+      "dataset_id": "evidence_observations_free",
+      "file": "data/evidence_observations_free.csv",
+      "description": "由 MOPS、TPCA、TrendForce 公開資料建立的免費 point-in-time evidence"
+    },
+    {
+      "dataset_id": "evidence_observations_canonical",
+      "file": "data/evidence_observations_canonical.csv",
+      "description": "官方與免費產業證據合併後的 canonical point-in-time evidence"
     }
   ]
 }

@@ -73,6 +73,38 @@ class GuidanceDataLayerTests(unittest.TestCase):
         self.assertEqual(len(loaded), 1)
         self.assertEqual(loaded.iloc[0]["ticker"], "2330.TW")
 
+    def test_loaders_preserve_numeric_only_ids_as_text(self) -> None:
+        doc_id = "000123456789"
+        claim_id = "000234567890"
+        (self.data_dir / "source_documents.csv").write_text(
+            "doc_id,ticker,file_path,source_quarter,call_date\n"
+            f"{doc_id},2330.TW,transcript.pdf,114Q2,2025-07-18\n",
+            encoding="utf-8",
+        )
+        (self.data_dir / "guidance_claims.csv").write_text(
+            "claim_id,doc_id,ticker,source_quarter,target_period,category,product_or_segment,"
+            "direction,quant_low,quant_high,raw_text,status,reviewed_by,reviewed_at\n"
+            f"{claim_id},{doc_id},2330.TW,114Q2,114Q3,revenue_growth,,up,10,15,rev up,confirmed,,\n",
+            encoding="utf-8",
+        )
+        (self.data_dir / "claim_outcomes.csv").write_text(
+            "claim_id,actual_value,match_result,evaluated_at,note\n"
+            f"{claim_id},12,match,2025-10-18,direction matched\n",
+            encoding="utf-8",
+        )
+
+        documents = data_loader.load_source_documents()
+        claims = data_loader.load_guidance_claims()
+        outcomes = data_loader.load_claim_outcomes()
+        for column, actual, expected in (
+            ("source_documents.doc_id", documents.loc[0, "doc_id"], doc_id),
+            ("guidance_claims.doc_id", claims.loc[0, "doc_id"], doc_id),
+            ("guidance_claims.claim_id", claims.loc[0, "claim_id"], claim_id),
+            ("claim_outcomes.claim_id", outcomes.loc[0, "claim_id"], claim_id),
+        ):
+            with self.subTest(column=column):
+                self.assertEqual(actual, expected)
+
     def test_clear_data_caches_clears_guidance_loaders(self) -> None:
         data_loader.load_guidance_claims()
         (self.data_dir / "guidance_claims.csv").write_text(
