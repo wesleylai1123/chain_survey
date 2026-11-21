@@ -13,6 +13,10 @@ if str(ROOT) not in sys.path:
 
 from core import guidance_service
 
+# Output budget for the extraction call. Kept well above the size of a claim
+# list so a long earnings-call transcript cannot truncate the JSON mid-array.
+MAX_OUTPUT_TOKENS = 16000
+
 EXTRACTION_PROMPT_TEMPLATE = """You are extracting forward-looking claims from a Taiwan-listed company's earnings call transcript.
 
 Only extract statements that describe expectations for a FUTURE reporting period (guidance, product-line outlook). Do not extract statements that merely restate already-published historical results.
@@ -65,6 +69,19 @@ def parse_llm_response(raw_text: str) -> list[dict]:
     return parsed
 
 
+def _first_text_block(response) -> str:
+    """Return the text of the first ``text`` content block in an API response.
+
+    ``response.content`` is a list of typed blocks; selecting by position is
+    unsafe because a non-text block (e.g. a thinking block) can precede the
+    text block. Select by ``type`` instead.
+    """
+    block = next((b for b in response.content if getattr(b, "type", None) == "text"), None)
+    if block is None:
+        raise ValueError("Claude response contained no text block to parse")
+    return block.text
+
+
 def extract_claims_for_document(
     client,
     *,
@@ -77,29 +94,38 @@ def extract_claims_for_document(
     transcript_text = extract_text_from_pdf(pdf_path)
     prompt = build_extraction_prompt(transcript_text)
 
+    # claude-sonnet-5 runs adaptive thinking by default when the `thinking`
+    # parameter is omitted, and `max_tokens` is a hard cap on thinking *plus*
+    # response text. This is a deterministic structured-JSON extraction that
+    # needs no extended reasoning, so thinking is disabled explicitly and the
+    # output budget is raised so a long transcript cannot truncate mid-JSON.
     response = client.messages.create(
         model=model,
-        max_tokens=4096,
+        max_tokens=MAX_OUTPUT_TOKENS,
+        thinking={"type": "disabled"},
         messages=[{"role": "user", "content": prompt}],
     )
-    raw_text = response.content[0].text
+    raw_text = _first_text_block(response)
     parsed_claims = parse_llm_response(raw_text)
 
     count = 0
-    for parsed in parsed_claims:
-        guidance_service.add_claim(
-            doc_id=doc_id,
-            ticker=ticker,
-            source_quarter=source_quarter,
-            target_period=parsed["target_period"],
-            category=parsed["category"],
-            product_or_segment=parsed.get("product_or_segment"),
-            direction=parsed["direction"],
-            quant_low=parsed.get("quant_low"),
-            quant_high=parsed.get("quant_high"),
-            raw_text=parsed["raw_text"],
-        )
-        count += 1
+    for index, parsed in enumerate(parsed_claims):
+        try:
+            guidance_service.add_claim(
+                doc_id=doc_id,
+                ticker=ticker,
+                source_quarter=source_quarter,
+                target_period=parsed["target_period"],
+                category=parsed["category"],
+                product_or_segment=parsed.get("product_or_segment"),
+                direction=parsed["direction"],
+                quant_low=parsed.get("quant_low"),
+                quant_high=parsed.get("quant_high"),
+                raw_text=parsed["raw_text"],
+            )
+            count += 1
+        except (KeyError, AttributeError, TypeError, ValueError) as exc:
+            print(f"Skipped claim {index}: {exc}", file=sys.stderr)
     return count
 
 

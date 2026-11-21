@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -23,6 +24,12 @@ def _financials_for_ticker(ticker: str) -> pd.DataFrame:
     return subset
 
 
+def _period_index(period: str) -> int:
+    """Map a ROC period like '114Q3' onto a monotonic quarter index."""
+    year, quarter = parse_period(period)
+    return year * 4 + quarter
+
+
 def _qoq_change(subset: pd.DataFrame, target_period: str, field: str) -> float | None:
     matches = subset.index[subset["period"] == target_period]
     if len(matches) == 0:
@@ -30,8 +37,24 @@ def _qoq_change(subset: pd.DataFrame, target_period: str, field: str) -> float |
     pos = matches[0]
     if pos == 0:
         return None
+
+    # The row before the target is only a valid QoQ baseline if it is the
+    # immediately preceding quarter. quarterly_financials.csv is sparse while
+    # history is backfilled, so a gap (e.g. 113Q4 -> 114Q3) must surface as
+    # unverifiable rather than be silently treated as one quarter's change.
+    current_period = subset.loc[pos, "period"]
+    previous_period = subset.loc[pos - 1, "period"]
+    if _period_index(current_period) - _period_index(previous_period) != 1:
+        return None
+
     current = subset.loc[pos, field]
     previous = subset.loc[pos - 1, field]
+    # gross_margin is computed as gross_profit / revenue, so a zero-revenue
+    # quarter yields NaN. Comparing against NaN would score a confident "miss"
+    # (0.0 in the credibility score) on what is really missing data.
+    if not math.isfinite(current) or not math.isfinite(previous):
+        return None
+
     if field == "revenue":
         if previous == 0:
             return None
@@ -71,6 +94,13 @@ def evaluate_claim(claim: pd.Series) -> tuple[str, float | None, str]:
             return "partial", change, "direction correct, actual value outside claimed range"
         return "match", change, "direction and range consistent" if has_range else "direction consistent"
 
+    # The design spec defines two criteria for the product-line proxy:
+    # (1) cross-quarter consistency of the same product_or_segment, and
+    # (2) correlation with the company-level revenue/margin trend.
+    # Only (2) is implemented in this iteration. Criterion (1) is a known,
+    # deliberately deferred follow-up, not an oversight - see the
+    # "Product-Line Signal: Proxy Methodology" section of
+    # docs/superpowers/specs/2026-08-08-guidance-analysis-design.md.
     if category == "product_line":
         revenue_change = _qoq_change(subset, target_period, "revenue")
         margin_change = _qoq_change(subset, target_period, "gross_margin")

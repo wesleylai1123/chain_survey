@@ -129,6 +129,52 @@ class GuidanceVerificationTests(unittest.TestCase):
         guidance_verification.run_verification()
         self.assertIsNone(guidance_verification.compute_credibility_score("2330.TW"))
 
+    def test_non_adjacent_previous_quarter_is_unverifiable(self) -> None:
+        # 113Q4 -> 114Q3 is a three-quarter gap, not a QoQ baseline. Revenue
+        # rises 15% across the gap, so without an adjacency check this would
+        # score a false "match".
+        header = (
+            "company,ticker,period,revenue,gross_profit,operating_income,pre_tax_income,"
+            "net_income,eps,total_assets,total_liabilities,total_equity,book_value_per_share,"
+            "source_date,source\n"
+        )
+        rows = (
+            "台積電,2330.TW,113Q4,1000,500,400,410,380,10,5000,2000,3000,100,20241018,test\n"
+            "台積電,2330.TW,114Q3,1150,598,470,480,440,11,5200,2100,3100,102,20251018,test\n"
+        )
+        (self.data_dir / "quarterly_financials.csv").write_text(header + rows, encoding="utf-8")
+        data_loader.clear_data_caches()
+
+        claim = self._confirmed_claim()
+        result, actual_value, _note = guidance_verification.evaluate_claim(_as_series(claim))
+        self.assertEqual(result, "unverifiable")
+        self.assertIsNone(actual_value)
+
+    def test_gross_margin_claim_against_nan_baseline_is_unverifiable(self) -> None:
+        # 114Q2 has revenue=0, so its computed gross_margin is NaN. A NaN
+        # baseline must be unverifiable, not a confident "miss".
+        header = (
+            "company,ticker,period,revenue,gross_profit,operating_income,pre_tax_income,"
+            "net_income,eps,total_assets,total_liabilities,total_equity,book_value_per_share,"
+            "source_date,source\n"
+        )
+        rows = (
+            "台積電,2330.TW,114Q2,0,0,0,0,0,0,5000,2000,3000,100,20250718,test\n"
+            "台積電,2330.TW,114Q3,1150,598,470,480,440,11,5200,2100,3100,102,20251018,test\n"
+        )
+        (self.data_dir / "quarterly_financials.csv").write_text(header + rows, encoding="utf-8")
+        data_loader.clear_data_caches()
+
+        claim = self._confirmed_claim(
+            category="gross_margin",
+            direction="up",
+            quant_low=None,
+            quant_high=None,
+        )
+        result, actual_value, _note = guidance_verification.evaluate_claim(_as_series(claim))
+        self.assertEqual(result, "unverifiable")
+        self.assertIsNone(actual_value)
+
 
 def _as_series(row: dict[str, object]):
     import pandas as pd
