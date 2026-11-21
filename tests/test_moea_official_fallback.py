@@ -213,6 +213,12 @@ class MoeaOfficialFallbackTests(unittest.TestCase):
             self.assertNotEqual(first[1]["persistent_path"], second[1]["persistent_path"])
             self.assertEqual(second[1]["fetch_collected_at"], now.isoformat())
             self.assertEqual(second[1]["canonical_available_at"], self.now.isoformat())
+            self.assertEqual(second[1]["retrieval_status"], "FRESH")
+            self.assertEqual(second[0].iloc[0]["last_verified_at"], now.isoformat())
+            manifest = json.loads((root / "raw" / "manifest.json").read_text(encoding="utf-8"))
+            snapshot = manifest["sources"]["moea_export_orders_electronics"]
+            self.assertEqual(snapshot["last_verified_at"], now.isoformat())
+            self.assertEqual(snapshot["collected_at"], self.now.isoformat())
             import hashlib
             raw = collector.ROOT / second[1]["persistent_path"]
             self.assertEqual(hashlib.sha256(raw.read_bytes()).hexdigest(), second[1]["sha256"])

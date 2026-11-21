@@ -1,0 +1,1372 @@
+{
+  "type": "object",
+  "properties": {
+    "contract": {
+      "const": "MultiAssetResultV1"
+    },
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "base_currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "objective": {
+      "enum": [
+        "accumulation",
+        "income"
+      ]
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/instrument"
+      }
+    },
+    "correlations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/correlation"
+      }
+    },
+    "methodology": {
+      "type": "object",
+      "properties": {
+        "return_grid": {
+          "type": "string"
+        },
+        "price_total_return": {
+          "type": "string"
+        },
+        "total_return_index": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "cash": {
+          "type": "string"
+        },
+        "fees": {
+          "type": "string"
+        },
+        "taxes": {
+          "type": "string"
+        },
+        "expense_ratio": {
+          "type": "string"
+        },
+        "volatility": {
+          "type": "string"
+        },
+        "sharpe": {
+          "type": "string"
+        },
+        "sortino": {
+          "type": "string"
+        },
+        "tracking_difference": {
+          "type": "string"
+        },
+        "capm_alpha": {
+          "type": "string"
+        },
+        "payout_statistics": {
+          "type": "string"
+        },
+        "paid_yield": {
+          "type": "string"
+        },
+        "correlation": {
+          "type": "string"
+        },
+        "regimes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "return_grid",
+        "price_total_return",
+        "total_return_index",
+        "currency",
+        "cash",
+        "fees",
+        "taxes",
+        "expense_ratio",
+        "volatility",
+        "sharpe",
+        "sortino",
+        "tracking_difference",
+        "capm_alpha",
+        "payout_statistics",
+        "paid_yield",
+        "correlation",
+        "regimes"
+      ],
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/quality"
+      }
+    }
+  },
+  "required": [
+    "contract",
+    "schema_version",
+    "as_of",
+    "base_currency",
+    "objective",
+    "input_sha256",
+    "instruments",
+    "correlations",
+    "methodology",
+    "quality"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://invest-backtest.local/contracts/multi-asset-result/v1.1",
+  "title": "MultiAssetResultV1",
+  "x-contract-owner": "invest_backtest",
+  "$defs": {
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "total_return": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -1
+        },
+        "annualized_return": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -1
+        },
+        "max_drawdown": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -1,
+          "maximum": 0
+        },
+        "annualized_volatility": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sharpe_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sortino_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "expense_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "gross_paid_cash": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "net_paid_cash": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "return_of_capital_cash": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "earned_income_cash": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "terminal_wealth": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "paid_distribution_yield": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "paid_income_yield": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "payout_cv": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "payout_cut_frequency": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tracking_difference": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tracking_error": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "active_return": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "capm_alpha": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "beta": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "information_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "total_return",
+        "annualized_return",
+        "max_drawdown",
+        "annualized_volatility",
+        "sharpe_ratio",
+        "sortino_ratio",
+        "expense_ratio",
+        "gross_paid_cash",
+        "net_paid_cash",
+        "return_of_capital_cash",
+        "earned_income_cash",
+        "terminal_wealth",
+        "paid_distribution_yield",
+        "paid_income_yield",
+        "payout_cv",
+        "payout_cut_frequency"
+      ],
+      "additionalProperties": false
+    },
+    "instrument": {
+      "type": "object",
+      "properties": {
+        "instrument_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asset_type": {
+          "enum": [
+            "stock",
+            "etf",
+            "fx",
+            "benchmark"
+          ]
+        },
+        "exchange": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quote_currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "domicile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "management_style": {
+          "enum": [
+            "passive",
+            "active",
+            "none"
+          ]
+        },
+        "benchmark_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "return_basis": {
+          "enum": [
+            "split_adjusted_price",
+            "total_return_index",
+            "unadjusted_price"
+          ]
+        },
+        "distributions_complete": {
+          "type": "boolean"
+        },
+        "corporate_actions_complete": {
+          "type": "boolean"
+        },
+        "expense_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "expense_ratio_available_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "fx_base_currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "fx_quote_currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "market": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        },
+        "unavailable": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "returns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/return"
+          }
+        },
+        "rolling_returns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rolling"
+          }
+        },
+        "cash_flows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cash"
+          }
+        },
+        "quality": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/quality"
+          }
+        }
+      },
+      "required": [
+        "instrument_id",
+        "symbol",
+        "name",
+        "asset_type",
+        "exchange",
+        "quote_currency",
+        "domicile",
+        "management_style",
+        "benchmark_id",
+        "return_basis",
+        "distributions_complete",
+        "corporate_actions_complete",
+        "metrics",
+        "unavailable",
+        "returns",
+        "rolling_returns",
+        "cash_flows",
+        "quality"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "total_return"
+                ],
+                "properties": {
+                  "total_return": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "total_return"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "annualized_return"
+                ],
+                "properties": {
+                  "annualized_return": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "annualized_return"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "max_drawdown"
+                ],
+                "properties": {
+                  "max_drawdown": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "max_drawdown"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "annualized_volatility"
+                ],
+                "properties": {
+                  "annualized_volatility": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "annualized_volatility"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "sharpe_ratio"
+                ],
+                "properties": {
+                  "sharpe_ratio": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "sharpe_ratio"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "sortino_ratio"
+                ],
+                "properties": {
+                  "sortino_ratio": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "sortino_ratio"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "expense_ratio"
+                ],
+                "properties": {
+                  "expense_ratio": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "expense_ratio"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "gross_paid_cash"
+                ],
+                "properties": {
+                  "gross_paid_cash": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "gross_paid_cash"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "net_paid_cash"
+                ],
+                "properties": {
+                  "net_paid_cash": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "net_paid_cash"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "return_of_capital_cash"
+                ],
+                "properties": {
+                  "return_of_capital_cash": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "return_of_capital_cash"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "earned_income_cash"
+                ],
+                "properties": {
+                  "earned_income_cash": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "earned_income_cash"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "terminal_wealth"
+                ],
+                "properties": {
+                  "terminal_wealth": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "terminal_wealth"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "paid_distribution_yield"
+                ],
+                "properties": {
+                  "paid_distribution_yield": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "paid_distribution_yield"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "paid_income_yield"
+                ],
+                "properties": {
+                  "paid_income_yield": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "paid_income_yield"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "payout_cv"
+                ],
+                "properties": {
+                  "payout_cv": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "payout_cv"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "payout_cut_frequency"
+                ],
+                "properties": {
+                  "payout_cut_frequency": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "payout_cut_frequency"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "tracking_difference"
+                ],
+                "properties": {
+                  "tracking_difference": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "tracking_difference"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "tracking_error"
+                ],
+                "properties": {
+                  "tracking_error": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "tracking_error"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "active_return"
+                ],
+                "properties": {
+                  "active_return": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "active_return"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "capm_alpha"
+                ],
+                "properties": {
+                  "capm_alpha": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "capm_alpha"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "beta"
+                ],
+                "properties": {
+                  "beta": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "beta"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "metrics": {
+                "required": [
+                  "information_ratio"
+                ],
+                "properties": {
+                  "information_ratio": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable": {
+                "required": [
+                  "information_ratio"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sample": {
+      "type": "object",
+      "properties": {
+        "sample_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -1,
+          "maximum": 1
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "end": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      },
+      "required": [
+        "sample_size",
+        "value",
+        "reason",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "correlation": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "string"
+        },
+        "right": {
+          "type": "string"
+        },
+        "sample_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "full": {
+          "$ref": "#/$defs/sample"
+        },
+        "train": {
+          "$ref": "#/$defs/sample"
+        },
+        "oos": {
+          "$ref": "#/$defs/sample"
+        },
+        "regimes": {
+          "type": "object",
+          "properties": {
+            "risk_on": {
+              "$ref": "#/$defs/sample"
+            },
+            "neutral": {
+              "$ref": "#/$defs/sample"
+            },
+            "risk_off": {
+              "$ref": "#/$defs/sample"
+            }
+          },
+          "required": [
+            "risk_on",
+            "neutral",
+            "risk_off"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "left",
+        "right",
+        "sample_size",
+        "full",
+        "train",
+        "oos",
+        "regimes"
+      ],
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "cash": {
+      "type": "object",
+      "properties": {
+        "ex_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "pay_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "distribution_type": {
+          "enum": [
+            "income",
+            "capital_gain",
+            "return_of_capital",
+            "unknown"
+          ]
+        },
+        "amount_per_unit": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "entitled_units": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fx_rate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "gross_cash": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "net_cash": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "paid",
+            "unavailable",
+            "unknown_pay_date",
+            "not_yet_paid"
+          ]
+        },
+        "reinvested_units": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://[^/ ]+"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "ex_date",
+        "pay_date",
+        "distribution_type",
+        "amount_per_unit",
+        "currency",
+        "gross_cash",
+        "net_cash",
+        "status",
+        "reinvested_units",
+        "source_url",
+        "snapshot_id",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "rolling": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        },
+        "window": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "window",
+        "value",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "return": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "local_return": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "regime": {
+          "enum": [
+            "risk_on",
+            "neutral",
+            "risk_off",
+            null
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "value",
+        "local_return",
+        "regime",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

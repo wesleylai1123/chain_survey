@@ -66,13 +66,15 @@ def build_summary(evidence_root: Path, run_id: str) -> tuple[dict[str,Any],pd.Da
     if frame.empty:
         overall="FAIL"
     elif (
-        frame["manifest_status"].eq("PASS").all()
-        and frame["validation_status"].eq("PASS").all()
+        frame["manifest_status"].isin(["PASS","DEGRADED"]).all()
+        and frame["validation_status"].isin(["PASS","DEGRADED"]).all()
         and frame["continuity_status"].isin(["PASS","DEGRADED"]).all()
         and frame["checks_failed"].eq(0).all()
     ):
         overall="DEGRADED" if (
-            frame["continuity_status"].eq("DEGRADED").any()
+            frame["manifest_status"].eq("DEGRADED").any()
+            or frame["validation_status"].eq("DEGRADED").any()
+            or frame["continuity_status"].eq("DEGRADED").any()
             or frame["checks_degraded"].gt(0).any()
         ) else "PASS"
     else:

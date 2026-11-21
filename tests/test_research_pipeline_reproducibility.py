@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts.build_pipeline_run_manifest import build_manifest, classify_status
-from scripts.collect_free_evidence import persist_if_changed
+from scripts.collect_free_evidence import load_persisted_snapshot, persist_if_changed
 from scripts.extract_abf_operating_candidates import extract_candidates_from_pages
 
 
@@ -32,6 +32,14 @@ class ResearchPipelineReproducibilityTests(unittest.TestCase):
             self.assertEqual(first,second)
             self.assertEqual(canonical1,pd.Timestamp("2026-10-03T00:00:00Z"))
             self.assertEqual(canonical2,canonical1)
+            restored=load_persisted_snapshot(persistent_root=root,source_id="src")
+            self.assertIsNotNone(restored)
+            _,_,_,restored_canonical,last_verified,_=restored
+            self.assertEqual(restored_canonical,canonical1)
+            self.assertEqual(last_verified,pd.Timestamp("2026-10-03T01:00:00Z"))
+            manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["sources"]["src"]["collected_at"],"2026-10-03T00:00:00+00:00")
+            self.assertEqual(manifest["sources"]["src"]["last_verified_at"],"2026-10-03T01:00:00+00:00")
             self.assertEqual(len(list((root/"raw"/"src").glob("*.bin"))),1)
 
     def test_changed_raw_payload_creates_new_snapshot(self):

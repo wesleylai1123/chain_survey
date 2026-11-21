@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 
 
 def main() -> None:
+    if "--multi-asset" in sys.argv:
+        from app.multi_asset_lab import launch_multi_asset_lab
+
+        launch_multi_asset_lab()
+        return
+
     if "--free-evidence" in sys.argv:
         from app.free_evidence_dashboard import launch_free_evidence_dashboard
 

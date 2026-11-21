@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
+from app.topic_impact_tab import TopicImpactTab
 from core.company_service import (
     get_company_products,
     get_company_profile,
@@ -35,10 +36,11 @@ from core.dashboard_service import get_company_financials, latest_snapshot
 from core import data_loader
 from core.data_loader import clear_data_caches, load_companies, load_edges, load_events, load_financials, load_products
 from core.graph_builder import NODE_TYPE_COLOR, build_subgraph
-from core.impact_engine import simulate_event
-from core.product_supply_chain_service import delete_managed_mapping, get_managed_mappings_for_product, upsert_managed_mapping
 from core.guidance_service import confirm_claim, load_guidance_claims, reject_claim, update_claim
 from core.guidance_verification import compute_credibility_score
+from core.impact_engine import simulate_event
+from core.product_supply_chain_service import delete_managed_mapping, get_managed_mappings_for_product, upsert_managed_mapping
+from core.topic_impact import analyze_topic
 
 
 def format_value(value: object) -> str:
@@ -114,6 +116,7 @@ class FundamentalChainApp(tk.Tk):
 
         header = ttk.Frame(root)
         header.pack(fill="x", pady=(0, 12))
+        ttk.Button(header, text="跨資產 / ETF 研究", command=self.open_multi_asset).pack(side="right")
         ttk.Label(header, text="Fundamental Chain Reaction Platform", style="Header.TLabel").pack(anchor="w")
         ttk.Label(
             header,
@@ -128,6 +131,7 @@ class FundamentalChainApp(tk.Tk):
         self.manage_tab = ttk.Frame(notebook, padding=14)
         self.review_tab = ttk.Frame(notebook, padding=14)
         self.event_tab = ttk.Frame(notebook, padding=14)
+        self.topic_impact_tab = TopicImpactTab(notebook, self.company_names, self.event_names, analyze_topic)
         self.graph_tab = ttk.Frame(notebook, padding=14)
 
         notebook.add(self.overview_tab, text="Overview")
@@ -135,6 +139,7 @@ class FundamentalChainApp(tk.Tk):
         notebook.add(self.manage_tab, text="Supply Chain Editor")
         notebook.add(self.review_tab, text="Guidance Review")
         notebook.add(self.event_tab, text="Event Simulator")
+        notebook.add(self.topic_impact_tab, text="題材影響分析")
         notebook.add(self.graph_tab, text="Network Graph")
 
         self._build_overview_tab()
@@ -143,6 +148,11 @@ class FundamentalChainApp(tk.Tk):
         self._build_review_tab()
         self._build_event_tab()
         self._build_graph_tab()
+
+    def open_multi_asset(self) -> None:
+        import subprocess
+        subprocess.Popen([sys.executable, str(ROOT / "app/main.py"), "--multi-asset"],
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
     def _build_overview_tab(self) -> None:
         metrics = ttk.Frame(self.overview_tab)
@@ -704,6 +714,7 @@ class FundamentalChainApp(tk.Tk):
         self.events = load_events()
         self.financials = load_financials()
         self._populate_overview()
+        self.topic_impact_tab.invalidate()
 
     def refresh_management_view(self) -> None:
         company_name = self.manage_company_var.get()

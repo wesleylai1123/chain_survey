@@ -1,0 +1,2931 @@
+{
+  "as_of": "2026-11-20T01:08:20.870459+00:00",
+  "base_currency": "TWD",
+  "contract": "MultiAssetResultV1",
+  "correlations": [
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "00981A.TW",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "USD-TWD",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "00981A.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "USD-TWD",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    }
+  ],
+  "input_sha256": "0dc7ce29c57b8d36e48b2ed484946d1cca80fa0fd7c6ac5a3a5f99fd3d89690e",
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": false,
+      "distributions_complete": false,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "0050.TW",
+      "management_style": "passive",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null,
+        "tracking_difference": null,
+        "tracking_error": null
+      },
+      "name": "元大台灣50",
+      "quality": [
+        {
+          "code": "coverage",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-01"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-07"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-08"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-14"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-15"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-18"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-21"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-23",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-22"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-24",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-23"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-24"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-29"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-30"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-01"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-07"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-08"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-14"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-15"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-19"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-20"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-21"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-27",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-22"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-28",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-27"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-28"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-29"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-30"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-18"
+        }
+      ],
+      "quote_currency": "TWD",
+      "return_basis": "unadjusted_price",
+      "returns": [
+        {
+          "end": "2026-09-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-01",
+          "value": null
+        },
+        {
+          "end": "2026-09-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-02",
+          "value": null
+        },
+        {
+          "end": "2026-09-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-03",
+          "value": null
+        },
+        {
+          "end": "2026-09-07",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-04",
+          "value": null
+        },
+        {
+          "end": "2026-09-08",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-07",
+          "value": null
+        },
+        {
+          "end": "2026-09-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-08",
+          "value": null
+        },
+        {
+          "end": "2026-09-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-09",
+          "value": null
+        },
+        {
+          "end": "2026-09-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-10",
+          "value": null
+        },
+        {
+          "end": "2026-09-14",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-11",
+          "value": null
+        },
+        {
+          "end": "2026-09-15",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-14",
+          "value": null
+        },
+        {
+          "end": "2026-09-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-15",
+          "value": null
+        },
+        {
+          "end": "2026-09-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-16",
+          "value": null
+        },
+        {
+          "end": "2026-09-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-17",
+          "value": null
+        },
+        {
+          "end": "2026-09-21",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-18",
+          "value": null
+        },
+        {
+          "end": "2026-09-22",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-21",
+          "value": null
+        },
+        {
+          "end": "2026-09-23",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-22",
+          "value": null
+        },
+        {
+          "end": "2026-09-24",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-23",
+          "value": null
+        },
+        {
+          "end": "2026-09-29",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-24",
+          "value": null
+        },
+        {
+          "end": "2026-09-30",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-29",
+          "value": null
+        },
+        {
+          "end": "2026-10-01",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-30",
+          "value": null
+        },
+        {
+          "end": "2026-10-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-01",
+          "value": null
+        },
+        {
+          "end": "2026-10-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-02",
+          "value": null
+        },
+        {
+          "end": "2026-10-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-05",
+          "value": null
+        },
+        {
+          "end": "2026-10-07",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-06",
+          "value": null
+        },
+        {
+          "end": "2026-10-08",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-07",
+          "value": null
+        },
+        {
+          "end": "2026-10-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-08",
+          "value": null
+        },
+        {
+          "end": "2026-10-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-12",
+          "value": null
+        },
+        {
+          "end": "2026-10-14",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-13",
+          "value": null
+        },
+        {
+          "end": "2026-10-15",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-14",
+          "value": null
+        },
+        {
+          "end": "2026-10-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-15",
+          "value": null
+        },
+        {
+          "end": "2026-10-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-16",
+          "value": null
+        },
+        {
+          "end": "2026-10-20",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-19",
+          "value": null
+        },
+        {
+          "end": "2026-10-21",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-20",
+          "value": null
+        },
+        {
+          "end": "2026-10-22",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-21",
+          "value": null
+        },
+        {
+          "end": "2026-10-27",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-22",
+          "value": null
+        },
+        {
+          "end": "2026-10-28",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-27",
+          "value": null
+        },
+        {
+          "end": "2026-10-29",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-28",
+          "value": null
+        },
+        {
+          "end": "2026-10-30",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-29",
+          "value": null
+        },
+        {
+          "end": "2026-11-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-30",
+          "value": null
+        },
+        {
+          "end": "2026-11-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-02",
+          "value": null
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-03",
+          "value": null
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-04",
+          "value": null
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-05",
+          "value": null
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-06",
+          "value": null
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-09",
+          "value": null
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-10",
+          "value": null
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-11",
+          "value": null
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-12",
+          "value": null
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-13",
+          "value": null
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-16",
+          "value": null
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-17",
+          "value": null
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-18",
+          "value": null
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2026-10-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-01",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-02",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-03",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-04",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-07",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-08",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-09",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-10",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-11",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-14",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-15",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-16",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-17",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-18",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-27",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-21",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-28",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-22",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-23",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-24",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-29",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-30",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-01",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-02",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-05",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-06",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-07",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-08",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-12",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-13",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-14",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-15",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-16",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-19",
+          "value": null,
+          "window": 21
+        }
+      ],
+      "symbol": "0050",
+      "unavailable": {
+        "annualized_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_volatility": "unadjusted prices do not establish complete split/distribution adjustments",
+        "earned_income_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "max_drawdown": "unadjusted prices do not establish complete split/distribution adjustments",
+        "net_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_distribution_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_income_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cut_frequency": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cv": "unadjusted prices do not establish complete split/distribution adjustments",
+        "return_of_capital_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sharpe_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sortino_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "terminal_wealth": "unadjusted prices do not establish complete split/distribution adjustments",
+        "total_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "tracking_difference": "unadjusted prices do not establish complete split/distribution adjustments",
+        "tracking_error": "unadjusted prices do not establish complete split/distribution adjustments"
+      }
+    },
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "cash_flows": [
+        {
+          "amount_per_unit": 0.63,
+          "currency": "TWD",
+          "distribution_type": "unknown",
+          "entitled_units": null,
+          "ex_date": "2026-09-16",
+          "fx_rate": null,
+          "gross_cash": null,
+          "net_cash": null,
+          "pay_date": "2026-10-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "reinvested_units": null,
+          "snapshot_id": "37e86bf5b4654394bf1ebf2b98575b0ee9cb7794d148dbbbd1bdf03881fdebeb",
+          "source_url": "https://www.twse.com.tw/rwd/zh/ETF/etfDiv?response=json&stkNo=00981A&startDate=20250101&endDate=20261119",
+          "status": "unavailable"
+        }
+      ],
+      "corporate_actions_complete": false,
+      "distributions_complete": false,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "00981A.TW",
+      "management_style": "active",
+      "market": "TW",
+      "metrics": {
+        "active_return": null,
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "beta": null,
+        "capm_alpha": null,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "information_ratio": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null
+      },
+      "name": "主動統一台股增長",
+      "quality": [
+        {
+          "code": "coverage",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-01"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-07"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-08"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-14"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-15"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-18"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-21"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-23",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-22"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-24",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-23"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-24"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-09-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-29"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-01",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-30"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-01"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-07"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-08"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-14"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-15"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-19"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-20"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-21"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-27",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-22"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-28",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-27"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-28"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-10-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-29"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-30"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-18"
+        }
+      ],
+      "quote_currency": "TWD",
+      "return_basis": "unadjusted_price",
+      "returns": [
+        {
+          "end": "2026-09-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-01",
+          "value": null
+        },
+        {
+          "end": "2026-09-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-02",
+          "value": null
+        },
+        {
+          "end": "2026-09-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-03",
+          "value": null
+        },
+        {
+          "end": "2026-09-07",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-04",
+          "value": null
+        },
+        {
+          "end": "2026-09-08",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-07",
+          "value": null
+        },
+        {
+          "end": "2026-09-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-08",
+          "value": null
+        },
+        {
+          "end": "2026-09-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-09",
+          "value": null
+        },
+        {
+          "end": "2026-09-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-10",
+          "value": null
+        },
+        {
+          "end": "2026-09-14",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-11",
+          "value": null
+        },
+        {
+          "end": "2026-09-15",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-14",
+          "value": null
+        },
+        {
+          "end": "2026-09-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-15",
+          "value": null
+        },
+        {
+          "end": "2026-09-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-16",
+          "value": null
+        },
+        {
+          "end": "2026-09-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-17",
+          "value": null
+        },
+        {
+          "end": "2026-09-21",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-18",
+          "value": null
+        },
+        {
+          "end": "2026-09-22",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-21",
+          "value": null
+        },
+        {
+          "end": "2026-09-23",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-22",
+          "value": null
+        },
+        {
+          "end": "2026-09-24",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-23",
+          "value": null
+        },
+        {
+          "end": "2026-09-29",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-24",
+          "value": null
+        },
+        {
+          "end": "2026-09-30",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-29",
+          "value": null
+        },
+        {
+          "end": "2026-10-01",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-09-30",
+          "value": null
+        },
+        {
+          "end": "2026-10-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-01",
+          "value": null
+        },
+        {
+          "end": "2026-10-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-02",
+          "value": null
+        },
+        {
+          "end": "2026-10-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-05",
+          "value": null
+        },
+        {
+          "end": "2026-10-07",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-06",
+          "value": null
+        },
+        {
+          "end": "2026-10-08",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-07",
+          "value": null
+        },
+        {
+          "end": "2026-10-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-08",
+          "value": null
+        },
+        {
+          "end": "2026-10-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-12",
+          "value": null
+        },
+        {
+          "end": "2026-10-14",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-13",
+          "value": null
+        },
+        {
+          "end": "2026-10-15",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-14",
+          "value": null
+        },
+        {
+          "end": "2026-10-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-15",
+          "value": null
+        },
+        {
+          "end": "2026-10-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-16",
+          "value": null
+        },
+        {
+          "end": "2026-10-20",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-19",
+          "value": null
+        },
+        {
+          "end": "2026-10-21",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-20",
+          "value": null
+        },
+        {
+          "end": "2026-10-22",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-21",
+          "value": null
+        },
+        {
+          "end": "2026-10-27",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-22",
+          "value": null
+        },
+        {
+          "end": "2026-10-28",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-27",
+          "value": null
+        },
+        {
+          "end": "2026-10-29",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-28",
+          "value": null
+        },
+        {
+          "end": "2026-10-30",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-29",
+          "value": null
+        },
+        {
+          "end": "2026-11-02",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-10-30",
+          "value": null
+        },
+        {
+          "end": "2026-11-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-02",
+          "value": null
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-03",
+          "value": null
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-04",
+          "value": null
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-05",
+          "value": null
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-06",
+          "value": null
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-09",
+          "value": null
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-10",
+          "value": null
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-11",
+          "value": null
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-12",
+          "value": null
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-13",
+          "value": null
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-16",
+          "value": null
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-17",
+          "value": null
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-18",
+          "value": null
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2026-10-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-01",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-02",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-03",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-07",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-04",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-08",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-07",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-08",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-09",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-14",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-10",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-15",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-11",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-14",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-15",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-16",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-21",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-17",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-22",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-18",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-27",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-21",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-28",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-22",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-29",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-23",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-10-30",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-24",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-02",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-29",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-09-30",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-01",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-02",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-05",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-06",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-07",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-08",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-12",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-13",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-14",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-15",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-16",
+          "value": null,
+          "window": 21
+        },
+        {
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-10-19",
+          "value": null,
+          "window": 21
+        }
+      ],
+      "symbol": "00981A",
+      "unavailable": {
+        "active_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_volatility": "unadjusted prices do not establish complete split/distribution adjustments",
+        "beta": "unadjusted prices do not establish complete split/distribution adjustments",
+        "capm_alpha": "unadjusted prices do not establish complete split/distribution adjustments",
+        "earned_income_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "information_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "max_drawdown": "unadjusted prices do not establish complete split/distribution adjustments",
+        "net_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_distribution_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_income_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cut_frequency": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cv": "unadjusted prices do not establish complete split/distribution adjustments",
+        "return_of_capital_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sharpe_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sortino_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "terminal_wealth": "unadjusted prices do not establish complete split/distribution adjustments",
+        "total_return": "unadjusted prices do not establish complete split/distribution adjustments"
+      }
+    },
+    {
+      "asset_type": "fx",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": null,
+      "fx_base_currency": "USD",
+      "fx_quote_currency": "TWD",
+      "instrument_id": "USD-TWD",
+      "management_style": "none",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": 0.2061920208450445,
+        "annualized_volatility": 0.038370003967960926,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": -0.007872775940796828,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": 0.04138083646824531
+      },
+      "name": "USD/TWD interbank closing spot",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2026-09-02",
+          "local_return": 0.0030031928682072717,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-01",
+          "value": 0.0030031928682072717
+        },
+        {
+          "end": "2026-09-03",
+          "local_return": 0.0008509833585474968,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-02",
+          "value": 0.0008509833585474968
+        },
+        {
+          "end": "2026-09-04",
+          "local_return": -0.003936387970398414,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-03",
+          "value": -0.003936387970398414
+        },
+        {
+          "end": "2026-09-07",
+          "local_return": -0.002466013278533019,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-04",
+          "value": -0.002466013278533019
+        },
+        {
+          "end": "2026-09-08",
+          "local_return": -0.0005387931034482873,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-07",
+          "value": -0.0005387931034482873
+        },
+        {
+          "end": "2026-09-09",
+          "local_return": -0.0009513239257967765,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-08",
+          "value": -0.0009513239257967765
+        },
+        {
+          "end": "2026-09-10",
+          "local_return": 0.001364862720203197,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-09",
+          "value": 0.001364862720203197
+        },
+        {
+          "end": "2026-09-11",
+          "local_return": 0.00285279573982522,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-10",
+          "value": 0.00285279573982522
+        },
+        {
+          "end": "2026-09-14",
+          "local_return": 0.0015803780264238565,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-11",
+          "value": 0.0015803780264238565
+        },
+        {
+          "end": "2026-09-15",
+          "local_return": 0.005049229992426074,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-14",
+          "value": 0.005049229992426074
+        },
+        {
+          "end": "2026-09-16",
+          "local_return": 0.0012559658377293559,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-15",
+          "value": 0.0012559658377293559
+        },
+        {
+          "end": "2026-09-17",
+          "local_return": -0.00021951831409938727,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-16",
+          "value": -0.00021951831409938727
+        },
+        {
+          "end": "2026-09-18",
+          "local_return": -0.0022897650638311617,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-17",
+          "value": -0.0022897650638311617
+        },
+        {
+          "end": "2026-09-21",
+          "local_return": -0.0015719315895372787,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-18",
+          "value": -0.0015719315895372787
+        },
+        {
+          "end": "2026-09-22",
+          "local_return": -0.001574406448768828,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-21",
+          "value": -0.001574406448768828
+        },
+        {
+          "end": "2026-09-23",
+          "local_return": 0.00025230225810535245,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-22",
+          "value": 0.00025230225810535245
+        },
+        {
+          "end": "2026-09-24",
+          "local_return": 0.002017908941859048,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-23",
+          "value": 0.002017908941859048
+        },
+        {
+          "end": "2026-09-29",
+          "local_return": 0.0030207677784770404,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-24",
+          "value": 0.0030207677784770404
+        },
+        {
+          "end": "2026-09-30",
+          "local_return": -0.0007529175555276435,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-29",
+          "value": -0.0007529175555276435
+        },
+        {
+          "end": "2026-10-01",
+          "local_return": -0.0003139520281301156,
+          "reason": null,
+          "regime": null,
+          "start": "2026-09-30",
+          "value": -0.0003139520281301156
+        },
+        {
+          "end": "2026-10-02",
+          "local_return": -0.00037686074995291197,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-01",
+          "value": -0.00037686074995291197
+        },
+        {
+          "end": "2026-10-05",
+          "local_return": -0.0013195098963241225,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-02",
+          "value": -0.0013195098963241225
+        },
+        {
+          "end": "2026-10-06",
+          "local_return": -0.00022020888385554382,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-05",
+          "value": -0.00022020888385554382
+        },
+        {
+          "end": "2026-10-07",
+          "local_return": 0.0004405147729775738,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-06",
+          "value": 0.0004405147729775738
+        },
+        {
+          "end": "2026-10-08",
+          "local_return": 0.0025161188866174022,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-07",
+          "value": 0.0025161188866174022
+        },
+        {
+          "end": "2026-10-12",
+          "local_return": 0.0006274509803920747,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-08",
+          "value": 0.0006274509803920747
+        },
+        {
+          "end": "2026-10-13",
+          "local_return": 0.005957046559021739,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-12",
+          "value": 0.005957046559021739
+        },
+        {
+          "end": "2026-10-14",
+          "local_return": -0.0003740065451145469,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-13",
+          "value": -0.0003740065451145469
+        },
+        {
+          "end": "2026-10-15",
+          "local_return": 0.005986343653540338,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-14",
+          "value": 0.005986343653540338
+        },
+        {
+          "end": "2026-10-16",
+          "local_return": 0.0022625135595846224,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-15",
+          "value": 0.0022625135595846224
+        },
+        {
+          "end": "2026-10-19",
+          "local_return": 0.0033088007916382,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-16",
+          "value": 0.0033088007916382
+        },
+        {
+          "end": "2026-10-20",
+          "local_return": 0.005301279087686739,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-19",
+          "value": 0.005301279087686739
+        },
+        {
+          "end": "2026-10-21",
+          "local_return": -0.0039549927951680885,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-20",
+          "value": -0.0039549927951680885
+        },
+        {
+          "end": "2026-10-22",
+          "local_return": 0.0006156119182467723,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-21",
+          "value": 0.0006156119182467723
+        },
+        {
+          "end": "2026-10-27",
+          "local_return": -0.0017226528854437095,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-22",
+          "value": -0.0017226528854437095
+        },
+        {
+          "end": "2026-10-28",
+          "local_return": -0.0010477012202637637,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-27",
+          "value": -0.0010477012202637637
+        },
+        {
+          "end": "2026-10-29",
+          "local_return": 0.0022826824603614515,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-28",
+          "value": 0.0022826824603614515
+        },
+        {
+          "end": "2026-10-30",
+          "local_return": -0.0004308752923795067,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-29",
+          "value": -0.0004308752923795067
+        },
+        {
+          "end": "2026-11-02",
+          "local_return": 0.0035100683539626143,
+          "reason": null,
+          "regime": null,
+          "start": "2026-10-30",
+          "value": 0.0035100683539626143
+        },
+        {
+          "end": "2026-11-03",
+          "local_return": 0.005154639175257714,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-02",
+          "value": 0.005154639175257714
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": 0.0018620268620268554,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-03",
+          "value": 0.0018620268620268554
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": 0.001675756375491222,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-04",
+          "value": 0.001675756375491222
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": -0.003285071176542087,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-05",
+          "value": -0.003285071176542087
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": 0.00347900390625,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-06",
+          "value": 0.00347900390625
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": -0.0005170001824704729,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-09",
+          "value": -0.0005170001824704729
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": -0.0001521375323293439,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-10",
+          "value": -0.0001521375323293439
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": 0.0008825319537433263,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-11",
+          "value": 0.0008825319537433263
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": -0.0015506704369242508,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-12",
+          "value": -0.0015506704369242508
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": 0.0014617211766856375,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-13",
+          "value": 0.0014617211766856375
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": -0.0010946907498632363,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-16",
+          "value": -0.0010946907498632363
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": 0.0029528158295282214,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-17",
+          "value": 0.0029528158295282214
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": -0.00015175888548280003,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-18",
+          "value": -0.00015175888548280003
+        }
+      ],
+      "rolling_returns": [
+        {
+          "end": "2026-10-02",
+          "reason": null,
+          "start": "2026-09-01",
+          "value": 0.006227673631966635,
+          "window": 21
+        },
+        {
+          "end": "2026-10-05",
+          "reason": null,
+          "start": "2026-09-02",
+          "value": 0.0018910741301056966,
+          "window": 21
+        },
+        {
+          "end": "2026-10-06",
+          "reason": null,
+          "start": "2026-09-03",
+          "value": 0.0008187686978431419,
+          "window": 21
+        },
+        {
+          "end": "2026-10-07",
+          "reason": null,
+          "start": "2026-09-04",
+          "value": 0.00521656655074354,
+          "window": 21
+        },
+        {
+          "end": "2026-10-08",
+          "reason": null,
+          "start": "2026-09-07",
+          "value": 0.010237068965517793,
+          "window": 21
+        },
+        {
+          "end": "2026-10-12",
+          "reason": null,
+          "start": "2026-09-08",
+          "value": 0.011415887109560874,
+          "window": 21
+        },
+        {
+          "end": "2026-10-13",
+          "reason": null,
+          "start": "2026-09-09",
+          "value": 0.018409776225996266,
+          "window": 21
+        },
+        {
+          "end": "2026-10-14",
+          "reason": null,
+          "start": "2026-09-10",
+          "value": 0.01664130848231249,
+          "window": 21
+        },
+        {
+          "end": "2026-10-15",
+          "reason": null,
+          "start": "2026-09-11",
+          "value": 0.019817940451355875,
+          "window": 21
+        },
+        {
+          "end": "2026-10-16",
+          "reason": null,
+          "start": "2026-09-14",
+          "value": 0.020512496844230954,
+          "window": 21
+        },
+        {
+          "end": "2026-10-19",
+          "reason": null,
+          "start": "2026-09-15",
+          "value": 0.01874529012810844,
+          "window": 21
+        },
+        {
+          "end": "2026-10-20",
+          "reason": null,
+          "start": "2026-09-16",
+          "value": 0.02286126442548886,
+          "window": 21
+        },
+        {
+          "end": "2026-10-21",
+          "reason": null,
+          "start": "2026-09-17",
+          "value": 0.019039553338978887,
+          "window": 21
+        },
+        {
+          "end": "2026-10-22",
+          "reason": null,
+          "start": "2026-09-18",
+          "value": 0.022007042253521014,
+          "window": 21
+        },
+        {
+          "end": "2026-10-27",
+          "reason": null,
+          "start": "2026-09-21",
+          "value": 0.021852761508911245,
+          "window": 21
+        },
+        {
+          "end": "2026-10-28",
+          "reason": null,
+          "start": "2026-09-22",
+          "value": 0.022391825406837595,
+          "window": 21
+        },
+        {
+          "end": "2026-10-29",
+          "reason": null,
+          "start": "2026-09-23",
+          "value": 0.02446714592004029,
+          "window": 21
+        },
+        {
+          "end": "2026-10-30",
+          "reason": null,
+          "start": "2026-09-24",
+          "value": 0.021963499056010027,
+          "window": 21
+        },
+        {
+          "end": "2026-11-02",
+          "reason": null,
+          "start": "2026-09-29",
+          "value": 0.0224620404065754,
+          "window": 21
+        },
+        {
+          "end": "2026-11-03",
+          "reason": null,
+          "start": "2026-09-30",
+          "value": 0.028506844154213118,
+          "window": 21
+        },
+        {
+          "end": "2026-11-04",
+          "reason": null,
+          "start": "2026-10-01",
+          "value": 0.03074555618365693,
+          "window": 21
+        },
+        {
+          "end": "2026-11-05",
+          "reason": null,
+          "start": "2026-10-02",
+          "value": 0.03286207979893141,
+          "window": 21
+        },
+        {
+          "end": "2026-11-06",
+          "reason": null,
+          "start": "2026-10-05",
+          "value": 0.03082924373977547,
+          "window": 21
+        },
+        {
+          "end": "2026-11-09",
+          "reason": null,
+          "start": "2026-10-06",
+          "value": 0.03464334036059258,
+          "window": 21
+        },
+        {
+          "end": "2026-11-10",
+          "reason": null,
+          "start": "2026-10-07",
+          "value": 0.03365309010850703,
+          "window": 21
+        },
+        {
+          "end": "2026-11-11",
+          "reason": null,
+          "start": "2026-10-08",
+          "value": 0.030901960784314397,
+          "window": 21
+        },
+        {
+          "end": "2026-11-12",
+          "reason": null,
+          "start": "2026-10-12",
+          "value": 0.03116475936667218,
+          "window": 21
+        },
+        {
+          "end": "2026-11-13",
+          "reason": null,
+          "start": "2026-10-13",
+          "value": 0.023468910705936707,
+          "window": 21
+        },
+        {
+          "end": "2026-11-16",
+          "reason": null,
+          "start": "2026-10-14",
+          "value": 0.025348423907959994,
+          "window": 21
+        },
+        {
+          "end": "2026-11-17",
+          "reason": null,
+          "start": "2026-10-15",
+          "value": 0.018131101813110284,
+          "window": 21
+        },
+        {
+          "end": "2026-11-18",
+          "reason": null,
+          "start": "2026-10-16",
+          "value": 0.01883233347764257,
+          "window": 21
+        },
+        {
+          "end": "2026-11-19",
+          "reason": null,
+          "start": "2026-10-19",
+          "value": 0.015318230852211068,
+          "window": 21
+        }
+      ],
+      "symbol": "USD/TWD",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sharpe_ratio": "annual risk-free rate is unknown",
+        "sortino_ratio": "annual risk-free rate is unknown",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    }
+  ],
+  "methodology": {
+    "capm_alpha": "OLS excess-return intercept * periods_per_year; beta requires varying benchmark",
+    "cash": "buy at first grid close; entitlement captured ex-date before same-day pay-date reinvestment; paid cash within grid window; unadjusted investment prices retain distribution facts but do not establish investment units or cash; spot FX remains a carry-free reference",
+    "correlation": "pairwise common declared intervals; minimum 3; chronological floor(70%) train / remainder OOS; no driver promotion",
+    "currency": "exact-date direct/inverse spot; no triangulation, carry or leverage",
+    "expense_ratio": "point-in-time disclosure only; NAV fees are not deducted again",
+    "fees": "proportional deductions once per named transaction; FX fee on initial foreign purchase and paid cash conversion; reinvestment fee on pay-date purchase",
+    "paid_yield": "365-day paid per-unit base-currency payouts / ending split-adjusted market price in base currency; paid_income excludes ROC and unknown classification",
+    "payout_statistics": "CV population stdev / mean of observed pay-date per-unit base-currency payouts; cuts / adjacent observed payouts, including ROC",
+    "price_total_return": "(end split-adjusted price + interval ex-date payouts) / start price - 1; no intra-interval reinvestment assumed; unadjusted investment prices cannot establish total returns, rolling returns or benchmark comparison, regardless of claimed coverage",
+    "regimes": "fresh records whose economic as_of and availability UTC date both equal interval start; available by midnight start; no label carry; delayed legacy records may have no segments; explicit instrument.market must match; stale source flags preserved",
+    "return_grid": "declared adjacent intervals; consecutive monthly calendar months or daily gaps <=14 calendar days; producer verifies exchange sessions; CAGR uses elapsed days/365.25; no filling or gap bridging",
+    "sharpe": "arithmetic mean excess period return / sample stdev * sqrt(periods_per_year); compounded annual risk-free conversion",
+    "sortino": "all-interval root mean square negative excess return; arithmetic mean excess numerator",
+    "taxes": "uniform user withholding scenario applied to all payouts; no capital-gain liquidation tax inferred",
+    "total_return_index": "index ratios already include distributions; no additions",
+    "tracking_difference": "fund compounded total return minus benchmark compounded total return over full grid",
+    "volatility": "sample standard deviation * sqrt(periods_per_year)"
+  },
+  "objective": "accumulation",
+  "quality": [],
+  "schema_version": "1.1.0"
+}

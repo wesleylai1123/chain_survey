@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def validate_contracts() -> list[tuple[str, str, str]]:
     results: list[tuple[str, str, str]] = []
-    schemas = sorted((ROOT / "contracts").glob("*/v1/schema.json"))
+    schemas = sorted(path for version in ('v1', 'v1.1')
+                     for path in (ROOT / "contracts").glob(f"*/{version}/schema.json"))
     if not schemas:
         raise RuntimeError("no contract schemas found")
 

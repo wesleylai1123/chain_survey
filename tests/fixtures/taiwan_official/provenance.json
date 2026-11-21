@@ -1,0 +1,77 @@
+{
+  "notice": "REAL OFFICIAL RESPONSE FIXTURES; NOT SYNTHETIC; acquisition times are not original publication times.",
+  "sources": [
+    {
+      "name": "price-0050",
+      "kind": "price",
+      "symbol": "0050",
+      "month": "20260901",
+      "source_url": "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=20260901&stockNo=0050",
+      "acquired_at": "2026-11-20T00:53:01.969172+00:00",
+      "status": 200,
+      "sha256": "bf757d6c5bdc5b4b1d8f659e697aa482b025dde1d5aa8bb0e9947882c2212470",
+      "bytes": 2865,
+      "path": "price-0050.json"
+    },
+    {
+      "name": "price-00981A",
+      "kind": "price",
+      "symbol": "00981A",
+      "month": "20260901",
+      "source_url": "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=20260901&stockNo=00981A",
+      "acquired_at": "2026-11-20T00:53:02.843727+00:00",
+      "status": 200,
+      "sha256": "83df9d80d45fa2ad5cccbf5147a798d32bd8f0693e011c62d06fc6f9a9b4fe13",
+      "bytes": 2791,
+      "path": "price-00981A.json"
+    },
+    {
+      "name": "div-0050",
+      "kind": "dividend",
+      "symbol": "0050",
+      "month": null,
+      "source_url": "https://www.twse.com.tw/rwd/zh/ETF/etfDiv?response=json&stkNo=0050&startDate=20250101&endDate=20261119",
+      "acquired_at": "2026-11-20T00:53:03.788991+00:00",
+      "status": 200,
+      "sha256": "a89dce2f9c48d308a4fd1cd05d4d29e27e4e67b33fa3e6eab5879077640ce8cc",
+      "bytes": 5182,
+      "path": "div-0050.json"
+    },
+    {
+      "name": "div-00981A",
+      "kind": "dividend",
+      "symbol": "00981A",
+      "month": null,
+      "source_url": "https://www.twse.com.tw/rwd/zh/ETF/etfDiv?response=json&stkNo=00981A&startDate=20250101&endDate=20261119",
+      "acquired_at": "2026-11-20T00:53:04.736974+00:00",
+      "status": 200,
+      "sha256": "37e86bf5b4654394bf1ebf2b98575b0ee9cb7794d148dbbbd1bdf03881fdebeb",
+      "bytes": 5211,
+      "path": "div-00981A.json"
+    },
+    {
+      "name": "splits",
+      "kind": "splits",
+      "symbol": null,
+      "month": null,
+      "source_url": "https://www.twse.com.tw/rwd/zh/split/TWTCAU?response=json&startDate=20250101&endDate=20261119",
+      "acquired_at": "2026-11-20T00:53:05.648188+00:00",
+      "status": 200,
+      "sha256": "91d12ac5333a7c95e97eb812dedcd26c39210871b825e9ec6745d1241d8f3679",
+      "bytes": 1703,
+      "path": "splits.json"
+    },
+    {
+      "name": "cbc-fx",
+      "kind": "fx",
+      "symbol": null,
+      "month": null,
+      "source_url": "https://cpx.cbc.gov.tw/api/OpenData/FTDOpenData_Day",
+      "acquired_at": "2026-11-20T00:53:06.563031+00:00",
+      "status": 200,
+      "sha256": "a50491450e67b87cf48eca406ad0a27e5791152294cf9236d2b9055ca56781ff",
+      "bytes": 191015,
+      "path": "cbc-fx.json"
+    }
+  ]
+}
