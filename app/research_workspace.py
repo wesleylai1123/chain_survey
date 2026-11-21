@@ -77,8 +77,9 @@ class ResearchWorkspace(tk.Tk):
         style.configure("Quiet.TButton", padding=(10, 7), background="#e8edef", foreground=INK, borderwidth=0)
         style.map("Quiet.TButton", background=[("active", "#d9e4e7")])
 
-    def _label(self, parent, text="", *, size=11, fg=INK, bg=WHITE, bold=False, anchor="w", **kwargs):
-        return tk.Label(parent, text=text, fg=fg, bg=bg, justify="left", anchor=anchor,
+    def _label(self, parent, text="", *, size=11, fg=INK, bg=WHITE, bold=False,
+               anchor="w", justify="left", **kwargs):
+        return tk.Label(parent, text=text, fg=fg, bg=bg, justify=justify, anchor=anchor,
                         font=(self.face, size, "bold" if bold else "normal"), **kwargs)
 
     def _build(self):
@@ -176,6 +177,8 @@ class ResearchWorkspace(tk.Tk):
             row=13, column=0, sticky="ew", padx=16)
 
     def _build_charts(self, parent):
+        self.chart_note = self._label(parent, fg=MUTED, size=10, padx=8)
+        self.chart_note.pack(side="bottom", fill="x", pady=(4, 0))
         titles = tk.Frame(parent, bg=WHITE)
         titles.pack(fill="x")
         titles.columnconfigure((0, 1), uniform="chart", weight=1)
@@ -185,8 +188,6 @@ class ResearchWorkspace(tk.Tk):
         self.scatter, self.rolling = self.figure.subplots(1, 2)
         self.canvas = FigureCanvasTkAgg(self.figure, master=parent)
         self.canvas.get_tk_widget().pack(fill="both", expand=True, pady=(5, 0))
-        self.chart_note = self._label(parent, fg=MUTED, size=10, padx=8)
-        self.chart_note.pack(fill="x", pady=(4, 0))
 
     def _build_scan(self, parent):
         header = tk.Frame(parent, bg=WHITE)
@@ -214,6 +215,10 @@ class ResearchWorkspace(tk.Tk):
         top.pack(fill="x", pady=(0, 8))
         self._label(top, "已對齊的月度樣本", size=13, bold=True).pack(side="left")
         ttk.Button(top, text="匯出樣本 CSV", style="Quiet.TButton", command=self._export).pack(side="right")
+        self.evidence_text = tk.Text(parent, height=4, wrap="word", relief="flat", borderwidth=0,
+                                     bg="#edf3f4", fg=INK, font=(self.face, 10), padx=8, pady=6)
+        self.evidence_text.pack(side="bottom", fill="x", pady=(8, 0))
+        self.evidence_text.configure(state="disabled")
         table = tk.Frame(parent, bg=WHITE)
         table.pack(fill="both", expand=True)
         table.columnconfigure(0, weight=1)
@@ -227,10 +232,6 @@ class ResearchWorkspace(tk.Tk):
         self.tree.configure(yscrollcommand=scroll.set)
         self.tree.grid(row=0, column=0, sticky="nsew")
         scroll.grid(row=0, column=1, sticky="ns")
-        self.evidence_text = tk.Text(parent, height=4, wrap="word", relief="flat", borderwidth=0,
-                                     bg="#edf3f4", fg=INK, font=(self.face, 10), padx=8, pady=6)
-        self.evidence_text.pack(fill="x", pady=(8, 0))
-        self.evidence_text.configure(state="disabled")
         self.tree.bind("<<TreeviewSelect>>", self._show_source)
 
     def _set_dataset(self, dataset):
@@ -386,7 +387,7 @@ class ResearchWorkspace(tk.Tk):
                 shade = "#eef1f2" if value is None else to_hex(HEAT(NORM(value)))
                 label = self._label(cell, ("—" if value is None else f"{value:+.2f}") + f"\n{count}",
                                     size=9, bg=shade, fg=WHITE if value and abs(value) >= .83 else INK,
-                                    anchor="center", pady=4, takefocus=1, cursor="hand2")
+                                    anchor="center", justify="center", pady=4, takefocus=1, cursor="hand2")
                 label.pack(fill="both", expand=True)
                 for trigger in ("<Button-1>", "<Return>", "<space>"):
                     label.bind(trigger, lambda _e, f=feature, l=lag: self._select_cell(f, l))

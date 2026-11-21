@@ -38,6 +38,7 @@ def main():
         capture("analysis")
         assert len(app.scatter.collections) == 2
         assert app.report.rolling.notna().any()
+        assert app.chart_note.winfo_height() >= app.chart_note.winfo_reqheight()
 
         app.geometry("1100x720+0+0")
         app.book.select(1)
@@ -51,6 +52,7 @@ def main():
         app.book.select(2)
         capture("samples")
         assert len(app.tree.get_children()) == len(app.report.samples)
+        assert app.evidence_text.winfo_height() >= app.evidence_text.winfo_reqheight()
         assert "申報期限代理" in app.evidence_text.get("1.0", "end")
     finally:
         app.destroy()
