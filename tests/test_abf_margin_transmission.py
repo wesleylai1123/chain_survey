@@ -36,6 +36,24 @@ class AbfMarginTransmissionTests(unittest.TestCase):
         self.assertIn("monthly_revenue_3m_yoy",set(result["feature"]))
         self.assertIn("gross_margin_qoq",set(result["target"]))
 
+    def test_missing_availability_is_excluded(self) -> None:
+        from core.abf_margin_transmission import _align_company
+        panel=self._panel().query("ticker == '3037.TW'").copy()
+        panel['available_date']=None
+        self.assertTrue(_align_company(panel,'revenue_yoy','gross_margin_qoq',1).empty)
+
+    def test_lag_is_calendar_quarters_not_row_positions(self) -> None:
+        from core.abf_margin_transmission import _align_company
+        panel=self._panel().query("ticker == '3037.TW'").iloc[[0,2,4]].copy()
+        self.assertTrue(_align_company(panel,'revenue_yoy','gross_margin_qoq',1).empty)
+
+    def test_calibration_keeps_company_product_and_unknown_basis(self) -> None:
+        result=scan_revenue_to_margin(self._panel(),config=MarginScanConfig(permutation_iterations=19))
+        self.assertIn('company_product_results', result)
+        self.assertEqual(set(result['product']),{'ABF'})
+        self.assertEqual(set(result['accounting_basis']),{'UNKNOWN'})
+        self.assertNotIn('eligible',set(result['eligibility']))
+
 
 if __name__=="__main__":
     unittest.main()

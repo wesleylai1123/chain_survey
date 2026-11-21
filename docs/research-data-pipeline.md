@@ -123,6 +123,48 @@ For any suspicious metric:
 
 This is the required audit path for production research data.
 
+## MOEA official download fallback
+
+The two MOEA export-order CSV sources retain their original data.gov.tw dataset IDs
+16361 (information/communication) and 16362 (electronics). When metadata, CSV download
+or usable monthly-pair validation fails, the collector can fetch the same series from
+the DGBAS national statistics database, table A050106010. DGBAS is the distributor;
+MOEA remains the statistical producer. The five logical sources and four-source
+minimum health gate are unchanged.
+
+Only USD million monthly levels for commodity 9 (資訊與通信產品) or 6 (電子產品)
+are accepted. The API requires the empty second classification, for example
+`https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M9`.
+The query end advances to the previous completed month. If that last month alone is
+zero/unavailable, the collector requeries live once, ending one month earlier, and
+records `unavailable_period` plus `latest_observation_period`. It never substitutes
+the zero as an observation. Other zero, negative, nonfinite, annual, incomplete,
+wrong-unit and wrong-commodity responses fail closed. A usable latest/prior-year pair
+is required before the raw snapshot is persisted or the source is counted healthy.
+
+On 2026-10-25, all 513 months from 1984-01 through 2026-09 matched each original CSV
+exactly for both commodities (1,026 matching monthly levels). Latest levels were
+43,876 and 47,415 USD million respectively, yielding 87.2881718% and 70.9696030% YoY.
+This cross-source check establishes series equivalence; it does not establish historical
+point-in-time availability or an ABF product relationship.
+
+Collection status retains `primary_source_url`, `primary_error`, `fetch_mode`, the
+actual `source_url`, `distributor`, payload hash, raw path and fetch time. Evidence
+retains `source_distributor` and `source_fetch_mode` alongside its actual source URL.
+The API's `prepared` timestamp is a query time and is never treated as a release time.
+An `observation_sha256` over normalized month/value/unit observations distinguishes
+real data changes from query-metadata changes. Actual changed raw responses are still
+archived under their byte SHA; an unchanged observation set retains its first-seen
+canonical collection time even if `prepared` changes. Newly published/revised observations
+receive the new collection bound. Existing manifests acquire the normalized hash on
+their first verified collection; missing historical hashes never imply earlier knowledge.
+If both government channels fail, the source remains an error; cached bytes
+cannot promote the run to successful live collection. The provenance dashboard shows
+the distributor, fallback mode and original error.
+
+Official API documentation:
+[DGBAS API guide](https://nstatdb.dgbas.gov.tw/dgbasAll/download/API%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf).
+
 
 ## Cross-run continuity
 

@@ -59,14 +59,29 @@ class FreeEvidenceDashboard(tk.Tk):
         source_tab=ttk.Frame(notebook,padding=8); evidence_tab=ttk.Frame(notebook,padding=8)
         notebook.add(source_tab,text="Connector health"); notebook.add(evidence_tab,text="Latest evidence")
 
-        scols=("source_id","provider","status","rows","retrieval_status","stale_age_hours","last_verified_at","error")
+        scols=(
+            "source_id","provider","distributor","fetch_mode","status","rows",
+            "retrieval_status","stale_age_hours","last_verified_at","error",
+        )
         st=ttk.Treeview(source_tab,columns=scols,show="headings",height=12)
-        sw={"source_id":250,"provider":90,"status":110,"rows":65,"retrieval_status":145,"stale_age_hours":110,"last_verified_at":180,"error":560}
+        sw={
+            "source_id":250,"provider":90,"distributor":90,"fetch_mode":150,"status":110,"rows":65,
+            "retrieval_status":145,"stale_age_hours":110,"last_verified_at":180,"error":760,
+        }
         for col in scols:
             st.heading(col,text=col.replace("_"," ").title()); st.column(col,width=sw[col],anchor="w")
-        st.pack(fill="x")
+        source_x=ttk.Scrollbar(source_tab,orient="horizontal",command=st.xview)
+        st.configure(xscrollcommand=source_x.set)
+        st.pack(fill="x"); source_x.pack(fill="x")
         for row in self.status.get("sources",[]):
-            st.insert("","end",values=tuple(row.get(c,"") for c in scols))
+            display=dict(row)
+            display["error"]=row.get("error") or row.get("primary_error", "")
+            st.insert("","end",values=tuple(display.get(c,"") for c in scols))
+        ttk.Label(source_tab,text=(
+            "OFFICIAL_FALLBACK: the primary download failed; the same statistical series was fetched live "
+            "from the listed government distributor. The original error remains visible. "
+            "Evidence source links and raw snapshot hashes identify the actual download."
+        ),wraplength=1550).pack(anchor="w",pady=(8,0))
 
         ecols=(
             "available","source_id","retrieval_status","stale_age_hours","last_verified_at",

@@ -1,0 +1,26 @@
+{
+  "contract": "ABFMetricRegistryV1",
+  "owner": "chain_survey",
+  "analysis_unit": ["company", "product"],
+  "transforms": {
+    "LEVEL": "Identity of the recorded measure. A YoY rate remains a CHANGE measure, never raw revenue.",
+    "CHANGE": "Current minus previous calendar-month recorded rate, in percentage points. Requires both observations and their knowable times."
+  },
+  "financial_metrics": {
+    "operating_cash_flow_ytd": {"measure_kind":"LEVEL", "accounting_basis":"YTD", "return_basis":"NOT_APPLICABLE", "unit":"currency"},
+    "operating_cash_flow": {"measure_kind":"LEVEL", "accounting_basis":"STANDALONE_QUARTER", "return_basis":"NOT_APPLICABLE", "unit":"currency", "requires":"cashflow_basis=DEACCUMULATED_FROM_YTD and adjacent YTD periods"},
+    "gross_margin": {"measure_kind":"LEVEL", "accounting_basis":"UNKNOWN", "return_basis":"NOT_APPLICABLE", "unit":"ratio", "requires":"verified standalone-quarter revenue and gross profit; never assume basis from column name"},
+    "gross_margin_qoq": {"measure_kind":"CHANGE", "accounting_basis":"UNKNOWN", "return_basis":"NOT_APPLICABLE", "unit":"ratio"},
+    "eps": {"measure_kind":"LEVEL", "accounting_basis":"UNKNOWN", "return_basis":"NOT_APPLICABLE", "unit":"currency_per_share"},
+    "future_3m_return": {"measure_kind":"CHANGE", "accounting_basis":"UNKNOWN", "return_basis":"PRICE_RETURN", "unit":"ratio", "requires":"unadjusted price target; excludes dividends; never label as total return"},
+    "future_6m_return": {"measure_kind":"CHANGE", "accounting_basis":"UNKNOWN", "return_basis":"PRICE_RETURN", "unit":"ratio", "requires":"unadjusted price target; excludes dividends; never label as total return"}
+  },
+  "metrics": {
+    "pcb_revenue_yoy": {"source_scope": "INDUSTRY_AGGREGATE", "product": "ABF", "source_product": "PCB", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "INDUSTRY_AGGREGATE", "return_basis": "NOT_APPLICABLE", "is_proxy": true},
+    "rigid_pcb_export_yoy": {"source_scope": "INDUSTRY_AGGREGATE", "product": "ABF", "source_product": "Rigid PCB", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "INDUSTRY_AGGREGATE", "return_basis": "NOT_APPLICABLE", "is_proxy": true},
+    "pcb_material_revenue_yoy": {"source_scope": "INDUSTRY_AGGREGATE", "product": "ABF", "source_product": "PCB material", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "INDUSTRY_AGGREGATE", "return_basis": "NOT_APPLICABLE", "is_proxy": true},
+    "ccl_export_yoy": {"source_scope": "INDUSTRY_AGGREGATE", "product": "ABF", "source_product": "CCL", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "INDUSTRY_AGGREGATE", "return_basis": "NOT_APPLICABLE", "is_proxy": true},
+    "ccl_import_yoy": {"source_scope": "INDUSTRY_AGGREGATE", "product": "ABF", "source_product": "CCL", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "INDUSTRY_AGGREGATE", "return_basis": "NOT_APPLICABLE", "is_proxy": true},
+    "abf_company_revenue_yoy::*": {"source_scope": "COMPANY_TOTAL", "product": "ABF", "source_product": "All company products", "measure_kind": "CHANGE", "change_basis": "YOY", "unit": "percent", "accounting_basis": "CONSOLIDATED_REPORTED", "return_basis": "NOT_APPLICABLE", "is_proxy": true}
+  }
+}

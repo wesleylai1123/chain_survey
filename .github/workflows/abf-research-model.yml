@@ -38,6 +38,11 @@ jobs:
           python scripts/refresh_factor_validation.py             --stocks 3037,3189,8046             --start 2020-01-01             --sleep-seconds 0.1             --cache-dir artifacts/abf_factor_cache             --manifest artifacts/abf_factor_cache_manifest.json             --output artifacts/factor_validation_dataset.csv             --raw-dir artifacts/abf_factor_raw             2>&1 | tee abf-factor-refresh-results.txt
           test -s artifacts/factor_validation_dataset.csv
 
+      - name: Install virtual display tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot tk fonts-noto-cjk
+
       - name: Run ABF timing and sensitivity tests
         shell: bash
         run: |
@@ -51,6 +56,11 @@ jobs:
           python -m unittest discover -s tests -p 'test_abf_model_audit.py' -v | tee abf-model-audit-test-results.txt
           python -m unittest discover -s tests -p 'test_filing_availability.py' -v | tee filing-availability-test-results.txt
           python -m unittest discover -s tests -p 'test_abf_margin_transmission.py' -v | tee abf-margin-transmission-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_margin_validation.py' -v
+          python -m unittest discover -s tests -p 'test_abf_financial_evidence.py' -v
+          xvfb-run -a python -m unittest discover -s tests -p 'test_abf_company_survey*.py' -v | tee abf-company-survey-test-results.txt
+          python -m unittest discover -s tests -p 'test_abf_company_financial_calibration.py' -v
+          python -m unittest discover -s tests -p 'test_abf_research_lab_company_report.py' -v
 
       - name: Build real ABF research snapshot
         shell: bash
@@ -75,7 +85,8 @@ jobs:
           lead=timing[timing.indicator_id=='tpca_pcb_revenue_yoy'].iloc[0]
           assert lead['timing_class']=='LEADING'
           assert int(lead['lag_value'])==1
-          assert lead['evidence_status']=='FULL_SAMPLE_RELATION_VALIDATED'
+          assert lead['evidence_status']=='DERIVED'
+          assert lead['validation_status']=='FULL_SAMPLE_RELATION_VALIDATED'
 
           assert set(sens['ticker'])=={'3037.TW','3189.TW','8046.TW','ABF'}
           assert set(scenarios['scenario'])=={'UPSIDE','DOWNSIDE'}
@@ -90,35 +101,42 @@ jobs:
           assert {'AVAILABLE','PROXY','MISSING','INSUFFICIENT_HISTORY','NOT_CONNECTED'} >= set(coverage['status'])
           assert (coverage['data_id']=='abf_asp_history').any()
           assert coverage.loc[coverage.data_id=='abf_asp_history','status'].iloc[0]=='MISSING'
-          assert coverage.loc[coverage.data_id=='quarterly_exact_filing_time','status'].iloc[0]=='AVAILABLE'
+          # New provider quarters must remain PROXY until their filing is verified.
+          factor=pd.read_csv('artifacts/factor_validation_dataset.csv')
+          exact=(factor['availability_method'].eq('official_filing_timestamp_next_day')
+                 & factor['filing_source_url'].notna() & factor['filing_published_at'].notna())
+          filing=coverage.loc[coverage.data_id=='quarterly_exact_filing_time'].iloc[0]
+          assert len(factor)>0
+          assert filing['status']==('AVAILABLE' if exact.all() else 'PROXY')
+          assert f'verified={int(exact.sum())}/{len(factor)} rows' in filing['detail']
           assert coverage.loc[coverage.data_id=='ic_substrate_revenue_mix_history','status'].iloc[0]=='INSUFFICIENT_HISTORY'
           assert coverage.loc[coverage.data_id=='abf_product_mix_history','status'].iloc[0]=='MISSING'
           assert not margin.empty
           assert set(margin['lag_quarters']) <= {0,1,2}
           assert (sens['beta'] > 0).all()
           assert (sens['beta_ci_low'] > 0).all()
-          assert snap['downstream']['revenue'] in {
-              'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE',
-              'DIRECTION_AND_MAGNITUDE_VALIDATED'
-          }
-          basket=sens[sens.ticker=='ABF'].iloc[0]
-          expected=(
-              'DIRECTION_AND_MAGNITUDE_VALIDATED'
-              if bool(basket['magnitude_validation_pass'])
-              else 'DIRECTION_VALIDATED_MAGNITUDE_CANDIDATE'
-          )
-          assert snap['downstream']['revenue']==expected
+          assert snap['downstream']['revenue']=='PROXY_RESEARCH_ONLY_NOT_PRODUCT_CALIBRATED'
+          assert snap['schema_version']=='ABFResearchSnapshotV2'
+          audit=snap['audited_semantics']
+          assert len(audit['comparisons'])==120
+          assert all(r['product']=='ABF' and r['company'] in {'3037.TW','3189.TW','8046.TW'} for r in audit['comparisons'])
+          assert all(r['eligibility']!='eligible' for r in audit['comparisons'])
           assert snap['downstream']['gross_margin']=='NOT_YET_CALIBRATED'
+          survey=snap['company_survey']
+          assert survey['contract']=='ABFCompanySurveyV1'
+          assert {c['company'] for c in survey['companies']}=={'3037.TW','3189.TW','8046.TW'}
+          assert sum(len(c['primary_facts']) for c in survey['companies'])==39
+          assert len(audit['margin_validation']['comparisons'])==72
+          assert all(r['forecast_beta'] is None for r in audit['margin_validation']['comparisons'])
+          assert sum(c['financial_context']['basis_coverage']['verified_standalone'] for c in survey['companies'])==12
+          assert all(c['financial_bridge']['status']=='NOT_CALIBRATED' for c in survey['companies'])
+          direct=[f for c in survey['companies'] for f in c['primary_facts'] if f['metric_id']=='abf_product_mix']
+          assert len(direct)==3 and all(not f['is_proxy'] and not f['pit_exact'] for f in direct)
 
           print('ABF_RESEARCH_OUTPUTS_OK')
           assert set(sens['direction_status'])=={'SUPPORTED_BY_VALIDATED_DRIVER'}
           print(sens[['company','beta','beta_ci_low','beta_ci_high','r2','oos_r2','oos_directional_corr','sensitivity_status','impact_per_10ppt_driver']].to_string(index=False))
           PY
-
-      - name: Install virtual display tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb scrot tk
 
       - name: Render ABF Research Lab
         shell: bash
@@ -126,6 +144,7 @@ jobs:
           set -o pipefail
           xvfb-run -a --server-args="-screen 0 1600x1000x24" python scripts/abf_research_ui_smoke.py | tee abf-research-ui-smoke-results.txt
           grep -q "ABF_RESEARCH_UI_SMOKE_OK" abf-research-ui-smoke-results.txt
+          xvfb-run -a --server-args="-screen 0 1700x1100x24" python scripts/abf_company_survey_ui_smoke.py
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -141,12 +160,24 @@ jobs:
             artifacts/abf_revenue_to_margin_scan.csv
             artifacts/abf_scenario_validation.csv
             artifacts/abf_scenario_validation_details.json
+            artifacts/abf_semantics_validation.json
+            artifacts/abf_semantics_validation.html
+            artifacts/abf_transform_comparison.csv
+            artifacts/abf_calibration_handoff.json
+            artifacts/abf_margin_validation.json
+            artifacts/abf_financial_reconciliation.json
+            artifacts/abf_downside_source_priorities.json
+            artifacts/abf-semantics-stability.png
             artifacts/abf-indicator-timing.png
             artifacts/abf-scenario-evidence.png
             artifacts/abf-data-coverage.png
             artifacts/abf-revenue-to-gm.png
             artifacts/abf-revenue-sensitivity.png
             artifacts/abf-driver-sensitivity-model.png
+            artifacts/abf_company_survey.*
+            artifacts/abf-company-survey-*.png
+            artifacts/abf-company-survey-ui-smoke.json
+            abf-company-survey-test-results.txt
             indicator-taxonomy-test-results.txt
             directional-indicator-test-results.txt
             scenario-evidence-validation-test-results.txt

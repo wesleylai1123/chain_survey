@@ -22,7 +22,9 @@ def main() -> None:
     if int(app.status.get("sources_ok",0)) < 1:
         raise RuntimeError("No live free evidence source succeeded")
     OUT.parent.mkdir(parents=True,exist_ok=True)
-    if shutil.which("scrot"):
+    if sys.platform == "win32":
+        ImageGrab.grab(window=app.winfo_id()).save(OUT)
+    elif shutil.which("scrot"):
         subprocess.run(["scrot",str(OUT)],check=True)
     else:
         ImageGrab.grab().save(OUT)
