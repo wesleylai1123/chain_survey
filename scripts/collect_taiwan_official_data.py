@@ -1,4 +1,4 @@
-"""Capture official Taiwan ETF/FX data or verify an offline frozen capture."""
+"""Capture official Taiwan ETF/FX data and optional ETF context, or verify an offline capture."""
 import argparse
 from pathlib import Path
 import sys
@@ -15,6 +15,8 @@ def main():
     parser.add_argument('--end')
     parser.add_argument('--base-currency', choices=['TWD', 'USD'], default='TWD')
     parser.add_argument('--output-dir', type=Path, default=ROOT/'artifacts/official-data')
+    parser.add_argument('--include-etf-context', action='store_true',
+        help='Include official NAV and independent total-return indices in live collection')
     parser.add_argument('--replay', type=Path)
     args = parser.parse_args()
     try:
@@ -25,7 +27,7 @@ def main():
             if not args.start or not args.end:
                 parser.error('--start and --end are required for live collection')
             path = capture_official_data(args.symbols.split(','), args.start, args.end, args.output_dir,
-                base_currency=args.base_currency)
+                base_currency=args.base_currency, include_etf_context=args.include_etf_context)
             print(f'OFFICIAL_CAPTURE_OK manifest={path}')
         return 0
     except (ValueError, OSError, KeyError) as exc:
