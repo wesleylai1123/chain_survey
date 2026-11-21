@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import sys
 import tkinter as tk
 from pathlib import Path
@@ -32,8 +33,11 @@ from core.company_insights import (
     get_upstream_partners,
 )
 from core.dashboard_service import get_company_financials, latest_snapshot
+from core import data_loader
 from core.data_loader import clear_data_caches, load_companies, load_edges, load_events, load_financials, load_products
 from core.graph_builder import NODE_TYPE_COLOR, build_subgraph
+from core.guidance_service import confirm_claim, load_guidance_claims, reject_claim, update_claim
+from core.guidance_verification import compute_credibility_score
 from core.impact_engine import simulate_event
 from core.product_supply_chain_service import delete_managed_mapping, get_managed_mappings_for_product, upsert_managed_mapping
 from core.topic_impact import analyze_topic
@@ -43,6 +47,8 @@ def format_value(value: object) -> str:
     if value is None:
         return "-"
     if isinstance(value, float):
+        if math.isnan(value):
+            return "-"
         return f"{value:.3f}".rstrip("0").rstrip(".")
     return str(value)
 
@@ -88,6 +94,7 @@ class FundamentalChainApp(tk.Tk):
             self.refresh_company_view()
             self.refresh_graph_view()
             self.refresh_management_view()
+            self.refresh_review_view()
 
         if self.event_names:
             self.event_var.set(self.event_names[0])
@@ -122,6 +129,7 @@ class FundamentalChainApp(tk.Tk):
         self.overview_tab = ttk.Frame(notebook, padding=14)
         self.company_tab = ttk.Frame(notebook, padding=14)
         self.manage_tab = ttk.Frame(notebook, padding=14)
+        self.review_tab = ttk.Frame(notebook, padding=14)
         self.event_tab = ttk.Frame(notebook, padding=14)
         self.topic_impact_tab = TopicImpactTab(notebook, self.company_names, self.event_names, analyze_topic)
         self.graph_tab = ttk.Frame(notebook, padding=14)
@@ -129,6 +137,7 @@ class FundamentalChainApp(tk.Tk):
         notebook.add(self.overview_tab, text="Overview")
         notebook.add(self.company_tab, text="Company Explorer")
         notebook.add(self.manage_tab, text="Supply Chain Editor")
+        notebook.add(self.review_tab, text="Guidance Review")
         notebook.add(self.event_tab, text="Event Simulator")
         notebook.add(self.topic_impact_tab, text="題材影響分析")
         notebook.add(self.graph_tab, text="Network Graph")
@@ -136,6 +145,7 @@ class FundamentalChainApp(tk.Tk):
         self._build_overview_tab()
         self._build_company_tab()
         self._build_management_tab()
+        self._build_review_tab()
         self._build_event_tab()
         self._build_graph_tab()
 
@@ -246,12 +256,14 @@ class FundamentalChainApp(tk.Tk):
         product_view_frame = ttk.Frame(relation_notebook, padding=8)
         company_event_frame = ttk.Frame(relation_notebook, padding=8)
         chain_event_frame = ttk.Frame(relation_notebook, padding=8)
+        guidance_tracker_frame = ttk.Frame(relation_notebook, padding=8)
 
         relation_notebook.add(upstream_frame, text="Upstream")
         relation_notebook.add(downstream_frame, text="Downstream")
         relation_notebook.add(product_view_frame, text="Products & Markets")
         relation_notebook.add(company_event_frame, text="Company Impact")
         relation_notebook.add(chain_event_frame, text="Chain Impact")
+        relation_notebook.add(guidance_tracker_frame, text="Guidance Tracker")
 
         self.upstream_tree = self._create_tree(
             upstream_frame,
@@ -273,6 +285,21 @@ class FundamentalChainApp(tk.Tk):
             chain_event_frame,
             ("event", "role", "company", "seed_source", "macro_factor", "direction", "layer", "impact_score", "sector", "industry", "reason"),
         )
+
+        score_row = ttk.Frame(guidance_tracker_frame)
+        score_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(score_row, text="Guidance Credibility Score (trailing 8 quarters):", style="Subhead.TLabel").pack(side="left")
+        self.guidance_score_label = ttk.Label(score_row, text="-")
+        self.guidance_score_label.pack(side="left", padx=(8, 0))
+
+        self.guidance_tracker_tree = self._create_tree(
+            guidance_tracker_frame,
+            ("source_quarter", "target_period", "category", "product_or_segment", "direction", "match_result", "note"),
+        )
+        self.guidance_tracker_tree.tag_configure("match_row", background="#d1fae5")
+        self.guidance_tracker_tree.tag_configure("partial_row", background="#fef3c7")
+        self.guidance_tracker_tree.tag_configure("miss_row", background="#fecaca")
+        self.guidance_tracker_tree.tag_configure("pending_row", background="#e5e7eb")
 
     def _build_management_tab(self) -> None:
         controls = ttk.Frame(self.manage_tab)
@@ -365,6 +392,76 @@ class FundamentalChainApp(tk.Tk):
             context_box,
             ("context_role", "counterparty_company", "counterparty_product", "direction", "relation", "weight", "rationale", "updated_at"),
         )
+
+    def _build_review_tab(self) -> None:
+        controls = ttk.Frame(self.review_tab)
+        controls.pack(fill="x", pady=(0, 12))
+        ttk.Button(controls, text="Refresh Queue", command=self.refresh_review_view).pack(side="left")
+
+        body = ttk.Frame(self.review_tab)
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=3)
+        body.columnconfigure(1, weight=2)
+        body.rowconfigure(0, weight=1)
+
+        queue_box = ttk.LabelFrame(body, text="Pending Claims", padding=12)
+        queue_box.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        self.review_queue_tree = self._create_tree(
+            queue_box,
+            ("claim_id", "ticker", "source_quarter", "target_period", "category", "product_or_segment", "direction", "quant_low", "quant_high"),
+        )
+        self.review_queue_tree.bind("<<TreeviewSelect>>", self._on_review_claim_selected)
+
+        detail_box = ttk.LabelFrame(body, text="Claim Detail", padding=12)
+        detail_box.grid(row=0, column=1, sticky="nsew")
+
+        ttk.Label(detail_box, text="Raw Text", style="Subhead.TLabel").pack(anchor="w")
+        self.review_raw_text = tk.Text(detail_box, height=8, wrap="word")
+        self.review_raw_text.pack(fill="both", expand=True, pady=(4, 12))
+        self.review_raw_text.configure(state="disabled")
+
+        form = ttk.Frame(detail_box)
+        form.pack(fill="x")
+        for idx in range(2):
+            form.columnconfigure(idx, weight=1)
+
+        ttk.Label(form, text="Category").grid(row=0, column=0, sticky="w")
+        self.review_category_var = tk.StringVar()
+        ttk.Combobox(
+            form,
+            textvariable=self.review_category_var,
+            values=("revenue_growth", "gross_margin", "product_line", "capex", "other"),
+            state="readonly",
+        ).grid(row=1, column=0, sticky="ew", padx=(0, 10))
+
+        ttk.Label(form, text="Direction").grid(row=0, column=1, sticky="w")
+        self.review_direction_var = tk.StringVar()
+        ttk.Combobox(
+            form,
+            textvariable=self.review_direction_var,
+            values=("up", "down", "flat"),
+            state="readonly",
+        ).grid(row=1, column=1, sticky="ew")
+
+        ttk.Label(form, text="Product / Segment").grid(row=2, column=0, sticky="w", pady=(10, 0))
+        self.review_product_var = tk.StringVar()
+        ttk.Entry(form, textvariable=self.review_product_var).grid(row=3, column=0, sticky="ew", padx=(0, 10))
+
+        ttk.Label(form, text="Quant Low / High").grid(row=2, column=1, sticky="w", pady=(10, 0))
+        quant_frame = ttk.Frame(form)
+        quant_frame.grid(row=3, column=1, sticky="ew")
+        self.review_quant_low_var = tk.StringVar()
+        self.review_quant_high_var = tk.StringVar()
+        ttk.Entry(quant_frame, textvariable=self.review_quant_low_var, width=8).pack(side="left")
+        ttk.Entry(quant_frame, textvariable=self.review_quant_high_var, width=8).pack(side="left", padx=(6, 0))
+
+        button_row = ttk.Frame(detail_box)
+        button_row.pack(fill="x", pady=(12, 0))
+        ttk.Button(button_row, text="Save Edits", command=self._save_review_edits).pack(side="left")
+        ttk.Button(button_row, text="Confirm", command=self._confirm_selected_claim).pack(side="left", padx=(8, 0))
+        ttk.Button(button_row, text="Reject", command=self._reject_selected_claim).pack(side="left", padx=(8, 0))
+
+        self.review_selected_claim_id: str | None = None
 
     def _build_event_tab(self) -> None:
         controls = ttk.Frame(self.event_tab)
@@ -541,6 +638,39 @@ class FundamentalChainApp(tk.Tk):
             label.configure(text=format_value(snapshot.get(key)))
 
         self._draw_financial_chart(financials, company_name)
+        self.refresh_guidance_tracker(company_name)
+
+    def refresh_guidance_tracker(self, company_name: str) -> None:
+        ticker = self.company_tickers.get(company_name)
+        if not ticker:
+            self.guidance_score_label.configure(text="-")
+            fill_tree(self.guidance_tracker_tree, [])
+            return
+
+        score = compute_credibility_score(ticker)
+        self.guidance_score_label.configure(text="-" if score is None else f"{score:.2f}")
+
+        claims = load_guidance_claims()
+        claims = claims[(claims["ticker"] == ticker) & (claims["status"] == "confirmed")] if not claims.empty else claims
+        outcomes = data_loader.load_claim_outcomes()
+        merged = claims.merge(outcomes, on="claim_id", how="left") if not claims.empty else claims
+
+        row_tag_by_result = {
+            "match": "match_row",
+            "partial": "partial_row",
+            "miss": "miss_row",
+            "unverifiable": "pending_row",
+        }
+
+        clear_tree(self.guidance_tracker_tree)
+        for _, row in merged.iterrows():
+            match_result = row.get("match_result")
+            tag = row_tag_by_result.get(match_result, "pending_row")
+            values = tuple(
+                format_value(row.get(col))
+                for col in ("source_quarter", "target_period", "category", "product_or_segment", "direction", "match_result", "note")
+            )
+            self.guidance_tracker_tree.insert("", "end", values=values, tags=(tag,))
 
     def _on_manage_company_change(self) -> None:
         company_name = self.manage_company_var.get()
@@ -688,6 +818,98 @@ class FundamentalChainApp(tk.Tk):
         self.refresh_company_view()
         self.refresh_graph_view()
         messagebox.showinfo("Deleted", "Managed mapping deleted.")
+
+    def refresh_review_view(self) -> None:
+        pending = load_guidance_claims(status="pending_review")
+        rows = [
+            tuple(
+                format_value(row.get(col))
+                for col in ("claim_id", "ticker", "source_quarter", "target_period", "category", "product_or_segment", "direction", "quant_low", "quant_high")
+            )
+            for _, row in pending.iterrows()
+        ]
+        fill_tree(self.review_queue_tree, rows)
+        self.review_selected_claim_id = None
+        self.review_raw_text.configure(state="normal")
+        self.review_raw_text.delete("1.0", "end")
+        self.review_raw_text.configure(state="disabled")
+
+    def _on_review_claim_selected(self, _event: object) -> None:
+        selection = self.review_queue_tree.selection()
+        if not selection:
+            return
+        values = self.review_queue_tree.item(selection[0], "values")
+        if not values:
+            return
+
+        claim_id, _ticker, _source_quarter, _target_period, category, product_or_segment, direction, quant_low, quant_high = values
+        self.review_selected_claim_id = claim_id
+
+        pending = load_guidance_claims(status="pending_review")
+        matches = pending[pending["claim_id"] == claim_id]
+        raw_text = matches.iloc[0]["raw_text"] if not matches.empty else ""
+
+        self.review_raw_text.configure(state="normal")
+        self.review_raw_text.delete("1.0", "end")
+        self.review_raw_text.insert("1.0", raw_text)
+        self.review_raw_text.configure(state="disabled")
+
+        self.review_category_var.set(category)
+        self.review_direction_var.set(direction)
+        self.review_product_var.set("" if product_or_segment == "-" else product_or_segment)
+        self.review_quant_low_var.set("" if quant_low == "-" else quant_low)
+        self.review_quant_high_var.set("" if quant_high == "-" else quant_high)
+
+    def _save_review_edits(self) -> None:
+        if not self.review_selected_claim_id:
+            messagebox.showerror("Selection Error", "Select a pending claim first.")
+            return
+
+        def _optional_float(text: str) -> float | None:
+            text = text.strip()
+            if not text or text.lower() == "nan":
+                return None
+            return float(text)
+
+        try:
+            update_claim(
+                self.review_selected_claim_id,
+                category=self.review_category_var.get(),
+                direction=self.review_direction_var.get(),
+                product_or_segment=self.review_product_var.get().strip(),
+                quant_low=_optional_float(self.review_quant_low_var.get()),
+                quant_high=_optional_float(self.review_quant_high_var.get()),
+            )
+        except (ValueError, TypeError) as exc:
+            messagebox.showerror("Save Error", str(exc))
+            return
+
+        self.refresh_review_view()
+        messagebox.showinfo("Saved", "Claim edits saved.")
+
+    def _confirm_selected_claim(self) -> None:
+        if not self.review_selected_claim_id:
+            messagebox.showerror("Selection Error", "Select a pending claim first.")
+            return
+        try:
+            confirm_claim(self.review_selected_claim_id, reviewed_by="analyst")
+        except ValueError as exc:
+            messagebox.showerror("Confirm Error", str(exc))
+            return
+        self.refresh_review_view()
+        messagebox.showinfo("Confirmed", "Claim confirmed and queued for verification.")
+
+    def _reject_selected_claim(self) -> None:
+        if not self.review_selected_claim_id:
+            messagebox.showerror("Selection Error", "Select a pending claim first.")
+            return
+        try:
+            reject_claim(self.review_selected_claim_id, reviewed_by="analyst")
+        except ValueError as exc:
+            messagebox.showerror("Reject Error", str(exc))
+            return
+        self.refresh_review_view()
+        messagebox.showinfo("Rejected", "Claim rejected.")
 
     def _draw_financial_chart(self, financials, company_name: str) -> None:
         self.financial_figure.clear()

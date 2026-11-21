@@ -506,6 +506,9 @@ python scripts/run_driver_validation.py
 | data/validated_driver_registry.json | Empirically validated driver relations |
 | data/monthly_revenue.csv | Canonical company monthly revenue |
 | data/quarterly_financials.csv | Canonical quarterly financials |
+| data/source_documents.csv | registered earnings-call transcripts/documents used as guidance-claim sources |
+| data/guidance_claims.csv | extracted forward-looking guidance claims and their review status |
+| data/claim_outcomes.csv | verification outcomes matching guidance claims against actual reported results |
 | data/evidence_observations_canonical.csv | Current canonical evidence snapshot |
 | data/history/free_industry_history_panel.csv | Correlation-ready historical panel when restored from evidence-data |
 | data/data_model_manifest.json | Dataset manifest |

@@ -188,6 +188,53 @@ def load_quarterly_financials() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
+def load_source_documents() -> pd.DataFrame:
+    path = DATA_DIR / "source_documents.csv"
+    if not path.exists():
+        return _empty_dataframe(("doc_id", "ticker", "file_path", "source_quarter", "call_date"))
+    df = pd.read_csv(path, dtype={"doc_id": str})
+    validate_dataframe("source_documents", df)
+    return df
+
+
+@lru_cache(maxsize=1)
+def load_guidance_claims() -> pd.DataFrame:
+    path = DATA_DIR / "guidance_claims.csv"
+    if not path.exists():
+        return _empty_dataframe(
+            (
+                "claim_id",
+                "doc_id",
+                "ticker",
+                "source_quarter",
+                "target_period",
+                "category",
+                "product_or_segment",
+                "direction",
+                "quant_low",
+                "quant_high",
+                "raw_text",
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+            )
+        )
+    df = pd.read_csv(path, dtype={"claim_id": str, "doc_id": str})
+    validate_dataframe("guidance_claims", df)
+    return df
+
+
+@lru_cache(maxsize=1)
+def load_claim_outcomes() -> pd.DataFrame:
+    path = DATA_DIR / "claim_outcomes.csv"
+    if not path.exists():
+        return _empty_dataframe(("claim_id", "actual_value", "match_result", "evaluated_at", "note"))
+    df = pd.read_csv(path, dtype={"claim_id": str})
+    validate_dataframe("claim_outcomes", df)
+    return df
+
+
+@lru_cache(maxsize=1)
 def load_financial_field_definitions() -> pd.DataFrame:
     df = pd.read_csv(DATA_DIR / "financial_field_definitions.csv")
     validate_dataframe("financial_field_definitions", df)
@@ -241,6 +288,9 @@ def clear_data_caches() -> None:
     load_financials.cache_clear()
     load_monthly_revenue.cache_clear()
     load_quarterly_financials.cache_clear()
+    load_source_documents.cache_clear()
+    load_guidance_claims.cache_clear()
+    load_claim_outcomes.cache_clear()
     load_financial_field_definitions.cache_clear()
     load_external_data_sources.cache_clear()
     load_macro_factors.cache_clear()
