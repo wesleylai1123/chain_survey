@@ -4,7 +4,7 @@ chain_survey is the main research product in a three-repository investment resea
 
 New: [Multi-asset / ETF Research Lab](docs/multi-asset-research.md) compares stocks, passive/active ETFs and FX through a separate point-in-time JSON service. Launch with `python app/main.py --multi-asset`; supply sourced data or use clearly labeled TEST ONLY fixtures for offline previews. Existing ABF analysis remains on its original entry points.
 
-[Taiwan official data](docs/taiwan-official-data.md): capture 0050, 00981A and USD/TWD directly from TWSE/CBC, preserve raw snapshots and replay offline. The new Official Data tab shows real unadjusted quotes, payout dates, source availability and coverage; unsupported total-return or tax claims remain unavailable.
+Capture official Taiwan data for 0050, 00981A and USD/TWD, then replay the saved snapshot offline. The Official Data tab shows unadjusted quotes and payout dates. The ninth tab, 「淨值與基準」, shows same-date closing premiums or discounts to NAV and two independent total-return index references. Desktop captures include this context by default. CLI captures opt in with `--include-etf-context`, and older snapshots still replay. ETF total return and investment cash flows require complete adjustment and distribution data. [Taiwan official data guide](docs/taiwan-official-data.md)
 
 ABF's audited Company × Product reference slice now has a [machine-readable semantics contract and Level/Change comparison](docs/abf-semantics-validation.md). Open **Semantics & Stability** in the ABF Research Lab or run `python scripts/run_abf_semantics_validation.py` to export independent upside/downside evidence, explicit proxy/PIT limitations and calibration prerequisites.
 

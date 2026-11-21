@@ -33,6 +33,10 @@ jobs:
         run: |
           python scripts/collect_taiwan_official_data.py --replay tests/fixtures/taiwan_official/capture/manifest.json
           xvfb-run -a --server-args='-screen 0 1600x1050x24' python scripts/taiwan_official_ui_smoke.py
+      - name: Replay and render official ETF valuations and index references
+        run: |
+          python scripts/collect_taiwan_official_data.py --replay tests/fixtures/taiwan_etf_context/capture/manifest.json
+          xvfb-run -a --server-args='-screen 0 1600x1050x24' python scripts/taiwan_etf_context_ui_smoke.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -41,4 +45,5 @@ jobs:
             artifacts/multi-asset-*.png
             artifacts/multi-asset-test-only-*.json
             artifacts/taiwan-official-*.png
+            artifacts/taiwan-etf-context-*.png
           if-no-files-found: error

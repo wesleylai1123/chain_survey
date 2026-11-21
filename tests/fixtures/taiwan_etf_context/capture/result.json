@@ -1,0 +1,1542 @@
+{
+  "as_of": "2026-11-21T00:13:12.772288+00:00",
+  "base_currency": "TWD",
+  "contract": "MultiAssetResultV1",
+  "correlations": [
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "00981A.TW",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "USD-TWD",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAI50.TR",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "0050.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAIEX.TR",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "00981A.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "USD-TWD",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "00981A.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAI50.TR",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "left": "00981A.TW",
+      "oos": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAIEX.TR",
+      "sample_size": 0,
+      "train": {
+        "end": null,
+        "reason": "at least three common intervals required",
+        "sample_size": 0,
+        "start": null,
+        "value": null
+      }
+    },
+    {
+      "full": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 14,
+        "start": "2026-11-02",
+        "value": 0.1411492435664642
+      },
+      "left": "USD-TWD",
+      "oos": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 5,
+        "start": "2026-11-13",
+        "value": 0.38376529591630454
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAI50.TR",
+      "sample_size": 14,
+      "train": {
+        "end": "2026-11-13",
+        "reason": null,
+        "sample_size": 9,
+        "start": "2026-11-02",
+        "value": 0.0711611481862345
+      }
+    },
+    {
+      "full": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 14,
+        "start": "2026-11-02",
+        "value": 0.12132038865974715
+      },
+      "left": "USD-TWD",
+      "oos": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 5,
+        "start": "2026-11-13",
+        "value": 0.42419997032221457
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAIEX.TR",
+      "sample_size": 14,
+      "train": {
+        "end": "2026-11-13",
+        "reason": null,
+        "sample_size": 9,
+        "start": "2026-11-02",
+        "value": 0.031469619395676114
+      }
+    },
+    {
+      "full": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 14,
+        "start": "2026-11-02",
+        "value": 0.9974864764274005
+      },
+      "left": "TWSE.TAI50.TR",
+      "oos": {
+        "end": "2026-11-20",
+        "reason": null,
+        "sample_size": 5,
+        "start": "2026-11-13",
+        "value": 0.9969284789832449
+      },
+      "regimes": {
+        "neutral": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_off": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        },
+        "risk_on": {
+          "end": null,
+          "reason": "at least three common intervals required",
+          "sample_size": 0,
+          "start": null,
+          "value": null
+        }
+      },
+      "right": "TWSE.TAIEX.TR",
+      "sample_size": 14,
+      "train": {
+        "end": "2026-11-13",
+        "reason": null,
+        "sample_size": 9,
+        "start": "2026-11-02",
+        "value": 0.9967059183695819
+      }
+    }
+  ],
+  "input_sha256": "e26eab4c092cfe7e84512c0113ccd5336e911a3117e6bd150e1a85e3b756cca4",
+  "instruments": [
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": false,
+      "distributions_complete": false,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "0050.TW",
+      "management_style": "passive",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null,
+        "tracking_difference": null,
+        "tracking_error": null
+      },
+      "name": "元大台灣50",
+      "quality": [
+        {
+          "code": "coverage",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-18"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-19"
+        }
+      ],
+      "quote_currency": "TWD",
+      "return_basis": "unadjusted_price",
+      "returns": [
+        {
+          "end": "2026-11-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-02",
+          "value": null
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-03",
+          "value": null
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-04",
+          "value": null
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-05",
+          "value": null
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-06",
+          "value": null
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-09",
+          "value": null
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-10",
+          "value": null
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-11",
+          "value": null
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-12",
+          "value": null
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-13",
+          "value": null
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-16",
+          "value": null
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-17",
+          "value": null
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-18",
+          "value": null
+        },
+        {
+          "end": "2026-11-20",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-19",
+          "value": null
+        }
+      ],
+      "rolling_returns": [],
+      "symbol": "0050",
+      "unavailable": {
+        "annualized_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_volatility": "unadjusted prices do not establish complete split/distribution adjustments",
+        "earned_income_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "max_drawdown": "unadjusted prices do not establish complete split/distribution adjustments",
+        "net_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_distribution_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_income_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cut_frequency": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cv": "unadjusted prices do not establish complete split/distribution adjustments",
+        "return_of_capital_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sharpe_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sortino_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "terminal_wealth": "unadjusted prices do not establish complete split/distribution adjustments",
+        "total_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "tracking_difference": "unadjusted prices do not establish complete split/distribution adjustments",
+        "tracking_error": "unadjusted prices do not establish complete split/distribution adjustments"
+      }
+    },
+    {
+      "asset_type": "etf",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": false,
+      "distributions_complete": false,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "00981A.TW",
+      "management_style": "active",
+      "market": "TW",
+      "metrics": {
+        "active_return": null,
+        "annualized_return": null,
+        "annualized_volatility": null,
+        "beta": null,
+        "capm_alpha": null,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "information_ratio": null,
+        "max_drawdown": null,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": null
+      },
+      "name": "主動統一台股增長",
+      "quality": [
+        {
+          "code": "coverage",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-03",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-02"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-04",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-03"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-05",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-04"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-06",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-05"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-09",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-06"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-10",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-09"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-11",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-10"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-12",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-11"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-13",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-12"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-16",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-13"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-17",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-16"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-18",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-17"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-19",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-18"
+        },
+        {
+          "code": "unavailable_interval",
+          "end": "2026-11-20",
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "start": "2026-11-19"
+        }
+      ],
+      "quote_currency": "TWD",
+      "return_basis": "unadjusted_price",
+      "returns": [
+        {
+          "end": "2026-11-03",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-02",
+          "value": null
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-03",
+          "value": null
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-04",
+          "value": null
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-05",
+          "value": null
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-06",
+          "value": null
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-09",
+          "value": null
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-10",
+          "value": null
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-11",
+          "value": null
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-12",
+          "value": null
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-13",
+          "value": null
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-16",
+          "value": null
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-17",
+          "value": null
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-18",
+          "value": null
+        },
+        {
+          "end": "2026-11-20",
+          "local_return": null,
+          "reason": "unadjusted prices do not establish complete split/distribution adjustments",
+          "regime": null,
+          "start": "2026-11-19",
+          "value": null
+        }
+      ],
+      "rolling_returns": [],
+      "symbol": "00981A",
+      "unavailable": {
+        "active_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_return": "unadjusted prices do not establish complete split/distribution adjustments",
+        "annualized_volatility": "unadjusted prices do not establish complete split/distribution adjustments",
+        "beta": "unadjusted prices do not establish complete split/distribution adjustments",
+        "capm_alpha": "unadjusted prices do not establish complete split/distribution adjustments",
+        "earned_income_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "information_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "max_drawdown": "unadjusted prices do not establish complete split/distribution adjustments",
+        "net_paid_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_distribution_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "paid_income_yield": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cut_frequency": "unadjusted prices do not establish complete split/distribution adjustments",
+        "payout_cv": "unadjusted prices do not establish complete split/distribution adjustments",
+        "return_of_capital_cash": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sharpe_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "sortino_ratio": "unadjusted prices do not establish complete split/distribution adjustments",
+        "terminal_wealth": "unadjusted prices do not establish complete split/distribution adjustments",
+        "total_return": "unadjusted prices do not establish complete split/distribution adjustments"
+      }
+    },
+    {
+      "asset_type": "fx",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": null,
+      "exchange": null,
+      "fx_base_currency": "USD",
+      "fx_quote_currency": "TWD",
+      "instrument_id": "USD-TWD",
+      "management_style": "none",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": 0.23744755151676888,
+        "annualized_volatility": 0.03505613568420207,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": -0.003285071176542198,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": 0.010554737358861255
+      },
+      "name": "USD/TWD interbank closing spot",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "split_adjusted_price",
+      "returns": [
+        {
+          "end": "2026-11-03",
+          "local_return": 0.005154639175257714,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-02",
+          "value": 0.005154639175257714
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": 0.0018620268620268554,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-03",
+          "value": 0.0018620268620268554
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": 0.001675756375491222,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-04",
+          "value": 0.001675756375491222
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": -0.003285071176542087,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-05",
+          "value": -0.003285071176542087
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": 0.00347900390625,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-06",
+          "value": 0.00347900390625
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": -0.0005170001824704729,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-09",
+          "value": -0.0005170001824704729
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": -0.0001521375323293439,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-10",
+          "value": -0.0001521375323293439
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": 0.0008825319537433263,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-11",
+          "value": 0.0008825319537433263
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": -0.0015506704369242508,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-12",
+          "value": -0.0015506704369242508
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": 0.0014617211766856375,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-13",
+          "value": 0.0014617211766856375
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": -0.0010946907498632363,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-16",
+          "value": -0.0010946907498632363
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": 0.0029528158295282214,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-17",
+          "value": 0.0029528158295282214
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": -0.00015175888548280003,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-18",
+          "value": -0.00015175888548280003
+        },
+        {
+          "end": "2026-11-20",
+          "local_return": -0.0001821383036852975,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-19",
+          "value": -0.0001821383036852975
+        }
+      ],
+      "rolling_returns": [],
+      "symbol": "USD/TWD",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sharpe_ratio": "annual risk-free rate is unknown",
+        "sortino_ratio": "annual risk-free rate is unknown",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    },
+    {
+      "asset_type": "benchmark",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "TWSE.TAI50.TR",
+      "management_style": "none",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": -0.9838458864920248,
+        "annualized_volatility": 0.5740557300182539,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": -0.18438924542385915,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": -0.18397805539072387
+      },
+      "name": "TWSE Taiwan 50 Total Return Index",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "total_return_index",
+      "returns": [
+        {
+          "end": "2026-11-03",
+          "local_return": -0.031370854398290016,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-02",
+          "value": -0.031370854398290016
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": -0.010444036419643754,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-03",
+          "value": -0.010444036419643754
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": -0.026860997861596014,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-04",
+          "value": -0.026860997861596014
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": -0.046366682959668615,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-05",
+          "value": -0.046366682959668615
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": 0.05184109885903587,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-06",
+          "value": 0.05184109885903587
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": 0.027274391543847587,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-09",
+          "value": 0.027274391543847587
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": 0.04094577974702096,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-10",
+          "value": 0.04094577974702096
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": -0.026681126285364676,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-11",
+          "value": -0.026681126285364676
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": 0.012240652514671657,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-12",
+          "value": 0.012240652514671657
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": -0.0628381595142955,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-13",
+          "value": -0.0628381595142955
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": -0.02254794985819175,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-16",
+          "value": -0.02254794985819175
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": 0.0025216217447161515,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-17",
+          "value": 0.0025216217447161515
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": -0.04131704048015161,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-18",
+          "value": -0.04131704048015161
+        },
+        {
+          "end": "2026-11-20",
+          "local_return": -0.059702655795397463,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-19",
+          "value": -0.059702655795397463
+        }
+      ],
+      "rolling_returns": [],
+      "symbol": "TAI50.TR",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sharpe_ratio": "annual risk-free rate is unknown",
+        "sortino_ratio": "annual risk-free rate is unknown",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    },
+    {
+      "asset_type": "benchmark",
+      "benchmark_id": null,
+      "cash_flows": [],
+      "corporate_actions_complete": true,
+      "distributions_complete": true,
+      "domicile": "TW",
+      "exchange": "TWSE",
+      "instrument_id": "TWSE.TAIEX.TR",
+      "management_style": "none",
+      "market": "TW",
+      "metrics": {
+        "annualized_return": -0.9885719214302569,
+        "annualized_volatility": 0.5656202117910616,
+        "earned_income_cash": null,
+        "expense_ratio": null,
+        "gross_paid_cash": null,
+        "max_drawdown": -0.19777836909679536,
+        "net_paid_cash": null,
+        "paid_distribution_yield": null,
+        "paid_income_yield": null,
+        "payout_cut_frequency": null,
+        "payout_cv": null,
+        "return_of_capital_cash": null,
+        "sharpe_ratio": null,
+        "sortino_ratio": null,
+        "terminal_wealth": null,
+        "total_return": -0.19777836909679536
+      },
+      "name": "TWSE TAIEX Total Return Index",
+      "quality": [],
+      "quote_currency": "TWD",
+      "return_basis": "total_return_index",
+      "returns": [
+        {
+          "end": "2026-11-03",
+          "local_return": -0.03589923641546178,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-02",
+          "value": -0.03589923641546178
+        },
+        {
+          "end": "2026-11-04",
+          "local_return": -0.008280453789318187,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-03",
+          "value": -0.008280453789318187
+        },
+        {
+          "end": "2026-11-05",
+          "local_return": -0.03199576136663307,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-04",
+          "value": -0.03199576136663307
+        },
+        {
+          "end": "2026-11-06",
+          "local_return": -0.04505334398059779,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-05",
+          "value": -0.04505334398059779
+        },
+        {
+          "end": "2026-11-09",
+          "local_return": 0.049369725702203215,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-06",
+          "value": 0.049369725702203215
+        },
+        {
+          "end": "2026-11-10",
+          "local_return": 0.02520809437556104,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-09",
+          "value": 0.02520809437556104
+        },
+        {
+          "end": "2026-11-11",
+          "local_return": 0.03617797076169471,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-10",
+          "value": 0.03617797076169471
+        },
+        {
+          "end": "2026-11-12",
+          "local_return": -0.026329633907301364,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-11",
+          "value": -0.026329633907301364
+        },
+        {
+          "end": "2026-11-13",
+          "local_return": 0.013534965209710315,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-12",
+          "value": 0.013534965209710315
+        },
+        {
+          "end": "2026-11-16",
+          "local_return": -0.060332699898370645,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-13",
+          "value": -0.060332699898370645
+        },
+        {
+          "end": "2026-11-17",
+          "local_return": -0.023098688254904576,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-16",
+          "value": -0.023098688254904576
+        },
+        {
+          "end": "2026-11-18",
+          "local_return": 0.0026364223440298318,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-17",
+          "value": 0.0026364223440298318
+        },
+        {
+          "end": "2026-11-19",
+          "local_return": -0.04398623869446827,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-18",
+          "value": -0.04398623869446827
+        },
+        {
+          "end": "2026-11-20",
+          "local_return": -0.062289736579375976,
+          "reason": null,
+          "regime": null,
+          "start": "2026-11-19",
+          "value": -0.062289736579375976
+        }
+      ],
+      "rolling_returns": [],
+      "symbol": "TAIEX.TR",
+      "unavailable": {
+        "earned_income_cash": "market price units unavailable from total-return index or spot FX",
+        "expense_ratio": "expense ratio unavailable at cutoff",
+        "gross_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "net_paid_cash": "market price units unavailable from total-return index or spot FX",
+        "paid_distribution_yield": "market price units unavailable from total-return index or spot FX",
+        "paid_income_yield": "market price units unavailable from total-return index or spot FX",
+        "payout_cut_frequency": "market price units unavailable from total-return index or spot FX",
+        "payout_cv": "market price units unavailable from total-return index or spot FX",
+        "return_of_capital_cash": "market price units unavailable from total-return index or spot FX",
+        "sharpe_ratio": "annual risk-free rate is unknown",
+        "sortino_ratio": "annual risk-free rate is unknown",
+        "terminal_wealth": "market price units unavailable from total-return index or spot FX"
+      }
+    }
+  ],
+  "methodology": {
+    "capm_alpha": "OLS excess-return intercept * periods_per_year; beta requires varying benchmark",
+    "cash": "buy at first grid close; entitlement captured ex-date before same-day pay-date reinvestment; paid cash within grid window; unadjusted investment prices retain distribution facts but do not establish investment units or cash; spot FX remains a carry-free reference",
+    "correlation": "pairwise common declared intervals; minimum 3; chronological floor(70%) train / remainder OOS; no driver promotion",
+    "currency": "exact-date direct/inverse spot; no triangulation, carry or leverage",
+    "expense_ratio": "point-in-time disclosure only; NAV fees are not deducted again",
+    "fees": "proportional deductions once per named transaction; FX fee on initial foreign purchase and paid cash conversion; reinvestment fee on pay-date purchase",
+    "paid_yield": "365-day paid per-unit base-currency payouts / ending split-adjusted market price in base currency; paid_income excludes ROC and unknown classification",
+    "payout_statistics": "CV population stdev / mean of observed pay-date per-unit base-currency payouts; cuts / adjacent observed payouts, including ROC",
+    "price_total_return": "(end split-adjusted price + interval ex-date payouts) / start price - 1; no intra-interval reinvestment assumed; unadjusted investment prices cannot establish total returns, rolling returns or benchmark comparison, regardless of claimed coverage",
+    "regimes": "fresh records whose economic as_of and availability UTC date both equal interval start; available by midnight start; no label carry; delayed legacy records may have no segments; explicit instrument.market must match; stale source flags preserved",
+    "return_grid": "declared adjacent intervals; consecutive monthly calendar months or daily gaps <=14 calendar days; producer verifies exchange sessions; CAGR uses elapsed days/365.25; no filling or gap bridging",
+    "sharpe": "arithmetic mean excess period return / sample stdev * sqrt(periods_per_year); compounded annual risk-free conversion",
+    "sortino": "all-interval root mean square negative excess return; arithmetic mean excess numerator",
+    "taxes": "uniform user withholding scenario applied to all payouts; no capital-gain liquidation tax inferred",
+    "total_return_index": "index ratios already include distributions; no additions",
+    "tracking_difference": "fund compounded total return minus benchmark compounded total return over full grid",
+    "volatility": "sample standard deviation * sqrt(periods_per_year)"
+  },
+  "objective": "accumulation",
+  "quality": [],
+  "schema_version": "1.1.0"
+}
