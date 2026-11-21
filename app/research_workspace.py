@@ -6,8 +6,6 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, font, messagebox, ttk
 
-import numpy as np
-import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm, to_hex
 from matplotlib.dates import DateFormatter
@@ -258,7 +256,7 @@ class ResearchWorkspace(tk.Tk):
         if not path:
             return
         try:
-            self._set_dataset(ResearchDataset(pd.read_csv(path), Path(path).name))
+            self._set_dataset(ResearchDataset.from_csv(path, Path(path).name))
         except (OSError, ValueError) as error:
             messagebox.showerror("無法匯入資料", str(error), parent=self)
 
@@ -343,11 +341,8 @@ class ResearchWorkspace(tk.Tk):
         else:
             b.set_xticks([])
             b.text(0.5, 0.69, "Rolling estimate unavailable", ha="center", color=MUTED, transform=b.transAxes)
-        has_proxy = any(pair[f"{side}_knowledge_time_method"].astype(str).str.contains("proxy").any()
-                        for side in ("feature", "target"))
-        status = "發布順序已檢查"
-        if has_proxy:
-            status += " ／ 含申報期限代理"
+        status = ("按可用日代理對齊 · 實際發布順序未確認" if self.report.uses_proxy
+                  else "按來源發布時間對齊")
         if self.report.coefficient is None:
             status += " ／ 有效樣本不足或序列無變異"
         self.chart_note.configure(text=status)
@@ -370,7 +365,7 @@ class ResearchWorkspace(tk.Tk):
         self.cells.clear()
         features = tuple(key for key in self.dataset.metrics if key != target)
         rows = self.dataset.scan(target, METHODS[method], features)
-        results = {(feature, lag): (value, count) for feature, lag, value, count in rows}
+        results = {(feature, lag): (value, count, proxy) for feature, lag, value, count, proxy in rows}
         self.scan_table.columnconfigure(0, weight=3)
         self._label(self.scan_table, "指標", bold=True, padx=9, bg="#eaf0f2").grid(row=0, column=0, sticky="nsew")
         for j, lag in enumerate(LAGS, 1):
@@ -381,11 +376,12 @@ class ResearchWorkspace(tk.Tk):
             self._label(self.scan_table, self.by_id[feature], size=10, padx=8, pady=4, wraplength=157).grid(
                 row=i, column=0, sticky="nsew", padx=(0, 1), pady=(0, 1))
             for j, lag in enumerate(LAGS, 1):
-                value, count = results[feature, lag]
+                value, count, proxy = results[feature, lag]
                 cell = tk.Frame(self.scan_table, bg=WHITE, highlightthickness=1, highlightbackground=WHITE)
                 cell.grid(row=i, column=j, sticky="nsew", padx=(0, 1), pady=(0, 1))
                 shade = "#eef1f2" if value is None else to_hex(HEAT(NORM(value)))
-                label = self._label(cell, ("—" if value is None else f"{value:+.2f}") + f"\n{count}",
+                marker = "*" if proxy else ""
+                label = self._label(cell, ("—" if value is None else f"{value:+.2f}") + f"\n{count}{marker}",
                                     size=9, bg=shade, fg=WHITE if value and abs(value) >= .83 else INK,
                                     anchor="center", justify="center", pady=4, takefocus=1, cursor="hand2")
                 label.pack(fill="both", expand=True)
@@ -393,7 +389,7 @@ class ResearchWorkspace(tk.Tk):
                     label.bind(trigger, lambda _e, f=feature, l=lag: self._select_cell(f, l))
                 self.cells[feature, lag] = cell
         self.scan_canvas.yview_moveto(0)
-        self.scan_note.configure(text=f"{self.by_id[target]} · {method}   ／   上：係數　下：樣本數")
+        self.scan_note.configure(text=f"{self.by_id[target]} · {method}   ／   上：係數　下：樣本數　* 含可用日代理")
 
     def _select_cell(self, feature, lag):
         self.x.set(self.by_id[feature])

@@ -7,6 +7,7 @@ on:
       - 'app/research_workspace.py'
       - 'core/*correlation_engine.py'
       - 'core/research_workspace.py'
+      - 'data/research_workspace_snapshot.csv'
       - 'tests/test_research_workspace.py'
       - 'scripts/research_workspace_ui_smoke.py'
       - '.github/workflows/correlation-workspace.yml'
@@ -27,7 +28,6 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get install -y xvfb tk fonts-noto-cjk
-          git fetch --depth 1 origin evidence-data:refs/remotes/origin/evidence-data
       - run: python -m unittest discover -s tests -p 'test_research_workspace.py' -v
       - run: xvfb-run -a --server-args='-screen 0 1440x900x24' python scripts/research_workspace_ui_smoke.py
       - uses: actions/upload-artifact@v4

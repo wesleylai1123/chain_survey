@@ -74,10 +74,12 @@ Pearson or Spearman, calendar-month lead/lag, chronological half-samples
 and 12-observation rolling correlations. The scan links each result to
 its aligned observations and source timestamps.
 
-The default data comes from the local historical panel or the local Git
-reference for `evidence-data`. For a single-branch clone, fetch the panel
-reference with `git fetch origin evidence-data:refs/remotes/origin/evidence-data`
-or import the panel CSV. The CSV needs `metric_id`, `period` (YYYY-MM),
+The workspace uses the local historical panel, the local Git reference for
+`evidence-data`, or the bundled 2024-01 to 2026-10 PCB and ABF snapshot
+from evidence commit `d0333c46ff38aebbf0354d22d275d2f8ea30862c`. The snapshot
+retains the original TPCA and MOPS-derived source and availability fields.
+Import a newer panel or fetch the evidence branch to refresh the data.
+The CSV needs `metric_id`, `period` (YYYY-MM),
 `published_at`, `change_pct`, `source`, `source_url` and
 `knowledge_time_method`.
 

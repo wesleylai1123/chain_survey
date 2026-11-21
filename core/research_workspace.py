@@ -13,20 +13,21 @@ from core.operating_correlation_engine import _prepare
 
 
 METRICS = {
-    "pcb_revenue_yoy": "TPCA · 台灣 PCB 營收",
-    "pcb_material_revenue_yoy": "TPCA · PCB 材料營收",
-    "rigid_pcb_export_yoy": "TPCA · 硬板出口",
-    "ccl_export_yoy": "TPCA · CCL 出口",
-    "ccl_import_yoy": "TPCA · CCL 進口",
-    "abf_company_revenue_yoy::3037.TW": "欣興 3037 · 月營收",
-    "abf_company_revenue_yoy::3189.TW": "景碩 3189 · 月營收",
-    "abf_company_revenue_yoy::8046.TW": "南電 8046 · 月營收",
+    "pcb_revenue_yoy": "上市櫃 PCB 營收年增率",
+    "pcb_material_revenue_yoy": "PCB 材料營收年增率",
+    "rigid_pcb_export_yoy": "硬板出口年增率",
+    "ccl_export_yoy": "CCL 出口年增率",
+    "ccl_import_yoy": "CCL 進口年增率",
+    "abf_company_revenue_yoy::3037.TW": "欣興 3037 · 營收年增率",
+    "abf_company_revenue_yoy::3189.TW": "景碩 3189 · 營收年增率",
+    "abf_company_revenue_yoy::8046.TW": "南電 8046 · 營收年增率",
 }
 LAGS = tuple(range(-3, 7))
 MIN_SAMPLES = 8
 ROLLING_WINDOW = 12
 SOURCE_FIELDS = ("source", "source_url", "knowledge_time_method")
 REQUIRED = {"metric_id", "period", "published_at", "change_pct", *SOURCE_FIELDS}
+OBSERVED_TIME_METHODS = {"page_publication_date", "actual_release_time", "actual_publication_time"}
 
 
 def metric_label(metric: str) -> str:
@@ -40,6 +41,11 @@ def _coefficient(pair: pd.DataFrame, method: str, minimum: int) -> float | None:
     return value if np.isfinite(value) else None
 
 
+def _uses_proxy(pair: pd.DataFrame) -> bool:
+    return any(~pair[f"{side}_knowledge_time_method"].isin(OBSERVED_TIME_METHODS).all()
+               for side in ("feature", "target"))
+
+
 @dataclass
 class PairReport:
     samples: pd.DataFrame
@@ -48,17 +54,31 @@ class PairReport:
     later: float | None
     rolling: pd.Series
 
+    @property
+    def uses_proxy(self) -> bool:
+        return _uses_proxy(self.samples)
+
 
 class ResearchDataset:
+    @classmethod
+    def from_csv(cls, source, label: str = "匯入資料") -> ResearchDataset:
+        return cls(pd.read_csv(source, dtype={"metric_id": "string"}), label)
+
     def __init__(self, raw: pd.DataFrame, label: str = "匯入資料") -> None:
         missing = sorted(REQUIRED - set(raw.columns))
         if missing:
             raise ValueError("缺少欄位：" + "、".join(missing))
         # Keep monthly YoY series distinct from daily quotes and price snapshots.
         monthly = raw.loc[raw["period"].astype(str).str.fullmatch(r"\d{4}-(0[1-9]|1[0-2])")].copy()
-        monthly = monthly.dropna(subset=["metric_id", "published_at"])
-        monthly["metric_id"] = monthly["metric_id"].astype(str)
+        for column in ("metric_id", "published_at", *SOURCE_FIELDS):
+            values = monthly[column].astype("string").str.strip()
+            if (values.isna() | values.eq("")).any():
+                raise ValueError(f"月度資料缺少識別或來源欄位內容：{column}")
+            monthly[column] = values
         frame = _prepare(monthly)
+        month_end = frame["period_m"].dt.to_timestamp("M").dt.tz_localize("Asia/Taipei").dt.tz_convert("UTC")
+        if frame["published_at"].isna().any() or (frame["published_at"] < month_end).any():
+            raise ValueError("月度資料的可用時間不得早於月底。")
         if frame.duplicated(["metric_id", "period_m"]).any():
             raise ValueError("同一指標的月份重複。")
         frame = frame.loc[np.isfinite(frame["change_pct"]) & frame["published_at"].notna()]
@@ -109,14 +129,14 @@ class ResearchDataset:
             for lag in LAGS:
                 pair = self.align(feature, target, lag)
                 value = _coefficient(pair, method, MIN_SAMPLES)
-                rows.append((feature, lag, value, len(pair)))
+                rows.append((feature, lag, value, len(pair), _uses_proxy(pair)))
         return rows
 
 
 def load_default_dataset(root: Path) -> ResearchDataset:
     path = Path("data/history/free_industry_history_panel.csv")
     if (root / path).is_file():
-        return ResearchDataset(pd.read_csv(root / path), "本機歷史資料")
+        return ResearchDataset.from_csv(root / path, "本機歷史資料")
     try:
         def read_object(ref):
             return subprocess.run(
@@ -128,6 +148,9 @@ def load_default_dataset(root: Path) -> ResearchDataset:
             content = read_object("origin/evidence-data")
         except subprocess.CalledProcessError:
             content = read_object("evidence-data")
-    except (OSError, subprocess.SubprocessError) as error:
-        raise ValueError("目前沒有歷史資料。可匯入月度證據 CSV。") from error
-    return ResearchDataset(pd.read_csv(BytesIO(content)), "Evidence Data")
+    except (OSError, subprocess.SubprocessError):
+        snapshot = root / "data/research_workspace_snapshot.csv"
+        if not snapshot.is_file():
+            raise ValueError("目前沒有歷史資料。可匯入月度證據 CSV。") from None
+        return ResearchDataset.from_csv(snapshot, "內建歷史快照")
+    return ResearchDataset.from_csv(BytesIO(content), "Evidence Data")
