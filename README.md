@@ -62,6 +62,19 @@ chain_survey remains the main research workspace.
 
 ## What is implemented today
 
+### Topic impact analysis
+
+Open **題材影響分析** in the main desktop window (`./run.sh` or `.\run.ps1`).
+Choose a company and an event to compare products, inspect the reason and lag
+for the strongest direct and indirect paths, and see which supply-chain links
+are product-specific. For example, compare AI infrastructure capex with a
+handset demand slowdown for MediaTek.
+
+Scores are signed scenario-model outputs. The relevance label uses the
+strongest evidenced path, with high at 0.70 or above and medium at 0.35 or
+above. Mixed results keep both directions. Product revenue mix is shown only
+when it is present in the product financial data, with the source period.
+
 ### 1. Real point-in-time evidence
 
 Evidence rows keep both the economic period and the time the data became knowable.
