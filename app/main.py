@@ -79,9 +79,15 @@ def main() -> None:
         launch_app()
         return
 
-    from app.research_workspace import launch_research_workspace
+    if "--desktop" in sys.argv:
+        from app.research_workspace import launch_research_workspace
 
-    launch_research_workspace()
+        launch_research_workspace()
+        return
+
+    from app.research_web import launch_research_web
+
+    launch_research_web()
 
 
 if __name__ == "__main__":

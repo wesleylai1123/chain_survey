@@ -1,0 +1,52 @@
+name: Browser Research Platform
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/main.py"
+      - "app/research_web.py"
+      - "app/web_research/**"
+      - "core/series_research.py"
+      - "tests/test_*research*.py"
+      - "scripts/research_web_smoke.mjs"
+      - "requirements.txt"
+      - "data/**"
+      - ".github/workflows/browser-research.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python -m pip install -r requirements.txt
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps --only-shell chromium
+      - run: |
+          python -m unittest discover -s tests -p test_series_research.py -v
+          python -m unittest discover -s tests -p test_research_web.py -v
+      - name: Exercise browser workspace
+        run: |
+          python app/main.py --no-browser --catalog-file "${RUNNER_TEMP}/chain-survey-test.sqlite3" &
+          trap 'kill "$!"' EXIT
+          for _ in {1..20}; do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:8765/api/catalog; then break; fi
+            sleep 1
+          done
+          node scripts/research_web_smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-research
+          path: artifacts/research-web/*.png
