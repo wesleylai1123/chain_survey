@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>序列研究室｜金融研究工作台</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="/vendor/plotly.js"></script>
+  <script defer src="/vendor/lucide.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳至主要內容</a>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></span>
+        <span>序列研究室</span>
+      </div>
+      <div class="header-actions">
+        <span class="local-label"><span aria-hidden="true"></span>本機工作台</span>
+        <button class="button button-quiet" id="open-groups" type="button"><i data-lucide="folder-open" aria-hidden="true"></i>我的群組</button>
+        <button class="button button-primary" id="save-group" type="button"><i data-lucide="bookmark-plus" aria-hidden="true"></i>儲存群組</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace" id="workspace">
+    <div class="workspace-heading">
+      <h1>金融研究工作台</h1>
+      <span class="workspace-summary" id="workspace-summary"></span>
+    </div>
+
+    <div class="workspace-grid">
+      <aside class="card library" aria-labelledby="library-title">
+        <div class="card-heading library-heading">
+          <div class="heading-label"><i data-lucide="database" aria-hidden="true"></i><h2 id="library-title">資料庫</h2></div>
+          <span class="count-chip" id="catalog-count">—</span>
+        </div>
+        <div class="library-filters">
+          <label class="search-control">
+            <i data-lucide="search" aria-hidden="true"></i>
+            <span class="sr-only">搜尋指標、代碼或來源</span>
+            <input id="catalog-search" type="search" autocomplete="off" placeholder="搜尋指標、代碼或來源">
+          </label>
+          <label class="filter-control">
+            <span class="sr-only">資料分類</span>
+            <i data-lucide="list-filter" aria-hidden="true"></i>
+            <select id="catalog-category"><option value="">全部分類</option></select>
+          </label>
+        </div>
+        <div class="library-caption"><span>指標 / 資料來源</span><span>最新歷史值</span></div>
+        <div class="library-items" id="catalog-items" aria-busy="true">
+          <p class="library-message" role="status">正在載入資料庫…</p>
+        </div>
+        <div class="library-footer">
+          <button class="button import-button" id="open-import" type="button"><i data-lucide="upload" aria-hidden="true"></i>匯入 CSV</button>
+        </div>
+      </aside>
+
+      <section class="card chart-card" aria-labelledby="chart-title">
+        <div class="card-heading chart-heading">
+          <div class="heading-label"><i data-lucide="chart-line" aria-hidden="true"></i><h2 id="chart-title">序列走勢</h2></div>
+          <div class="chart-tools" aria-label="圖表縮放">
+            <button class="icon-button" id="zoom-out" type="button" aria-label="縮小時間軸" title="縮小時間軸" disabled><i data-lucide="zoom-out" aria-hidden="true"></i></button>
+            <button class="icon-button" id="zoom-in" type="button" aria-label="放大時間軸" title="放大時間軸" disabled><i data-lucide="zoom-in" aria-hidden="true"></i></button>
+            <button class="icon-button" id="zoom-reset" type="button" aria-label="重設圖表比例" title="重設圖表比例" disabled><i data-lucide="maximize" aria-hidden="true"></i></button>
+          </div>
+        </div>
+
+        <div class="chart-controls">
+          <div class="chart-control-row">
+            <div class="control-group frequency-control" role="group" aria-label="資料頻率">
+              <span class="control-label" aria-hidden="true">頻率</span>
+              <div class="segmented" id="frequency">
+                <button type="button" data-frequency="D" aria-pressed="false">日</button>
+                <button type="button" data-frequency="M" aria-pressed="true">月</button>
+                <button type="button" data-frequency="Q" aria-pressed="false">季</button>
+              </div>
+            </div>
+            <label class="control-group">
+              <span class="control-label">聚合</span>
+              <select id="aggregation"><option value="last">期末值</option><option value="mean">平均</option><option value="sum">加總</option></select>
+            </label>
+            <div class="segmented preset-control" id="date-presets" role="group" aria-label="快速選擇日期範圍">
+              <button type="button" data-years="1" aria-pressed="false">1 年</button>
+              <button type="button" data-years="3" aria-pressed="false">3 年</button>
+              <button type="button" data-years="5" aria-pressed="false">5 年</button>
+              <button type="button" data-years="all" aria-pressed="true">全部</button>
+            </div>
+          </div>
+          <div class="chart-control-row date-control-row">
+            <span class="control-label">期間</span>
+            <input id="start-date" type="date" aria-label="起始日期">
+            <span class="date-separator" aria-hidden="true">至</span>
+            <input id="end-date" type="date" aria-label="結束日期">
+            <button class="icon-button clear-dates" id="clear-dates" type="button" aria-label="清除日期篩選" title="清除日期篩選" hidden><i data-lucide="x" aria-hidden="true"></i></button>
+          </div>
+        </div>
+
+        <div class="selected-series" id="selected-series" aria-label="疊圖序列"></div>
+        <div class="plot-shell main-plot-shell" id="main-plot-shell" aria-busy="true">
+          <div class="plot" id="main-plot" aria-label="互動時間序列圖"></div>
+          <div class="plot-state" id="chart-status" role="status">
+            <i data-lucide="loader-circle" class="spinner" aria-hidden="true"></i><span>正在載入序列…</span>
+          </div>
+        </div>
+        <div class="chart-foot">
+          <span id="chart-coverage" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <aside class="card analysis-card" aria-labelledby="analysis-title">
+        <div class="card-heading">
+          <div class="heading-label"><i data-lucide="git-compare-arrows" aria-hidden="true"></i><h2 id="analysis-title">相關性分析</h2></div>
+        </div>
+        <form id="analysis-form" class="analysis-form">
+          <div class="pair-control">
+            <label class="pair-label" for="pair-x"><span class="axis-badge axis-x">X</span>解釋序列</label>
+            <select id="pair-x" aria-label="X 解釋序列" required></select>
+            <select class="pair-transform" id="pair-x-transform" aria-label="X 解釋序列轉換"></select>
+          </div>
+          <div class="pair-control">
+            <label class="pair-label" for="pair-y"><span class="axis-badge axis-y">Y</span>比較序列</label>
+            <select id="pair-y" aria-label="Y 比較序列" required></select>
+            <select class="pair-transform" id="pair-y-transform" aria-label="Y 比較序列轉換"></select>
+          </div>
+          <div class="analysis-inputs">
+            <label for="lag"><span>期差 <span id="lag-unit" class="muted">（月）</span></span><input id="lag" type="number" value="1" min="-60" max="60" step="1" required aria-describedby="lag-hint"></label>
+            <label for="window"><span>滾動視窗</span><input id="window" type="number" min="3" max="200" value="12" step="1" required></label>
+          </div>
+          <p class="field-hint" id="lag-hint">正值表示 X 領先 Y</p>
+          <label class="strict-control">
+            <input class="switch" id="strict" type="checkbox" aria-describedby="strict-hint" role="switch">
+            <span><strong>嚴格可用時間</strong><small id="strict-hint">依資料可用時間篩選配對</small></span>
+          </label>
+          <button class="button button-primary calculate-button" id="run-analysis" type="submit"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>計算相關性</button>
+        </form>
+        <div class="analysis-results" id="analysis-results" aria-busy="true">
+          <div class="results-heading"><h3>相關統計</h3><span id="result-context"></span></div>
+          <div class="stats-grid">
+            <div class="stat stat-pearson"><span>Pearson</span><strong id="stat-pearson">—</strong></div>
+            <div class="stat"><span>Spearman</span><strong id="stat-spearman">—</strong></div>
+          </div>
+          <div class="samples-stat"><span>對齊樣本數</span><strong id="stat-n">—</strong></div>
+          <p class="analysis-status" id="analysis-status" role="status"></p>
+          <ul class="warnings" id="analysis-warnings" hidden></ul>
+        </div>
+      </aside>
+
+      <section class="card details-card" aria-label="相關性明細">
+        <div class="details-bar">
+          <div class="tabs" role="tablist" aria-label="相關性明細">
+            <button id="tab-rolling" role="tab" type="button" aria-controls="panel-rolling" aria-selected="true" tabindex="0"><i data-lucide="activity" aria-hidden="true"></i>滾動相關</button>
+            <button id="tab-scatter" role="tab" type="button" aria-controls="panel-scatter" aria-selected="false" tabindex="-1"><i data-lucide="chart-scatter" aria-hidden="true"></i>散布圖</button>
+            <button id="tab-lags" role="tab" type="button" aria-controls="panel-lags" aria-selected="false" tabindex="-1"><i data-lucide="arrow-left-right" aria-hidden="true"></i>領先／落後</button>
+            <button id="tab-samples" role="tab" type="button" aria-controls="panel-samples" aria-selected="false" tabindex="-1"><i data-lucide="table-2" aria-hidden="true"></i>對齊樣本</button>
+          </div>
+          <span class="details-context" id="details-context"></span>
+        </div>
+        <div id="panel-rolling" class="detail-panel" role="tabpanel" aria-labelledby="tab-rolling">
+          <div class="detail-chart-head">
+            <span id="rolling-caption">各期滾動相關係數</span>
+            <div class="plot-key"><span class="key-pearson">Pearson</span><span class="key-spearman">Spearman</span></div>
+          </div>
+          <div class="plot-shell detail-plot-shell">
+            <div class="plot" id="rolling-plot" aria-label="互動滾動相關圖"></div>
+            <p class="plot-state" id="rolling-status" role="status">等待相關性分析</p>
+          </div>
+        </div>
+        <div id="panel-scatter" class="detail-panel" role="tabpanel" aria-labelledby="tab-scatter" hidden>
+          <div class="detail-chart-head"><span id="scatter-caption">X 與 Y 的對齊樣本</span></div>
+          <div class="plot-shell detail-plot-shell">
+            <div class="plot" id="scatter-plot" aria-label="對齊樣本互動散布圖"></div>
+            <p class="plot-state" id="scatter-status" role="status">等待相關性分析</p>
+          </div>
+        </div>
+        <div id="panel-lags" class="detail-panel" role="tabpanel" aria-labelledby="tab-lags" hidden>
+          <div class="detail-chart-head">
+            <span>正期差為 X 領先 · 點選長條套用期差</span>
+            <div class="plot-key"><span class="key-pearson">Pearson</span><span class="key-spearman">Spearman</span></div>
+          </div>
+          <div class="plot-shell detail-plot-shell">
+            <div class="plot" id="lag-plot" aria-label="互動期差相關圖"></div>
+            <p class="plot-state" id="lags-status" role="status">等待相關性分析</p>
+          </div>
+          <div class="table-scroll lag-table-wrap" id="lag-table-wrap" hidden>
+            <table class="data-table lag-table"><caption class="sr-only">各期差的相關統計</caption><thead><tr><th scope="col">期差</th><th scope="col">Pearson</th><th scope="col">Spearman</th><th scope="col">樣本數</th></tr></thead><tbody id="lag-rows"></tbody></table>
+          </div>
+        </div>
+        <div id="panel-samples" class="detail-panel" role="tabpanel" aria-labelledby="tab-samples" hidden>
+          <div class="detail-chart-head">
+            <span id="samples-caption">分析使用的對齊樣本</span>
+            <button class="button button-quiet" id="export-samples" type="button" disabled><i data-lucide="download" aria-hidden="true"></i>下載 CSV</button>
+          </div>
+          <p class="inline-state" id="samples-status" role="status">等待相關性分析</p>
+          <div class="table-scroll sample-table-wrap" id="sample-table-wrap" tabindex="0" aria-label="可捲動的對齊樣本表" hidden>
+            <table class="data-table sample-table"><caption class="sr-only">分析使用的精確對齊樣本</caption><thead id="sample-head"></thead><tbody id="sample-rows"></tbody></table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog class="dialog import-dialog" id="import-dialog" aria-labelledby="import-title">
+    <div class="dialog-heading">
+      <h2 id="import-title">匯入 CSV</h2>
+      <button class="icon-button" type="button" data-close-dialog aria-label="關閉"><i data-lucide="x" aria-hidden="true"></i></button>
+    </div>
+    <form id="import-form" class="dialog-body">
+      <label class="file-drop" id="file-drop">
+        <i data-lucide="file-up" aria-hidden="true"></i>
+        <span><strong id="import-file-label">選擇或拖入 CSV 檔案</strong><small>使用 UTF-8 編碼且第一列為欄名</small></span>
+        <input id="import-file" type="file" accept=".csv,text/csv" aria-label="選擇 CSV 檔案">
+      </label>
+      <p class="dialog-status" id="import-status" role="status" hidden></p>
+      <fieldset id="import-mapping" class="import-mapping" hidden disabled>
+        <legend class="sr-only">設定 CSV 欄位</legend>
+        <div class="import-grid">
+          <label>觀測日期欄 <select id="import-date" required></select></label>
+          <label>可用時間欄 <select id="import-available"></select></label>
+          <label>原始頻率 <select id="import-frequency"><option value="">自動判斷</option><option value="D">日</option><option value="M">月</option><option value="Q">季</option></select></label>
+          <label>資料來源 <input id="import-source" type="text" placeholder="例如，政府統計開放資料"></label>
+          <label>單位 <input id="import-unit" type="text" placeholder="例如，% 或新台幣百萬元"></label>
+        </div>
+        <fieldset class="column-picker">
+          <legend>匯入的數值欄</legend>
+          <div id="import-columns"></div>
+        </fieldset>
+        <div class="table-scroll preview-table-wrap" tabindex="0" aria-label="可捲動的 CSV 預覽">
+          <table class="data-table" id="import-preview"><caption>資料預覽</caption></table>
+        </div>
+      </fieldset>
+      <div class="dialog-actions">
+        <button class="button" type="button" data-close-dialog>取消</button>
+        <button class="button button-primary" id="submit-import" type="submit" disabled>匯入序列</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog groups-dialog" id="groups-dialog" aria-labelledby="groups-title">
+    <div class="dialog-heading">
+      <h2 id="groups-title">我的研究群組</h2>
+      <button class="icon-button" type="button" data-close-dialog aria-label="關閉"><i data-lucide="x" aria-hidden="true"></i></button>
+    </div>
+    <div class="dialog-body">
+      <form class="group-form" id="group-form">
+        <label>群組名稱 <input id="group-name" type="text" placeholder="輸入群組名稱" required maxlength="80" autocomplete="off"></label>
+        <button class="button button-primary" id="submit-group" type="submit">儲存目前設定</button>
+      </form>
+      <p class="dialog-status" id="group-status" role="status" hidden></p>
+      <ul class="group-list" id="group-list"></ul>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

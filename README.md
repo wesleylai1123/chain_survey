@@ -66,9 +66,36 @@ chain_survey remains the main research workspace.
 
 ## What is implemented today
 
-### Correlation research workspace
+### Browser research platform
 
-`./run.sh` (macOS/Linux) or `.\run.ps1` (Windows) opens **相關性研究**.
+`./run.sh` (macOS/Linux) or `.\run.ps1` (Windows) opens a local browser workspace.
+Search the indicator library, combine built-in series with CSV columns from separate files,
+and save chart groups. Select two series for Pearson, Spearman, rolling and lead/lag
+analysis. The CSV download contains the exact aligned observations.
+
+Use CSV dates such as `2026-01-31`, `2026-01` or `2026Q1`. Choose the date
+column, numeric columns and optional availability column. Set the native frequency when
+full dates should be interpreted at a specific frequency. ISO timestamps without a
+time zone are interpreted as UTC. CSV imports are kept under
+`~/.chain-survey/catalog.sqlite3`. Named chart groups are stored in the browser for
+the local address. Keep the same port to continue using saved groups.
+
+Choose the comparison frequency and the last, mean or sum aggregation.
+Transformations run after aggregation. A positive lag compares an earlier X
+period to a later Y period. Strict release-time matching requires verified
+release timing for both sides. A date-only release is treated as a full-day
+interval. Strict mode requires the latest possible X release to be at or before
+the earliest possible Y release. The
+shipped history includes availability estimates and replay snapshots.
+The browser state indicates these limits.
+
+The service listens on loopback. Use `./run.sh --no-browser` to start it and
+open the printed URL manually, or pass `--port 8766` for a specific port.
+Use `./run.sh --desktop` to open the previous **相關性研究** desktop window.
+
+### Monthly correlation desktop workspace
+
+Launch with `./run.sh --desktop` or `.\run.ps1 --desktop`.
 The workspace compares monthly industry and company observations using
 Pearson or Spearman, calendar-month lead/lag, chronological half-samples
 and 12-observation rolling correlations. The scan links each result to
@@ -89,7 +116,7 @@ publication-time methods, including proxies when used.
 
 ### Topic impact analysis
 
-Open **題材影響分析** in the main desktop window (`./run.sh` or `.\run.ps1`).
+Open **題材影響分析** in the desktop company explorer (`./run.sh --company-explorer` or `.\run.ps1 --company-explorer`).
 Choose a company and an event to compare products, inspect the reason and lag
 for the strongest direct and indirect paths, and see which supply-chain links
 are product-specific. For example, compare AI infrastructure capex with a
@@ -466,10 +493,16 @@ Detailed methodology:
 
 ## Key commands
 
-Main desktop app:
+Browser research platform:
 
 ~~~
 python app/main.py
+~~~
+
+Desktop research workspace:
+
+~~~
+python app/main.py --desktop
 ~~~
 
 Demand Evidence Lab:
