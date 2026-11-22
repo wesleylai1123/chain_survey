@@ -19,7 +19,8 @@ permissions:
 
 jobs:
   browser:
-    runs-on: ubuntu-latest
+    # Match the Linux distributions supported by the pinned Playwright version.
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +34,7 @@ jobs:
       - run: |
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps --only-shell chromium
+          sudo apt-get install -y fonts-noto-cjk
       - run: |
           python -m unittest discover -s tests -p test_series_research.py -v
           python -m unittest discover -s tests -p test_research_web.py -v
