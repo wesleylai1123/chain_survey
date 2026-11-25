@@ -6,6 +6,8 @@ __pycache__/
 .mypy_cache/
 .streamlit/
 artifacts/
+/data/source_documents.csv
+/data/guidance_claims.csv
 .codex/
 .claude/
 .DS_Store

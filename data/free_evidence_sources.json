@@ -18,7 +18,9 @@
       "url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O",
       "market": "TPEx",
       "primary": true,
-      "enabled": true
+      "enabled": true,
+      "allow_stale_fallback": true,
+      "max_stale_hours": 72
     },
     {
       "source_id": "moea_export_orders_info_comm",

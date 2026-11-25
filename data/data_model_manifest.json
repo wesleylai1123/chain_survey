@@ -86,6 +86,21 @@
       "description": "官方季報 canonical table"
     },
     {
+      "dataset_id": "source_documents",
+      "file": "data/source_documents.csv",
+      "description": "法說會來源文件登記表"
+    },
+    {
+      "dataset_id": "guidance_claims",
+      "file": "data/guidance_claims.csv",
+      "description": "從法說會抽取的管理層前瞻聲明"
+    },
+    {
+      "dataset_id": "claim_outcomes",
+      "file": "data/claim_outcomes.csv",
+      "description": "聲明與實際財報的對帳結果"
+    },
+    {
       "dataset_id": "industry_driver_models",
       "file": "data/industry_driver_models.json",
       "description": "產業驅動公式、證據映射與產品經濟橋接模型"

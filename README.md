@@ -66,6 +66,67 @@ chain_survey remains the main research workspace.
 
 ## What is implemented today
 
+### Browser research platform
+
+`./run.sh` (macOS/Linux) or `.\run.ps1` (Windows) opens a local browser workspace.
+Search the indicator library, combine built-in series with CSV columns from separate files,
+and save chart groups. Select two series for Pearson, Spearman, rolling and lead/lag
+analysis. The CSV download contains the exact aligned observations.
+
+Use CSV dates such as `2026-01-31`, `2026-01` or `2026Q1`. Choose the date
+column, numeric columns and optional availability column. Set the native frequency when
+full dates should be interpreted at a specific frequency. ISO timestamps without a
+time zone are interpreted as UTC. CSV imports are kept under
+`~/.chain-survey/catalog.sqlite3`. Named chart groups are stored in the browser for
+the local address. Keep the same port to continue using saved groups.
+
+Choose the comparison frequency and the last, mean or sum aggregation.
+Transformations run after aggregation. A positive lag compares an earlier X
+period to a later Y period. Strict release-time matching requires verified
+release timing for both sides. A date-only release is treated as a full-day
+interval. Strict mode requires the latest possible X release to be at or before
+the earliest possible Y release. The
+shipped history includes availability estimates and replay snapshots.
+The browser state indicates these limits.
+
+The service listens on loopback. Use `./run.sh --no-browser` to start it and
+open the printed URL manually, or pass `--port 8766` for a specific port.
+Use `./run.sh --desktop` to open the previous **相關性研究** desktop window.
+
+### Monthly correlation desktop workspace
+
+Launch with `./run.sh --desktop` or `.\run.ps1 --desktop`.
+The workspace compares monthly industry and company observations using
+Pearson or Spearman, calendar-month lead/lag, chronological half-samples
+and 12-observation rolling correlations. The scan links each result to
+its aligned observations and source timestamps.
+
+The workspace uses the local historical panel, the local Git reference for
+`evidence-data`, or the bundled 2024-01 to 2026-10 PCB and ABF snapshot
+from evidence commit `d0333c46ff38aebbf0354d22d275d2f8ea30862c`. The snapshot
+retains the original TPCA and MOPS-derived source and availability fields.
+Import a newer panel or fetch the evidence branch to refresh the data.
+The CSV needs `metric_id`, `period` (YYYY-MM),
+`published_at`, `change_pct`, `source`, `source_url` and
+`knowledge_time_method`.
+
+**研究工具** opens the existing CSV correlation lab, ABF lab, cross-company
+validation, ETF research and Company Explorer. Exported samples carry
+publication-time methods, including proxies when used.
+
+### Topic impact analysis
+
+Open **題材影響分析** in the desktop company explorer (`./run.sh --company-explorer` or `.\run.ps1 --company-explorer`).
+Choose a company and an event to compare products, inspect the reason and lag
+for the strongest direct and indirect paths, and see which supply-chain links
+are product-specific. For example, compare AI infrastructure capex with a
+handset demand slowdown for MediaTek.
+
+Scores are signed scenario-model outputs. The relevance label uses the
+strongest evidenced path, with high at 0.70 or above and medium at 0.35 or
+above. Mixed results keep both directions. Product revenue mix is shown only
+when it is present in the product financial data, with the source period.
+
 ### 1. Real point-in-time evidence
 
 Evidence rows keep both the economic period and the time the data became knowable.
@@ -432,10 +493,16 @@ Detailed methodology:
 
 ## Key commands
 
-Main desktop app:
+Browser research platform:
 
 ~~~
 python app/main.py
+~~~
+
+Desktop research workspace:
+
+~~~
+python app/main.py --desktop
 ~~~
 
 Demand Evidence Lab:
@@ -493,6 +560,9 @@ python scripts/run_driver_validation.py
 | data/validated_driver_registry.json | Empirically validated driver relations |
 | data/monthly_revenue.csv | Canonical company monthly revenue |
 | data/quarterly_financials.csv | Canonical quarterly financials |
+| data/source_documents.csv | registered earnings-call transcripts/documents used as guidance-claim sources |
+| data/guidance_claims.csv | extracted forward-looking guidance claims and their review status |
+| data/claim_outcomes.csv | verification outcomes matching guidance claims against actual reported results |
 | data/evidence_observations_canonical.csv | Current canonical evidence snapshot |
 | data/history/free_industry_history_panel.csv | Correlation-ready historical panel when restored from evidence-data |
 | data/data_model_manifest.json | Dataset manifest |

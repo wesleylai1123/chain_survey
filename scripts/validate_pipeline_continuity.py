@@ -39,8 +39,10 @@ def validate_live(baseline: Path, current_root: Path) -> list[dict[str,Any]]:
     old=_read_csv(old_evidence_path)
     new=_read_csv(new_evidence_path)
 
-    old_ok={str(x["source_id"]) for x in old_status.get("sources",[]) if x.get("status")=="ok"}
-    new_ok={str(x["source_id"]) for x in new_status.get("sources",[]) if x.get("status")=="ok"}
+    usable_status={"ok","stale_fallback"}
+    old_ok={str(x["source_id"]) for x in old_status.get("sources",[]) if x.get("status") in usable_status}
+    new_ok={str(x["source_id"]) for x in new_status.get("sources",[]) if x.get("status") in usable_status}
+    stale_now=sorted(str(x["source_id"]) for x in new_status.get("sources",[]) if x.get("status")=="stale_fallback")
     lost=sorted(old_ok-new_ok)
     ratio=len(new)/max(len(old),1)
 
@@ -54,6 +56,7 @@ def validate_live(baseline: Path, current_root: Path) -> list[dict[str,Any]]:
 
     return [
         _check("live_previously_healthy_sources_present",not lost,"DEGRADED",f"lost={lost or 'none'}"),
+        _check("live_sources_using_stale_fallback",not stale_now,"DEGRADED",f"stale={stale_now or 'none'}"),
         _check("live_row_count_not_collapsed",ratio>=0.5,"FAIL",f"current={len(new)} baseline={len(old)} ratio={ratio:.3f}"),
         _check("live_row_count_reasonable",ratio>=0.8,"DEGRADED",f"current={len(new)} baseline={len(old)} ratio={ratio:.3f}"),
         _check("live_latest_availability_not_regressed",not regress,"FAIL",f"regressed={regress or 'none'}"),

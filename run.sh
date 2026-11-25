@@ -8,4 +8,4 @@ if [ ! -x ".venv/bin/python" ]; then
 fi
 
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python app/main.py
+exec .venv/bin/python app/main.py "$@"
