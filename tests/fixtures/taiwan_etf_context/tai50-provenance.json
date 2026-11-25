@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "acquired_at": "2026-11-20T23:42:43.906332+00:00",
+  "source_url": "https://openapi.twse.com.tw/v1/indicesReport/TAI50I",
+  "sha256": "8dccea1d0250feed3c348f4bf4952202f67257595d04b832d5a0bb7939fddbd8",
+  "bytes": 1277
+}

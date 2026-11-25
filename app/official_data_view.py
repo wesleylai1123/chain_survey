@@ -63,7 +63,7 @@ class OfficialDataView(ttk.Frame):
         identities = {i['instrument_id']: i for i in request['instruments']}
         rows = []
         for row in request['observations']:
-            if identities[row['instrument_id']]['asset_type'] == 'fx':
+            if row['instrument_id'] not in etfs:
                 continue
             state = '未調整' if available(row, request['as_of']) else '截止時不可用'
             rows.append((row['period'], '官方收盤價', row['instrument_id'], row['value'],
@@ -83,8 +83,9 @@ class OfficialDataView(ttk.Frame):
             rows.append((row['period'], '分割參考', row['instrument_id'], row['reference_after'], 'TWD', note, row['source_url']))
         for row in sorted(rows, key=lambda r: (r[0], r[1], r[2])):
             self.tree.insert('', 'end', values=tuple('未知' if value is None else str(value) for value in row))
-        grid = request['period_grid']
         for instrument in request['instruments']:
+            if instrument['asset_type'] not in {'etf', 'fx'}:
+                continue
             by_date = {r['period']: r['value'] for r in request['observations']
                 if r['instrument_id'] == instrument['instrument_id'] and available(r, request['as_of'])}
             first = next((by_date.get(day) for day in grid if by_date.get(day) is not None), None)

@@ -17,6 +17,8 @@ from zoneinfo import ZoneInfo
 import requests
 
 from core.multi_asset.adapters import timestamp, validate_request
+from core.multi_asset.official_context import (CONTEXT_PARSER_VERSION, context_source_requests,
+    parse_index, parse_nav, reference_instruments)
 from core.multi_asset.official_sources import (AVAILABILITY_METHOD, PARSER_VERSION,
     parse_prices, parse_distributions, parse_splits, parse_fx)
 
@@ -28,6 +30,9 @@ UNIVERSE = {
 }
 MAX_MONTHS = 24
 MAX_RESPONSE_BYTES = 2_000_000
+_LEGACY_CAPTURE = ('1.0.0', PARSER_VERSION)
+_CONTEXT_CAPTURE = ('1.1.0', CONTEXT_PARSER_VERSION)
+_INDEX_KINDS = {'index_tai50', 'index_taiex'}
 
 
 def _bytes(payload):
@@ -38,7 +43,9 @@ def _digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def source_requests(symbols, start, end):
+def source_requests(symbols, start, end, *, include_etf_context=False):
+    if not isinstance(include_etf_context, bool):
+        raise ValueError('include_etf_context must be a boolean')
     if not isinstance(symbols, (tuple, list)) or not symbols or len(symbols) != len(set(symbols)) or any(s not in UNIVERSE for s in symbols):
         raise ValueError('Choose supported unique symbols: 0050 and/or 00981A')
     first, last = date.fromisoformat(start), date.fromisoformat(end)
@@ -61,6 +68,8 @@ def source_requests(symbols, start, end):
         source_url='https://www.twse.com.tw/rwd/zh/split/TWTCAU?'+urlencode(dict(response='json', startDate=start.replace('-', ''), endDate=end.replace('-', '')))))
     result.append(dict(source_id='fx', kind='fx', symbol=None, month=None,
         source_url='https://cpx.cbc.gov.tw/api/OpenData/FTDOpenData_Day'))
+    if include_etf_context:
+        result.extend(context_source_requests())
     return result
 
 
@@ -101,7 +110,12 @@ def _fetch_source(spec, audit=None):
     raise ValueError('Official source attempts exhausted')
 
 
-def _parse(raw, entry):
+def _parse(raw, entry, manifest):
+    if manifest['parser_version'] == CONTEXT_PARSER_VERSION:
+        if entry['kind'] == 'nav':
+            return parse_nav(raw, entry, manifest['symbols'])
+        if entry['kind'] in _INDEX_KINDS:
+            return parse_index(raw, entry, entry['kind'])
     if entry['kind'] == 'price':
         return parse_prices(raw, entry, entry['symbol'], entry['month'])
     if entry['kind'] == 'dividend':
@@ -131,8 +145,9 @@ def _inside(parent, relative):
 def _build_request(manifest, raw_sources):
     start, end = manifest['start'], manifest['end']
     prices, distributions, splits, rates = [], [], [], []
+    nav_observations, index_observations = [], []
     for entry, raw in raw_sources:
-        rows = _parse(raw, entry)
+        rows = _parse(raw, entry, manifest)
         if entry['kind'] == 'price':
             prices.extend(r for r in rows if start <= r['period'] <= end)
         elif entry['kind'] == 'dividend':
@@ -141,8 +156,12 @@ def _build_request(manifest, raw_sources):
                 or (r['pay_date'] is None and r['ex_date'] <= end))
         elif entry['kind'] == 'splits':
             splits.extend(r for r in rows if start <= r['period'] <= end and r['instrument_id'][:-3] in manifest['symbols'])
-        else:
+        elif entry['kind'] == 'fx':
             rates.extend(r for r in rows if start <= r['period'] <= end)
+        elif entry['kind'] == 'nav':
+            nav_observations.extend(rows)
+        elif entry['kind'] in _INDEX_KINDS:
+            index_observations.extend(rows)
     grid = sorted({r['period'] for r in prices})
     if len(grid) < 2:
         raise ValueError('At least two official trading dates are required')
@@ -165,7 +184,7 @@ def _build_request(manifest, raw_sources):
     prices.extend(dict(instrument_id='USD-TWD', period=r['period'], value=r['rate'],
         **{k: r[k] for k in ('published_at', 'acquired_at', 'source_url', 'snapshot_id')}) for r in rates if r['period'] in grid)
     lineage = dict(kind='TAIWAN_OFFICIAL_AS_ACQUIRED', capture_id=manifest['capture_id'],
-        captured_at=manifest['captured_at'], parser_version=PARSER_VERSION, availability_method=AVAILABILITY_METHOD,
+        captured_at=manifest['captured_at'], parser_version=manifest['parser_version'], availability_method=AVAILABILITY_METHOD,
         price_basis='unadjusted', splits=splits, distribution_records=distributions,
         instrument_metadata=manifest['instrument_metadata'],
         sources=manifest['sources'], nominal_initial_capital='1 reporting-currency unit; not user account capital',
@@ -176,6 +195,13 @@ def _build_request(manifest, raw_sources):
             'Supplied trading-date union is not an independently verified exchange calendar.',
             'CBC interbank close is a research reference, not an executable broker FX quote.',
             'Benchmarks, fees, underlying holdings and personalized taxes are not inferred.'])
+    if manifest['parser_version'] == CONTEXT_PARSER_VERSION:
+        instruments.extend(manifest['reference_instruments'])
+        grid_dates = set(grid)
+        prices.extend({key: value for key, value in row.items() if key != 'price_index'}
+            for row in index_observations if row['period'] in grid_dates)
+        lineage['etf_context'] = dict(schema_version='1.0.0', reference_role='independent_research_only',
+            nav_observations=nav_observations, index_observations=index_observations)
     request = dict(contract='MultiAssetResearchV1', schema_version='1.1.0', as_of=manifest['captured_at'],
         base_currency=manifest['base_currency'], objective='accumulation', periods_per_year=252, period_grid=grid,
         risk_free_rate=None, rolling_windows=[21, 63, 252], instruments=instruments, observations=prices,
@@ -187,8 +213,9 @@ def _build_request(manifest, raw_sources):
 
 
 def capture_official_data(symbols, start, end, output_dir, *, base_currency='TWD', fetcher=None,
-                         clock=None, pace_seconds=2.0):
-    specs = source_requests(symbols, start, end)
+                         clock=None, pace_seconds=2.0, include_etf_context=False):
+    specs = source_requests(symbols, start, end, include_etf_context=include_etf_context)
+    schema_version, parser_version = _CONTEXT_CAPTURE if include_etf_context else _LEGACY_CAPTURE
     clock = clock or (lambda: datetime.now(timezone.utc).isoformat())
     now = timestamp(clock())
     if end > now.astimezone(ZoneInfo('Asia/Taipei')).date().isoformat():
@@ -201,10 +228,12 @@ def capture_official_data(symbols, start, end, output_dir, *, base_currency='TWD
     root.mkdir(parents=True, exist_ok=True)
     run = root/'runs'/uuid.uuid4().hex
     (run/'raw').mkdir(parents=True)
-    manifest = dict(contract='TaiwanOfficialCaptureV1', schema_version='1.0.0', capture_id=run.name,
+    manifest = dict(contract='TaiwanOfficialCaptureV1', schema_version=schema_version, capture_id=run.name,
         start=start, end=end, symbols=sorted(symbols), base_currency=base_currency,
         instrument_metadata={symbol: copy.deepcopy(UNIVERSE[symbol]) for symbol in sorted(symbols)},
-        captured_at=None, parser_version=PARSER_VERSION, sources=[], attempts=[])
+        captured_at=None, parser_version=parser_version, sources=[], attempts=[])
+    if include_etf_context:
+        manifest['reference_instruments'] = reference_instruments()
     raw_sources = []
     try:
         for index, spec in enumerate(specs):
@@ -237,7 +266,7 @@ def capture_official_data(symbols, start, end, output_dir, *, base_currency='TWD
                 with target.open('xb') as stream:
                     stream.write(raw)
             manifest['sources'].append(entry)
-            _parse(raw, entry)
+            _parse(raw, entry, manifest)
             raw_sources.append((entry, raw))
             if pace_seconds and index+1 < len(specs):
                 time.sleep(pace_seconds)
@@ -258,19 +287,40 @@ def capture_official_data(symbols, start, end, output_dir, *, base_currency='TWD
         raise
 
 
+def _validate_reference_instruments(frozen):
+    expected = reference_instruments()
+    if not isinstance(frozen, list) or len(frozen) != len(expected):
+        raise ValueError('Capture is missing required frozen reference instruments')
+    for definition, canonical in zip(frozen, expected):
+        if not isinstance(definition, dict) or definition.keys() != canonical.keys():
+            raise ValueError('Capture reference instrument shape is invalid')
+        name = definition['name']
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError('Capture reference instrument name is invalid')
+        # Display names are frozen. Source-defined identity and return semantics are versioned.
+        if any(type(definition[key]) is not type(value) or definition[key] != value
+               for key, value in canonical.items() if key != 'name'):
+            raise ValueError('Capture reference instrument identity or semantics changed')
+
+
 def load_capture(path):
     manifest_path = Path(path).resolve()
     raw_manifest = manifest_path.read_bytes()
     manifest = json.loads(raw_manifest.decode('utf-8'))
-    if manifest.get('contract') != 'TaiwanOfficialCaptureV1' or manifest.get('schema_version') != '1.0.0' or manifest.get('parser_version') != PARSER_VERSION:
+    versions = (manifest.get('schema_version'), manifest.get('parser_version'))
+    if manifest.get('contract') != 'TaiwanOfficialCaptureV1' or versions not in (_LEGACY_CAPTURE, _CONTEXT_CAPTURE):
         raise ValueError('Unsupported official capture or parser version')
-    expected = source_requests(manifest['symbols'], manifest['start'], manifest['end'])
+    include_etf_context = versions == _CONTEXT_CAPTURE
+    expected = source_requests(manifest['symbols'], manifest['start'], manifest['end'],
+        include_etf_context=include_etf_context)
     frozen_metadata = manifest.get('instrument_metadata')
     if not isinstance(frozen_metadata, dict) or set(frozen_metadata) != set(manifest['symbols']):
         raise ValueError('Capture is missing frozen instrument metadata')
     for symbol, metadata in frozen_metadata.items():
         if not isinstance(metadata, dict) or not isinstance(metadata.get('name'), str) or not metadata['name'] or metadata.get('management_style') not in {'active', 'passive'} or metadata.get('metadata_source') != f'https://www.twse.com.tw/zh/ETFortune/etfInfo/{symbol}':
             raise ValueError('Capture instrument metadata is invalid')
+    if include_etf_context:
+        _validate_reference_instruments(manifest.get('reference_instruments'))
     entries = manifest.get('sources')
     if not isinstance(entries, list) or len(expected) != len(entries):
         raise ValueError('Capture is missing required source responses')
