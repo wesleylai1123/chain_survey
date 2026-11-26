@@ -1,0 +1,61 @@
+{
+  "pipeline": "live",
+  "validated_at": "2026-11-26T09:28:47.535563+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "live_sources_minimum",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "usable=5/5 fresh=5 stale=0"
+    },
+    {
+      "name": "live_fresh_sources_reasonable",
+      "passed": true,
+      "severity": "DEGRADED",
+      "detail": "fresh=5/5 stale=0"
+    },
+    {
+      "name": "live_stale_within_limit",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "stale_sources=0"
+    },
+    {
+      "name": "live_evidence_nonempty",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "10"
+    },
+    {
+      "name": "live_pit_policy",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "collection_time_conservative"
+    },
+    {
+      "name": "live_raw_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "raw sha256 required"
+    },
+    {
+      "name": "live_run_trace",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "pipeline_run_id required"
+    },
+    {
+      "name": "live_retrieval_status",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "FRESH"
+    },
+    {
+      "name": "live_reliability_prior",
+      "passed": true,
+      "severity": "FAIL",
+      "detail": "prior only"
+    }
+  ]
+}
