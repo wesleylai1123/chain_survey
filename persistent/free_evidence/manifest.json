@@ -6,7 +6,7 @@
       "collected_at": "2026-11-18T08:30:28.385294+00:00",
       "fetch_collected_at": "2026-11-18T08:30:28.385294+00:00",
       "source": "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
-      "last_verified_at": "2026-11-27T09:39:06.383163+00:00"
+      "last_verified_at": "2026-11-28T08:53:54.864032+00:00"
     },
     "tpex_monthly_revenue": {
       "sha256": "f82dba0024abefd90f4942d796ad25f375728dc09cb8584b885544ea7b7cbff0",
@@ -14,32 +14,32 @@
       "collected_at": "2026-11-17T09:11:28.172702+00:00",
       "fetch_collected_at": "2026-11-17T09:11:28.172702+00:00",
       "source": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap05_O",
-      "last_verified_at": "2026-11-27T09:39:07.128283+00:00"
+      "last_verified_at": "2026-11-28T08:53:56.918754+00:00"
     },
     "moea_export_orders_info_comm": {
-      "sha256": "4cbbfe2cc7267807314d08c557aa56f977f12e9ebfa881180c7c94e46c150049",
-      "latest_snapshot": "raw/moea_export_orders_info_comm/20261127T093911Z-4cbbfe2cc726.json",
+      "sha256": "43f7f06a1ee8c44984273e7024220360b418ccd24280362559f218319dd738ea",
+      "latest_snapshot": "raw/moea_export_orders_info_comm/20261128T085402Z-43f7f06a1ee8.json",
       "collected_at": "2026-11-20T08:29:34.832591+00:00",
-      "fetch_collected_at": "2026-11-27T09:39:11.741096+00:00",
-      "last_verified_at": "2026-11-27T09:39:11.741096+00:00",
+      "fetch_collected_at": "2026-11-28T08:54:02.551119+00:00",
+      "last_verified_at": "2026-11-28T08:54:02.551119+00:00",
       "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.9..M&startTime=1984-M1&endTime=2026-M10",
       "observation_sha256": "223db773ffcbf954df075ce98538a880045d9697ebc1e8f29daacba035559e58"
     },
     "moea_export_orders_electronics": {
-      "sha256": "3c62bc2563deede6cc5b890bae1b00844b6a72738bf741312522a6b197275fcf",
-      "latest_snapshot": "raw/moea_export_orders_electronics/20261127T093916Z-3c62bc2563de.json",
+      "sha256": "db2f4026670be0d0f3448f571646a29adc6e18af535154de27d5fd5f9ed10385",
+      "latest_snapshot": "raw/moea_export_orders_electronics/20261128T085407Z-db2f4026670b.json",
       "collected_at": "2026-11-20T08:29:38.586550+00:00",
-      "fetch_collected_at": "2026-11-27T09:39:16.105994+00:00",
-      "last_verified_at": "2026-11-27T09:39:16.105994+00:00",
+      "fetch_collected_at": "2026-11-28T08:54:07.276755+00:00",
+      "last_verified_at": "2026-11-28T08:54:07.276755+00:00",
       "source": "https://nstatdb.dgbas.gov.tw/dgbasAll/webMain.aspx?sdmx/A050106010/2.6..M&startTime=1984-M1&endTime=2026-M10",
       "observation_sha256": "51fc4ee3f8d0f22b092607e4fe13543ed0368831e200bad2c47e336eb38a77c5"
     },
     "tpca_monthly_industry": {
-      "sha256": "0c85f6e3cd95036d1abf8ab563d3529982a6f54647c3d4fad5057d70ef2783a7",
-      "latest_snapshot": "raw/tpca_monthly_industry/20261127T093917Z-0c85f6e3cd95.html",
-      "collected_at": "2026-11-27T09:39:17.479821+00:00",
-      "fetch_collected_at": "2026-11-27T09:39:17.479821+00:00",
-      "last_verified_at": "2026-11-27T09:39:17.479821+00:00",
+      "sha256": "140da886e8be0c2c429b8282a8c5de9803fbb1849c67076e8f4667585e9769da",
+      "latest_snapshot": "raw/tpca_monthly_industry/20261128T085409Z-140da886e8be.html",
+      "collected_at": "2026-11-28T08:54:09.317575+00:00",
+      "fetch_collected_at": "2026-11-28T08:54:09.317575+00:00",
+      "last_verified_at": "2026-11-28T08:54:09.317575+00:00",
       "source": "https://www.tpca.org.tw/web/list_news.php?menu_no=312&mod_no=184"
     }
   }
